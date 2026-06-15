@@ -107,6 +107,7 @@ function normalizeCvProfileInput(value: unknown): unknown {
   }
 
   const normalized: Record<string, unknown> = { ...value };
+  stripEmptyStrings(normalized);
 
   if (!hasNonEmptyString(normalized.summary)) {
     normalized.summary = findFirstString(normalized, [
@@ -121,6 +122,12 @@ function normalizeCvProfileInput(value: unknown): unknown {
   }
 
   normalized.workExperience = normalizeWorkExperience(normalized.workExperience);
+  normalized.skills = normalizeStringArray(normalized.skills);
+  normalized.industries = normalizeStringArray(normalized.industries);
+  normalized.companies = normalizeStringArray(normalized.companies);
+  normalized.achievements = normalizeStringArray(normalized.achievements);
+  normalized.education = normalizeObjectArray(normalized.education);
+  normalized.projects = normalizeObjectArray(normalized.projects);
 
   return normalized;
 }
@@ -130,19 +137,58 @@ function normalizeWorkExperience(value: unknown): unknown {
     return value;
   }
 
-  return value.map((entry) => {
+  const merged = new Map<string, Record<string, unknown>>();
+
+  for (const entry of value) {
     if (!isRecord(entry)) {
-      return entry;
+      continue;
     }
 
     const normalizedEntry: Record<string, unknown> = { ...entry };
+    stripEmptyStrings(normalizedEntry);
 
     if (!hasNonEmptyString(normalizedEntry.role)) {
       normalizedEntry.role = findFirstString(normalizedEntry, ["title", "position", "jobTitle"]);
     }
 
-    return normalizedEntry;
-  });
+    normalizedEntry.responsibilities = normalizeStringArray(normalizedEntry.responsibilities);
+    normalizedEntry.technologies = normalizeStringArray(normalizedEntry.technologies);
+    normalizedEntry.achievements = normalizeStringArray(normalizedEntry.achievements);
+
+    const key = buildWorkExperienceKey(normalizedEntry);
+    const existing = merged.get(key);
+
+    if (existing) {
+      mergeWorkExperience(existing, normalizedEntry);
+    } else {
+      merged.set(key, normalizedEntry);
+    }
+  }
+
+  return [...merged.values()];
+}
+
+function buildWorkExperienceKey(entry: Record<string, unknown>): string {
+  return [
+    asNonEmptyString(entry.company) ?? "unknown-company",
+    asNonEmptyString(entry.role) ?? "unknown-role",
+    asNonEmptyString(entry.startDate) ?? "",
+    asNonEmptyString(entry.endDate) ?? ""
+  ]
+    .map((value) => value.toLowerCase())
+    .join("|");
+}
+
+function mergeWorkExperience(target: Record<string, unknown>, source: Record<string, unknown>): void {
+  for (const field of ["company", "role", "location", "startDate", "endDate", "description"] as const) {
+    if (!hasNonEmptyString(target[field]) && hasNonEmptyString(source[field])) {
+      target[field] = source[field];
+    }
+  }
+
+  target.responsibilities = mergeStringArrays(target.responsibilities, source.responsibilities);
+  target.technologies = mergeStringArrays(target.technologies, source.technologies);
+  target.achievements = mergeStringArrays(target.achievements, source.achievements);
 }
 
 function buildSummaryFallback(profile: Record<string, unknown>): string {
@@ -181,6 +227,59 @@ function findFirstString(record: Record<string, unknown>, keys: string[]): strin
   }
 
   return undefined;
+}
+
+function normalizeObjectArray(value: unknown): unknown {
+  if (!Array.isArray(value)) {
+    return value;
+  }
+
+  return value
+    .filter(isRecord)
+    .map((entry) => {
+      const normalizedEntry: Record<string, unknown> = { ...entry };
+      stripEmptyStrings(normalizedEntry);
+      return normalizedEntry;
+    });
+}
+
+function mergeStringArrays(left: unknown, right: unknown): string[] {
+  return uniqueCaseInsensitive([...normalizeStringArray(left), ...normalizeStringArray(right)]);
+}
+
+function normalizeStringArray(value: unknown): string[] {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+
+  return uniqueCaseInsensitive(
+    value.filter((item): item is string => typeof item === "string").map((item) => item.trim()).filter(Boolean)
+  );
+}
+
+function uniqueCaseInsensitive(items: string[]): string[] {
+  const seen = new Set<string>();
+  const result: string[] = [];
+
+  for (const item of items) {
+    const key = item.toLowerCase();
+    if (seen.has(key)) {
+      continue;
+    }
+
+    seen.add(key);
+    result.push(item);
+  }
+
+  return result;
+}
+
+function stripEmptyStrings(record: Record<string, unknown>): void {
+  for (const [key, value] of Object.entries(record)) {
+    if (typeof value === "string" && value.trim().length === 0) {
+      delete record[key];
+    }
+  }
 }
 
 function hasNonEmptyString(value: unknown): boolean {

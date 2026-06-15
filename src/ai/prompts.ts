@@ -61,7 +61,7 @@ Return a single JSON object with exactly this shape:
   "achievements": ["string"]
 }
 
-Use empty arrays where no evidence exists. Omit optional fields when unknown. Extract each work experience entry by company and role into "workExperience"; do not use a "title" key. If the same company has multiple roles, create one entry per role. Keep "companies" as a simple list of employer names. The "summary" field is required; if the CV has no explicit summary, write a concise evidence-based summary from the CV content.
+Use empty arrays where no evidence exists. Omit optional fields when unknown; do not output empty strings. Extract each work experience entry by company and role into "workExperience"; do not use a "title" key. Do not create duplicate entries for the same company, role, startDate, and endDate. If one role mentions multiple technologies, responsibilities, or achievements, combine them into the same entry. If the same company has genuinely different roles, create one entry per role. Keep "companies" as a simple list of employer names. The "summary" field is required; if the CV has no explicit summary, write a concise evidence-based summary from the CV content.
 
 CV:
 ${cvText}`
