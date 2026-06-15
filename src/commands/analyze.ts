@@ -29,7 +29,7 @@ export function createAnalyzeCommand(): Command {
     .option("--cv <path>", "Path to a CV/resume text or markdown file.")
     .requiredOption("--job <path>", "Path to a job description text file.")
     .option("--provider <provider>", "LLM provider to use: ollama or openai.")
-    .option("--save-context", "Save an extracted --cv profile to context/profile.json.")
+    .option("--no-save-context", "Do not save an extracted --cv profile to context/profile.json.")
     .action(async (options: AnalyzeOptions) => {
       await runAnalyze(options);
     });
@@ -53,7 +53,7 @@ async function runAnalyze(options: AnalyzeOptions): Promise<void> {
     logger.info("Extracting CV profile...");
     profile = await extractCvProfile(provider, cvText);
 
-    if (options.saveContext) {
+    if (options.saveContext !== false) {
       await saveProfileContext(profile);
       logger.success(`Saved parsed profile to ${PROFILE_CONTEXT_PATH}`);
     }

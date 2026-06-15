@@ -4,19 +4,27 @@
 
 There is no frontend, database, authentication, or remote app server. The tool is local-first: files are read from your machine, outputs are written to `output/`, and you can use a local Ollama model when you do not want CV content sent to a cloud provider.
 
-## Stateless By Default
+## Context Saved By Default
 
-Version 1 is stateless by default. When you pass `--cv`, the CLI reads and extracts that CV for the current run only.
+When you pass `--cv`, the CLI reads and extracts that CV, uses the fresh profile for the current run, and saves the parsed profile to:
 
-An optional local context file is supported at:
+```txt
+context/profile.json
+```
+
+Use `--no-save-context` if you want to analyze a CV without updating the saved profile:
+
+```bash
+npm run dev -- analyze --cv ./examples/cv.md --job ./examples/job.txt --provider ollama --no-save-context
+```
+
+A local context file is supported at:
 
 ```txt
 context/profile.json
 ```
 
 That file stores a previously extracted CV profile. It is only used when `analyze` is run without `--cv`. Explicit CLI input always wins: if both `--cv` and `context/profile.json` exist, the CLI uses `--cv`.
-
-The app does not automatically save parsed CV data during `analyze`. Use `--save-context` or `profile build` when you want to write `context/profile.json`.
 
 ## Install
 
@@ -70,7 +78,7 @@ The OpenAI provider uses the official OpenAI TypeScript SDK and the Responses AP
 
 ## Build A Profile Context
 
-Create or replace `context/profile.json`:
+You can create or replace `context/profile.json` directly:
 
 ```bash
 npm run dev -- profile build --cv ./examples/cv.md --provider ollama
@@ -96,10 +104,10 @@ Once `context/profile.json` exists, you can analyze a job without passing `--cv`
 npm run dev -- analyze --job ./examples/job.txt --provider ollama
 ```
 
-To save context while analyzing an explicit CV:
+To analyze an explicit CV without saving it to context:
 
 ```bash
-npm run dev -- analyze --cv ./examples/cv.md --job ./examples/job.txt --provider ollama --save-context
+npm run dev -- analyze --cv ./examples/cv.md --job ./examples/job.txt --provider ollama --no-save-context
 ```
 
 ## Example Output
