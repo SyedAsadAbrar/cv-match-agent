@@ -18,7 +18,7 @@ export async function writeAnalysisOutput(rawAnalysis: RawAnalysis): Promise<str
   await writeTextFile(outputFiles[0], renderMatchReport(rawAnalysis.matchAnalysis));
   await writeTextFile(outputFiles[1], renderCvImprovements(rawAnalysis.applicationAssets));
   await writeTextFile(outputFiles[2], renderLinkedinMessage(rawAnalysis.applicationAssets.linkedinMessage));
-  await writeTextFile(outputFiles[3], `${rawAnalysis.applicationAssets.coverLetter.trim()}\n`);
+  await writeTextFile(outputFiles[3], renderCoverLetter(rawAnalysis.applicationAssets.coverLetter, rawAnalysis));
   await writeTextFile(outputFiles[4], renderInterviewPrep(rawAnalysis.applicationAssets));
   await writeTextFile(outputFiles[5], `${JSON.stringify(rawAnalysis.cvProfile, null, 2)}\n`);
   await writeTextFile(outputFiles[6], `${JSON.stringify(rawAnalysis, null, 2)}\n`);
@@ -139,6 +139,21 @@ function renderLinkedinMessage(message: string): string {
   const formatted = [greeting, body].filter(Boolean).join("\n\n");
 
   return `${formatted}\n`;
+}
+
+function renderCoverLetter(coverLetter: string, rawAnalysis: RawAnalysis): string {
+  const trimmed = coverLetter.trim();
+  const candidateName = rawAnalysis.cvProfile.name?.trim() || "Candidate";
+
+  if (hasProfessionalClosing(trimmed)) {
+    return `${trimmed}\n`;
+  }
+
+  return `${trimmed}\n\nRegards,\n${candidateName}\n`;
+}
+
+function hasProfessionalClosing(text: string): boolean {
+  return /(?:^|\n)\s*(regards|sincerely|best regards|kind regards),?\s*(?:\n|$)/i.test(text);
 }
 
 function splitSentences(text: string): string[] {

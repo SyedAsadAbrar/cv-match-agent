@@ -170,6 +170,7 @@ Rules:
 - Keep the LinkedIn message natural, recruiter-friendly, meaningful, and roughly 75-120 words.
 - The cover letter should be substantial enough to be useful: 4-6 concise paragraphs and roughly 250-400 words.
 - Make the cover letter specific to the role, company, profile evidence, and match analysis.
+- End the cover letter with a professional closing in the format "Regards," followed by the candidate's name on the next line. If the candidate name is unknown, use "Regards," followed by "Candidate".
 - Do not claim experience that is not present in the profile.
 - Missing keywords should be keywords from the job that are not clearly present in the profile.
 - Do not imply any guarantee of interviews or offers.
