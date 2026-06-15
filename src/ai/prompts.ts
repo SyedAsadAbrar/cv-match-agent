@@ -38,8 +38,8 @@ Return a single JSON object with exactly this shape:
   "companies": ["string"],
   "workExperience": [
     {
-      "title": "optional string",
       "company": "optional string",
+      "role": "optional string",
       "location": "optional string",
       "startDate": "optional string",
       "endDate": "optional string",
@@ -60,7 +60,7 @@ Return a single JSON object with exactly this shape:
   "achievements": ["string"]
 }
 
-Use empty arrays where no evidence exists. Omit optional fields when unknown. Extract each role from the CV's work experience or employment history into "workExperience"; keep "companies" as a simple list of employer names. The "summary" field is required; if the CV has no explicit summary, write a concise evidence-based summary from the CV content.
+Use empty arrays where no evidence exists. Omit optional fields when unknown. Extract each work experience entry by company and role into "workExperience"; do not use a "title" key. If the same company has multiple roles, create one entry per role. Keep "companies" as a simple list of employer names. The "summary" field is required; if the CV has no explicit summary, write a concise evidence-based summary from the CV content.
 
 CV:
 ${cvText}`

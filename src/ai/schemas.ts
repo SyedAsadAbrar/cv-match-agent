@@ -21,8 +21,8 @@ const cvProfileBaseSchema = z.object({
   companies: z.array(z.string()).default([]),
   workExperience: z.array(
     z.object({
-      title: z.string().optional(),
       company: z.string().optional(),
+      role: z.string().optional(),
       location: z.string().optional(),
       startDate: z.string().optional(),
       endDate: z.string().optional(),
@@ -120,7 +120,29 @@ function normalizeCvProfileInput(value: unknown): unknown {
     ]) ?? buildSummaryFallback(normalized);
   }
 
+  normalized.workExperience = normalizeWorkExperience(normalized.workExperience);
+
   return normalized;
+}
+
+function normalizeWorkExperience(value: unknown): unknown {
+  if (!Array.isArray(value)) {
+    return value;
+  }
+
+  return value.map((entry) => {
+    if (!isRecord(entry)) {
+      return entry;
+    }
+
+    const normalizedEntry: Record<string, unknown> = { ...entry };
+
+    if (!hasNonEmptyString(normalizedEntry.role)) {
+      normalizedEntry.role = findFirstString(normalizedEntry, ["title", "position", "jobTitle"]);
+    }
+
+    return normalizedEntry;
+  });
 }
 
 function buildSummaryFallback(profile: Record<string, unknown>): string {
