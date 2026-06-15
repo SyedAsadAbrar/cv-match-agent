@@ -1,0 +1,28 @@
+Frontend / Full-Stack Engineer
+
+Company: Horizon Workflow
+Location: Remote
+Seniority: Senior
+
+Horizon Workflow is building collaboration tools for operations teams. We are looking for a senior frontend or full-stack engineer who can own user-facing product work while collaborating closely with product, design, and backend engineers.
+
+Responsibilities:
+- Build polished, reliable product experiences with React and TypeScript.
+- Design and consume APIs for workflow, reporting, and account-management features.
+- Improve application performance and maintainability.
+- Write automated tests for critical user journeys.
+- Work with product managers and designers to turn ambiguous requirements into shipped features.
+- Mentor other engineers through code reviews and technical planning.
+
+Required skills:
+- Strong TypeScript and React experience.
+- Experience with Node.js or another backend runtime.
+- API integration experience with REST or GraphQL.
+- Testing experience with Jest, Playwright, Cypress, or similar.
+- Strong communication and product collaboration.
+
+Nice to have:
+- PostgreSQL experience.
+- Accessibility knowledge.
+- Experience with analytics dashboards or B2B SaaS products.
+- CI/CD experience.

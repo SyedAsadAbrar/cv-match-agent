@@ -1,0 +1,8 @@
+.env
+output/
+context/profile.json
+*.pdf
+*.docx
+private/
+node_modules/
+dist/
