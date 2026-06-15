@@ -1,4 +1,4 @@
-import { parseJsonWithSchema } from "../ai/json";
+import { generateJsonWithSchema } from "../ai/json";
 import { buildAssetGenerationMessages } from "../ai/prompts";
 import {
   applicationAssetsSchema,
@@ -15,6 +15,10 @@ export async function generateApplicationAssets(
   job: JobRequirements,
   analysis: MatchAnalysis
 ): Promise<ApplicationAssets> {
-  const response = await provider.generateText(buildAssetGenerationMessages(profile, job, analysis));
-  return parseJsonWithSchema(response, applicationAssetsSchema, "application assets");
+  return generateJsonWithSchema(
+    provider,
+    buildAssetGenerationMessages(profile, job, analysis),
+    applicationAssetsSchema,
+    "application assets"
+  );
 }

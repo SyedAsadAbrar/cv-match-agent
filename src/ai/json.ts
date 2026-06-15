@@ -1,4 +1,5 @@
 import { z } from "zod";
+import type { LlmMessage, LlmProvider } from "./providers/types";
 
 const WRAPPER_KEYS = [
   "data",
@@ -48,6 +49,48 @@ export function parseJsonWithSchema<TSchema extends z.ZodTypeAny>(
       errors.at(-1) ?? "unknown error"
     }`
   );
+}
+
+export async function generateJsonWithSchema<TSchema extends z.ZodTypeAny>(
+  provider: LlmProvider,
+  messages: LlmMessage[],
+  schema: TSchema,
+  label: string
+): Promise<z.infer<TSchema>> {
+  const response = await provider.generateText(messages);
+
+  try {
+    return parseJsonWithSchema(response, schema, label);
+  } catch (error) {
+    const repairedResponse = await provider.generateText([
+      ...messages,
+      {
+        role: "assistant",
+        content: response
+      },
+      {
+        role: "user",
+        content: `The previous response was invalid for ${label}.
+
+Return only one valid JSON object that matches the schema requested above.
+Do not return a quoted JSON string.
+Do not return markdown.
+Do not explain the correction.
+
+Validation error:
+${error instanceof Error ? error.message : String(error)}`
+      }
+    ]);
+
+    try {
+      return parseJsonWithSchema(repairedResponse, schema, label);
+    } catch (repairError) {
+      throw new Error(
+        `${repairError instanceof Error ? repairError.message : String(repairError)}\n` +
+          `The first invalid ${label} response could not be repaired automatically.`
+      );
+    }
+  }
 }
 
 function getJsonCandidates(text: string): string[] {
