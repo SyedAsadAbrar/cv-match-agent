@@ -3,7 +3,8 @@ import type { LlmMessage } from "./providers/types";
 
 const jsonOnlySystemPrompt = [
   "You are a careful CV and job-description analysis agent.",
-  "Return only valid JSON. Do not include markdown fences, commentary, or trailing text.",
+  "Return only one valid JSON object. Do not return a top-level array.",
+  "Do not include markdown fences, commentary, or trailing text.",
   "Do not invent experience, employers, achievements, certifications, tools, or skills.",
   "If evidence is missing, mark it as a gap instead of implying the candidate has it.",
   "Keep scoring realistic and useful. Do not guarantee interviews or job offers."
@@ -16,7 +17,7 @@ export function buildCvExtractionMessages(cvText: string): LlmMessage[] {
       role: "user",
       content: `Extract a structured CV profile from the CV below.
 
-Return JSON with exactly this shape:
+Return a single JSON object with exactly this shape:
 {
   "name": "optional string",
   "currentTitle": "optional string",
@@ -51,7 +52,7 @@ export function buildJobExtractionMessages(jobText: string): LlmMessage[] {
       role: "user",
       content: `Extract structured job requirements from the job description below.
 
-Return JSON with exactly this shape:
+Return a single JSON object with exactly this shape:
 {
   "roleTitle": "string",
   "company": "optional string",
@@ -79,7 +80,7 @@ export function buildComparisonMessages(profile: CvProfile, job: JobRequirements
       role: "user",
       content: `Compare the candidate profile against the job requirements.
 
-Return JSON with exactly this shape:
+Return a single JSON object with exactly this shape:
 {
   "matchScore": 0,
   "summary": "string",
@@ -117,7 +118,7 @@ export function buildAssetGenerationMessages(
       role: "user",
       content: `Generate application assets based only on the profile, job requirements, and match analysis.
 
-Return JSON with exactly this shape:
+Return a single JSON object with exactly this shape:
 {
   "cvImprovements": {
     "improvedBullets": ["string"],

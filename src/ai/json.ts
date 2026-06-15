@@ -7,13 +7,17 @@ export function parseJsonWithSchema<T>(text: string, schema: z.ZodType<T>, label
   for (const candidate of candidates) {
     try {
       const parsed = JSON.parse(candidate) as unknown;
-      const result = schema.safeParse(parsed);
+      const valuesToValidate = getValidationCandidates(parsed);
 
-      if (result.success) {
-        return result.data;
+      for (const value of valuesToValidate) {
+        const result = schema.safeParse(value);
+
+        if (result.success) {
+          return result.data;
+        }
+
+        errors.push(result.error.message);
       }
-
-      errors.push(result.error.message);
     } catch (error) {
       errors.push(error instanceof Error ? error.message : String(error));
     }
@@ -48,6 +52,14 @@ function getJsonCandidates(text: string): string[] {
   }
 
   return [...candidates].filter(Boolean);
+}
+
+function getValidationCandidates(parsed: unknown): unknown[] {
+  if (Array.isArray(parsed) && parsed.length === 1) {
+    return [parsed, parsed[0]];
+  }
+
+  return [parsed];
 }
 
 function extractBalancedJson(text: string, open: "{" | "[", close: "}" | "]"): string | undefined {
