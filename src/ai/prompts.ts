@@ -36,6 +36,19 @@ Return a single JSON object with exactly this shape:
   "skills": ["string"],
   "industries": ["string"],
   "companies": ["string"],
+  "workExperience": [
+    {
+      "title": "optional string",
+      "company": "optional string",
+      "location": "optional string",
+      "startDate": "optional string",
+      "endDate": "optional string",
+      "description": "optional string",
+      "responsibilities": ["string"],
+      "technologies": ["string"],
+      "achievements": ["string"]
+    }
+  ],
   "projects": [
     {
       "name": "string",
@@ -47,7 +60,7 @@ Return a single JSON object with exactly this shape:
   "achievements": ["string"]
 }
 
-Use empty arrays where no evidence exists. Omit optional fields when unknown. The "summary" field is required; if the CV has no explicit summary, write a concise evidence-based summary from the CV content.
+Use empty arrays where no evidence exists. Omit optional fields when unknown. Extract each role from the CV's work experience or employment history into "workExperience"; keep "companies" as a simple list of employer names. The "summary" field is required; if the CV has no explicit summary, write a concise evidence-based summary from the CV content.
 
 CV:
 ${cvText}`
@@ -107,6 +120,7 @@ Rules:
 - matchScore must be a number from 0 to 100.
 - Prefer specific evidence from the profile.
 - Do not hallucinate missing experience.
+- Use profile.workExperience, projects, achievements, skills, and education as primary evidence.
 - Missing required skills should appear in gaps or risks.
 - If the job requires a degree or educational background, compare it against profile.education and mark missing evidence as a gap.
 

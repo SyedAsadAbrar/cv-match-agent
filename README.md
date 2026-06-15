@@ -124,7 +124,7 @@ output/Alex_Morgan_2026-06-16_14-30-05/cv-profile.json
 output/Alex_Morgan_2026-06-16_14-30-05/raw-analysis.json
 ```
 
-`cv-profile.json` is the standalone parsed CV object. `raw-analysis.json` includes the parsed CV, job requirements, match analysis, and generated application assets.
+`cv-profile.json` is the standalone parsed CV object. It includes structured skills, education, work experience, projects, companies, and achievements. `raw-analysis.json` includes the parsed CV, job requirements, match analysis, and generated application assets.
 
 The terminal progress looks like:
 

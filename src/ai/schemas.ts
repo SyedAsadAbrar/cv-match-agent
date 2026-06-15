@@ -19,6 +19,19 @@ const cvProfileBaseSchema = z.object({
   skills: z.array(z.string()).default([]),
   industries: z.array(z.string()).default([]),
   companies: z.array(z.string()).default([]),
+  workExperience: z.array(
+    z.object({
+      title: z.string().optional(),
+      company: z.string().optional(),
+      location: z.string().optional(),
+      startDate: z.string().optional(),
+      endDate: z.string().optional(),
+      description: z.string().optional(),
+      responsibilities: z.array(z.string()).default([]),
+      technologies: z.array(z.string()).default([]),
+      achievements: z.array(z.string()).default([])
+    })
+  ).default([]),
   projects: z.array(
     z.object({
       name: z.string().min(1),
