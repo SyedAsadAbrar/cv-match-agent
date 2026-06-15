@@ -23,10 +23,11 @@ export async function compareCvToJob(
 
 function buildFallbackMatchAnalysis(profile: CvProfile, job: JobRequirements): MatchAnalysis {
   const evidenceText = buildEvidenceText(profile);
-  const requiredSkillMatches = partitionByEvidence(job.requiredSkills, evidenceText);
-  const niceToHaveMatches = partitionByEvidence(job.niceToHaveSkills, evidenceText);
-  const educationMatches = partitionByEvidence(job.educationRequirements, evidenceText);
-  const keywordMatches = partitionByEvidence(job.keywords, evidenceText);
+  const normalizedEvidenceText = normalizeTechnologyText(evidenceText);
+  const requiredSkillMatches = partitionByEvidence(job.requiredSkills, evidenceText, normalizedEvidenceText);
+  const niceToHaveMatches = partitionByEvidence(job.niceToHaveSkills, evidenceText, normalizedEvidenceText);
+  const educationMatches = partitionByEvidence(job.educationRequirements, evidenceText, normalizedEvidenceText);
+  const keywordMatches = partitionByEvidence(job.keywords, evidenceText, normalizedEvidenceText);
   const totalRequirements = job.requiredSkills.length + job.educationRequirements.length;
   const matchedRequirements = requiredSkillMatches.matches.length + educationMatches.matches.length;
   const requiredCoverage = totalRequirements === 0 ? 0.65 : matchedRequirements / totalRequirements;
@@ -108,12 +109,16 @@ function buildEvidenceText(profile: CvProfile): string {
   return values.join("\n").toLowerCase();
 }
 
-function partitionByEvidence(items: string[], evidenceText: string): { matches: string[]; missing: string[] } {
+function partitionByEvidence(
+  items: string[],
+  evidenceText: string,
+  normalizedEvidenceText: string
+): { matches: string[]; missing: string[] } {
   const matches: string[] = [];
   const missing: string[] = [];
 
   for (const item of uniqueCaseInsensitive(items)) {
-    if (hasEvidence(item, evidenceText)) {
+    if (hasEvidence(item, evidenceText, normalizedEvidenceText)) {
       matches.push(item);
     } else {
       missing.push(item);
@@ -123,13 +128,18 @@ function partitionByEvidence(items: string[], evidenceText: string): { matches: 
   return { matches, missing };
 }
 
-function hasEvidence(item: string, evidenceText: string): boolean {
+function hasEvidence(item: string, evidenceText: string, normalizedEvidenceText: string): boolean {
   const normalized = item.toLowerCase().trim();
   if (!normalized) {
     return false;
   }
 
   if (evidenceText.includes(normalized)) {
+    return true;
+  }
+
+  const normalizedTechnology = normalizeTechnologyText(item);
+  if (normalizedTechnology && normalizedEvidenceText.includes(normalizedTechnology)) {
     return true;
   }
 
@@ -144,6 +154,24 @@ function hasEvidence(item: string, evidenceText: string): boolean {
 
   const matchedTokens = tokens.filter((token) => evidenceText.includes(token.toLowerCase()));
   return matchedTokens.length / tokens.length >= 0.75;
+}
+
+function normalizeTechnologyText(value: string): string {
+  return value
+    .toLowerCase()
+    .replace(/\breact\s*\.?\s*js\b/g, "react")
+    .replace(/\bnode\s*\.?\s*js\b/g, "node")
+    .replace(/\bnext\s*\.?\s*js\b/g, "next")
+    .replace(/\bvue\s*\.?\s*js\b/g, "vue")
+    .replace(/\bangular\s*\.?\s*js\b/g, "angular")
+    .replace(/\bexpress\s*\.?\s*js\b/g, "express")
+    .replace(/\bpostgresql\b/g, "postgres")
+    .replace(/\bpostgre\s*sql\b/g, "postgres")
+    .replace(/\bjs\b/g, "javascript")
+    .replace(/\bts\b/g, "typescript")
+    .replace(/[^a-z0-9+#]+/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
 }
 
 function buildSuggestedPositioning(
