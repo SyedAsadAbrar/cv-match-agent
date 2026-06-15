@@ -16,18 +16,18 @@ export const cvProfileSchema = z.object({
       })
     )
     .default([]),
-  skills: z.array(z.string()),
-  industries: z.array(z.string()),
-  companies: z.array(z.string()),
+  skills: z.array(z.string()).default([]),
+  industries: z.array(z.string()).default([]),
+  companies: z.array(z.string()).default([]),
   projects: z.array(
     z.object({
       name: z.string().min(1),
       description: z.string().min(1),
-      technologies: z.array(z.string()),
+      technologies: z.array(z.string()).default([]),
       impact: z.string().optional()
     })
-  ),
-  achievements: z.array(z.string())
+  ).default([]),
+  achievements: z.array(z.string()).default([])
 });
 
 export const jobRequirementsSchema = z.object({
@@ -35,39 +35,39 @@ export const jobRequirementsSchema = z.object({
   company: z.string().optional(),
   location: z.string().optional(),
   seniority: z.string().optional(),
-  requiredSkills: z.array(z.string()),
-  niceToHaveSkills: z.array(z.string()),
+  requiredSkills: z.array(z.string()).default([]),
+  niceToHaveSkills: z.array(z.string()).default([]),
   educationRequirements: z.array(z.string()).default([]),
-  responsibilities: z.array(z.string()),
+  responsibilities: z.array(z.string()).default([]),
   domain: z.string().optional(),
-  keywords: z.array(z.string())
+  keywords: z.array(z.string()).default([])
 });
 
 export const matchAnalysisSchema = z.object({
   matchScore: z.number().min(0).max(100),
   summary: z.string().min(1),
-  strongMatches: z.array(z.string()),
-  partialMatches: z.array(z.string()),
-  gaps: z.array(z.string()),
-  risks: z.array(z.string()),
+  strongMatches: z.array(z.string()).default([]),
+  partialMatches: z.array(z.string()).default([]),
+  gaps: z.array(z.string()).default([]),
+  risks: z.array(z.string()).default([]),
   suggestedPositioning: z.string().min(1),
-  keywordSuggestions: z.array(z.string())
+  keywordSuggestions: z.array(z.string()).default([])
 });
 
 export const applicationAssetsSchema = z.object({
   cvImprovements: z.object({
-    improvedBullets: z.array(z.string()),
-    skillsToEmphasize: z.array(z.string()),
-    experienceToRewrite: z.array(z.string()),
-    missingKeywords: z.array(z.string())
+    improvedBullets: z.array(z.string()).default([]),
+    skillsToEmphasize: z.array(z.string()).default([]),
+    experienceToRewrite: z.array(z.string()).default([]),
+    missingKeywords: z.array(z.string()).default([])
   }),
   linkedinMessage: z.string().min(1),
   coverLetter: z.string().min(1),
   interviewPrep: z.object({
-    likelyInterviewTopics: z.array(z.string()),
-    technicalQuestions: z.array(z.string()),
-    behavioralQuestions: z.array(z.string()),
-    suggestedTalkingPoints: z.array(z.string())
+    likelyInterviewTopics: z.array(z.string()).default([]),
+    technicalQuestions: z.array(z.string()).default([]),
+    behavioralQuestions: z.array(z.string()).default([]),
+    suggestedTalkingPoints: z.array(z.string()).default([])
   })
 });
 

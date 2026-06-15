@@ -1,5 +1,21 @@
 import { z } from "zod";
 
+const WRAPPER_KEYS = [
+  "data",
+  "result",
+  "cvProfile",
+  "profile",
+  "candidateProfile",
+  "parsedCv",
+  "parsedCV",
+  "resume",
+  "jobRequirements",
+  "matchAnalysis",
+  "analysis",
+  "applicationAssets",
+  "assets"
+];
+
 export function parseJsonWithSchema<TSchema extends z.ZodTypeAny>(
   text: string,
   schema: TSchema,
@@ -71,6 +87,19 @@ function getValidationCandidates(parsed: unknown, depth = 0): unknown[] {
     }
   }
 
+  if (isRecord(parsed)) {
+    for (const key of WRAPPER_KEYS) {
+      if (key in parsed) {
+        candidates.push(...getValidationCandidates(parsed[key], depth + 1));
+      }
+    }
+
+    const entries = Object.entries(parsed);
+    if (entries.length === 1) {
+      candidates.push(...getValidationCandidates(entries[0][1], depth + 1));
+    }
+  }
+
   if (typeof parsed === "string") {
     for (const candidate of getJsonCandidates(parsed)) {
       try {
@@ -82,6 +111,10 @@ function getValidationCandidates(parsed: unknown, depth = 0): unknown[] {
   }
 
   return candidates;
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
 function extractBalancedJson(text: string, open: "{" | "[", close: "}" | "]"): string | undefined {

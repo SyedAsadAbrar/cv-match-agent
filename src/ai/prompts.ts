@@ -4,6 +4,7 @@ import type { LlmMessage } from "./providers/types";
 const jsonOnlySystemPrompt = [
   "You are a careful CV and job-description analysis agent.",
   "Return only one valid JSON object. Do not return a top-level array.",
+  "Do not wrap the JSON object in keys like data, result, profile, or analysis.",
   "Do not include markdown fences, commentary, or trailing text.",
   "Do not invent experience, employers, achievements, certifications, tools, or skills.",
   "If evidence is missing, mark it as a gap instead of implying the candidate has it.",
