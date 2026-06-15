@@ -47,7 +47,7 @@ Return a single JSON object with exactly this shape:
   "achievements": ["string"]
 }
 
-Use empty arrays where no evidence exists. Omit optional fields when unknown.
+Use empty arrays where no evidence exists. Omit optional fields when unknown. The "summary" field is required; if the CV has no explicit summary, write a concise evidence-based summary from the CV content.
 
 CV:
 ${cvText}`

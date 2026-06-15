@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-export const cvProfileSchema = z.object({
+const cvProfileBaseSchema = z.object({
   name: z.string().optional(),
   currentTitle: z.string().optional(),
   yearsOfExperience: z.number().nonnegative().optional(),
@@ -29,6 +29,8 @@ export const cvProfileSchema = z.object({
   ).default([]),
   achievements: z.array(z.string()).default([])
 });
+
+export const cvProfileSchema = z.preprocess(normalizeCvProfileInput, cvProfileBaseSchema);
 
 export const jobRequirementsSchema = z.object({
   roleTitle: z.string().min(1),
@@ -85,3 +87,80 @@ export type JobRequirements = z.infer<typeof jobRequirementsSchema>;
 export type MatchAnalysis = z.infer<typeof matchAnalysisSchema>;
 export type ApplicationAssets = z.infer<typeof applicationAssetsSchema>;
 export type RawAnalysis = z.infer<typeof rawAnalysisSchema>;
+
+function normalizeCvProfileInput(value: unknown): unknown {
+  if (!isRecord(value)) {
+    return value;
+  }
+
+  const normalized: Record<string, unknown> = { ...value };
+
+  if (!hasNonEmptyString(normalized.summary)) {
+    normalized.summary = findFirstString(normalized, [
+      "professionalSummary",
+      "profileSummary",
+      "careerSummary",
+      "candidateSummary",
+      "objective",
+      "about",
+      "bio"
+    ]) ?? buildSummaryFallback(normalized);
+  }
+
+  return normalized;
+}
+
+function buildSummaryFallback(profile: Record<string, unknown>): string {
+  const details: string[] = [];
+  const title = asNonEmptyString(profile.currentTitle);
+  const yearsOfExperience = typeof profile.yearsOfExperience === "number" ? profile.yearsOfExperience : undefined;
+  const skills = Array.isArray(profile.skills)
+    ? profile.skills.filter((skill): skill is string => typeof skill === "string" && skill.trim().length > 0)
+    : [];
+
+  if (title) {
+    details.push(title);
+  }
+
+  if (yearsOfExperience !== undefined) {
+    details.push(`${yearsOfExperience} years of experience`);
+  }
+
+  if (skills.length > 0) {
+    details.push(`skills include ${skills.slice(0, 8).join(", ")}`);
+  }
+
+  if (details.length > 0) {
+    return `Candidate profile extracted from the CV: ${details.join("; ")}.`;
+  }
+
+  return "Candidate profile extracted from the CV. Review the source CV for details.";
+}
+
+function findFirstString(record: Record<string, unknown>, keys: string[]): string | undefined {
+  for (const key of keys) {
+    const value = asNonEmptyString(record[key]);
+    if (value) {
+      return value;
+    }
+  }
+
+  return undefined;
+}
+
+function hasNonEmptyString(value: unknown): boolean {
+  return asNonEmptyString(value) !== undefined;
+}
+
+function asNonEmptyString(value: unknown): string | undefined {
+  if (typeof value !== "string") {
+    return undefined;
+  }
+
+  const trimmed = value.trim();
+  return trimmed.length > 0 ? trimmed : undefined;
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
