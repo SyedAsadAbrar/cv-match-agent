@@ -17,7 +17,7 @@ export async function writeAnalysisOutput(rawAnalysis: RawAnalysis): Promise<str
 
   await writeTextFile(outputFiles[0], renderMatchReport(rawAnalysis.matchAnalysis));
   await writeTextFile(outputFiles[1], renderCvImprovements(rawAnalysis.applicationAssets));
-  await writeTextFile(outputFiles[2], `${rawAnalysis.applicationAssets.linkedinMessage.trim()}\n`);
+  await writeTextFile(outputFiles[2], renderLinkedinMessage(rawAnalysis.applicationAssets.linkedinMessage));
   await writeTextFile(outputFiles[3], `${rawAnalysis.applicationAssets.coverLetter.trim()}\n`);
   await writeTextFile(outputFiles[4], renderInterviewPrep(rawAnalysis.applicationAssets));
   await writeTextFile(outputFiles[5], `${JSON.stringify(rawAnalysis.cvProfile, null, 2)}\n`);
@@ -112,6 +112,40 @@ ${renderList(assets.cvImprovements.experienceToRewrite)}
 
 ${renderList(assets.cvImprovements.missingKeywords)}
 `;
+}
+
+function renderLinkedinMessage(message: string): string {
+  const trimmed = message.trim();
+  if (!trimmed) {
+    return "\n";
+  }
+
+  const paragraphs = trimmed
+    .split(/\n{2,}/)
+    .map((paragraph) => paragraph.replace(/\s*\n\s*/g, " ").trim())
+    .filter(Boolean);
+
+  if (paragraphs.length >= 2) {
+    return `${paragraphs.join("\n\n")}\n`;
+  }
+
+  const sentences = splitSentences(trimmed);
+  if (sentences.length <= 2) {
+    return `${trimmed}\n`;
+  }
+
+  const greeting = sentences[0];
+  const askStart = Math.max(2, sentences.length - 2);
+  const background = sentences.slice(1, askStart).join(" ");
+  const ask = sentences.slice(askStart).join(" ");
+  const formatted = [greeting, background, ask].filter(Boolean).join("\n\n");
+
+  return `${formatted}\n`;
+}
+
+function splitSentences(text: string): string[] {
+  const matches = text.match(/[^.!?]+[.!?]+(?:["')\]]+)?|[^.!?]+$/g);
+  return matches?.map((sentence) => sentence.trim()).filter(Boolean) ?? [text.trim()];
 }
 
 function renderInterviewPrep(assets: ApplicationAssets): string {
