@@ -5,6 +5,17 @@ export const cvProfileSchema = z.object({
   currentTitle: z.string().optional(),
   yearsOfExperience: z.number().nonnegative().optional(),
   summary: z.string().min(1),
+  education: z
+    .array(
+      z.object({
+        degree: z.string().optional(),
+        institution: z.string().optional(),
+        field: z.string().optional(),
+        graduationYear: z.number().int().optional(),
+        notes: z.string().optional()
+      })
+    )
+    .default([]),
   skills: z.array(z.string()),
   industries: z.array(z.string()),
   companies: z.array(z.string()),
@@ -26,6 +37,7 @@ export const jobRequirementsSchema = z.object({
   seniority: z.string().optional(),
   requiredSkills: z.array(z.string()),
   niceToHaveSkills: z.array(z.string()),
+  educationRequirements: z.array(z.string()).default([]),
   responsibilities: z.array(z.string()),
   domain: z.string().optional(),
   keywords: z.array(z.string())

@@ -44,6 +44,14 @@ Product-minded software engineer with 7 years of experience building web applica
 - Created reusable form components with validation, accessibility, and analytics instrumentation.
 - Collaborated with backend engineers to design REST endpoints for order history and returns.
 
+## Education
+
+### B.S. Computer Science, State University
+
+2018
+
+- Coursework included data structures, databases, software engineering, and human-computer interaction.
+
 ## Projects
 
 ### Customer Health Dashboard

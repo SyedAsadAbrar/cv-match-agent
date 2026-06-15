@@ -23,6 +23,15 @@ Return a single JSON object with exactly this shape:
   "currentTitle": "optional string",
   "yearsOfExperience": 0,
   "summary": "string",
+  "education": [
+    {
+      "degree": "optional string",
+      "institution": "optional string",
+      "field": "optional string",
+      "graduationYear": 2020,
+      "notes": "optional string"
+    }
+  ],
   "skills": ["string"],
   "industries": ["string"],
   "companies": ["string"],
@@ -60,6 +69,7 @@ Return a single JSON object with exactly this shape:
   "seniority": "optional string",
   "requiredSkills": ["string"],
   "niceToHaveSkills": ["string"],
+  "educationRequirements": ["string"],
   "responsibilities": ["string"],
   "domain": "optional string",
   "keywords": ["string"]
@@ -97,6 +107,7 @@ Rules:
 - Prefer specific evidence from the profile.
 - Do not hallucinate missing experience.
 - Missing required skills should appear in gaps or risks.
+- If the job requires a degree or educational background, compare it against profile.education and mark missing evidence as a gap.
 
 Candidate profile JSON:
 ${JSON.stringify(profile, null, 2)}

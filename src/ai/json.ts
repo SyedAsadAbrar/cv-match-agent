@@ -1,6 +1,10 @@
 import { z } from "zod";
 
-export function parseJsonWithSchema<T>(text: string, schema: z.ZodType<T>, label: string): T {
+export function parseJsonWithSchema<TSchema extends z.ZodTypeAny>(
+  text: string,
+  schema: TSchema,
+  label: string
+): z.infer<TSchema> {
   const candidates = getJsonCandidates(text);
   const errors: string[] = [];
 
@@ -54,12 +58,30 @@ function getJsonCandidates(text: string): string[] {
   return [...candidates].filter(Boolean);
 }
 
-function getValidationCandidates(parsed: unknown): unknown[] {
-  if (Array.isArray(parsed)) {
-    return [parsed, ...parsed];
+function getValidationCandidates(parsed: unknown, depth = 0): unknown[] {
+  const candidates: unknown[] = [parsed];
+
+  if (depth >= 2) {
+    return candidates;
   }
 
-  return [parsed];
+  if (Array.isArray(parsed)) {
+    for (const item of parsed) {
+      candidates.push(...getValidationCandidates(item, depth + 1));
+    }
+  }
+
+  if (typeof parsed === "string") {
+    for (const candidate of getJsonCandidates(parsed)) {
+      try {
+        candidates.push(...getValidationCandidates(JSON.parse(candidate) as unknown, depth + 1));
+      } catch {
+        // Keep the original string validation error; not every string is nested JSON.
+      }
+    }
+  }
+
+  return candidates;
 }
 
 function extractBalancedJson(text: string, open: "{" | "[", close: "}" | "]"): string | undefined {
