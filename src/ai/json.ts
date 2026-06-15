@@ -55,8 +55,8 @@ function getJsonCandidates(text: string): string[] {
 }
 
 function getValidationCandidates(parsed: unknown): unknown[] {
-  if (Array.isArray(parsed) && parsed.length === 1) {
-    return [parsed, parsed[0]];
+  if (Array.isArray(parsed)) {
+    return [parsed, ...parsed];
   }
 
   return [parsed];
