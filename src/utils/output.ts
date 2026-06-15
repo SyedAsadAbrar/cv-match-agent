@@ -115,7 +115,7 @@ ${renderList(assets.cvImprovements.missingKeywords)}
 }
 
 function renderLinkedinMessage(message: string): string {
-  const trimmed = message.trim();
+  const trimmed = normalizeTechnologySpacing(message).trim();
   if (!trimmed) {
     return "\n";
   }
@@ -139,6 +139,12 @@ function renderLinkedinMessage(message: string): string {
   const formatted = [greeting, body].filter(Boolean).join("\n\n");
 
   return `${formatted}\n`;
+}
+
+function normalizeTechnologySpacing(text: string): string {
+  return text
+    .replace(/\b(Node|React|Next|Vue|Express|Angular)\.\s+js\b/gi, "$1.js")
+    .replace(/\b(Postgre)\s+SQL\b/gi, "PostgreSQL");
 }
 
 function renderCoverLetter(coverLetter: string, rawAnalysis: RawAnalysis): string {
