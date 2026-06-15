@@ -14,7 +14,7 @@ import {
 } from "../services/profileContext";
 import { readTextFile } from "../utils/file";
 import { logger } from "../utils/logger";
-import { OUTPUT_FILES, writeAnalysisOutput } from "../utils/output";
+import { writeAnalysisOutput } from "../utils/output";
 
 type AnalyzeOptions = {
   cv?: string;
@@ -90,7 +90,7 @@ async function runAnalyze(options: AnalyzeOptions): Promise<void> {
   logger.success("");
   logger.success("Done.");
   logger.success("Generated:");
-  for (const filePath of generated ?? OUTPUT_FILES) {
+  for (const filePath of generated) {
     logger.success(`- ${filePath}`);
   }
 }

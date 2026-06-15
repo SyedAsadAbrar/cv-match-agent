@@ -137,8 +137,11 @@ Return a single JSON object with exactly this shape:
 }
 
 Rules:
-- Keep the LinkedIn message short, natural, and recruiter-friendly.
-- Keep the cover letter concise, specific, and non-generic.
+- The LinkedIn message must start with a professional salutation; use the recipient's name if present, otherwise use "Hello,".
+- The LinkedIn message should include 2-3 sentences of relevant candidate background before the ask.
+- Keep the LinkedIn message natural, recruiter-friendly, and roughly 120-170 words.
+- The cover letter should be substantial enough to be useful: 4-6 concise paragraphs and roughly 250-400 words.
+- Make the cover letter specific to the role, company, profile evidence, and match analysis.
 - Do not claim experience that is not present in the profile.
 - Missing keywords should be keywords from the job that are not clearly present in the profile.
 - Do not imply any guarantee of interviews or offers.

@@ -104,16 +104,19 @@ npm run dev -- analyze --cv ./examples/cv.md --job ./examples/job.txt --provider
 
 ## Example Output
 
-`analyze` writes:
+`analyze` writes a new run folder using the parsed candidate name and local timestamp:
 
 ```txt
-output/match-report.md
-output/cv-improvements.md
-output/linkedin-message.txt
-output/cover-letter.txt
-output/interview-prep.md
-output/raw-analysis.json
+output/Alex_Morgan_2026-06-16_14-30-05/match-report.md
+output/Alex_Morgan_2026-06-16_14-30-05/cv-improvements.md
+output/Alex_Morgan_2026-06-16_14-30-05/linkedin-message.txt
+output/Alex_Morgan_2026-06-16_14-30-05/cover-letter.txt
+output/Alex_Morgan_2026-06-16_14-30-05/interview-prep.md
+output/Alex_Morgan_2026-06-16_14-30-05/cv-profile.json
+output/Alex_Morgan_2026-06-16_14-30-05/raw-analysis.json
 ```
+
+`cv-profile.json` is the standalone parsed CV object. `raw-analysis.json` includes the parsed CV, job requirements, match analysis, and generated application assets.
 
 The terminal progress looks like:
 
@@ -128,12 +131,13 @@ Writing output files...
 
 Done.
 Generated:
-- output/match-report.md
-- output/cv-improvements.md
-- output/linkedin-message.txt
-- output/cover-letter.txt
-- output/interview-prep.md
-- output/raw-analysis.json
+- output/Alex_Morgan_2026-06-16_14-30-05/match-report.md
+- output/Alex_Morgan_2026-06-16_14-30-05/cv-improvements.md
+- output/Alex_Morgan_2026-06-16_14-30-05/linkedin-message.txt
+- output/Alex_Morgan_2026-06-16_14-30-05/cover-letter.txt
+- output/Alex_Morgan_2026-06-16_14-30-05/interview-prep.md
+- output/Alex_Morgan_2026-06-16_14-30-05/cv-profile.json
+- output/Alex_Morgan_2026-06-16_14-30-05/raw-analysis.json
 ```
 
 ## Architecture

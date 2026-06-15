@@ -1,24 +1,59 @@
 import type { ApplicationAssets, MatchAnalysis, RawAnalysis } from "../ai/schemas";
 import { writeTextFile } from "./file";
 
-export const OUTPUT_FILES = [
-  "output/match-report.md",
-  "output/cv-improvements.md",
-  "output/linkedin-message.txt",
-  "output/cover-letter.txt",
-  "output/interview-prep.md",
-  "output/raw-analysis.json"
+const OUTPUT_FILE_NAMES = [
+  "match-report.md",
+  "cv-improvements.md",
+  "linkedin-message.txt",
+  "cover-letter.txt",
+  "interview-prep.md",
+  "cv-profile.json",
+  "raw-analysis.json"
 ] as const;
 
-export async function writeAnalysisOutput(rawAnalysis: RawAnalysis): Promise<typeof OUTPUT_FILES> {
-  await writeTextFile("output/match-report.md", renderMatchReport(rawAnalysis.matchAnalysis));
-  await writeTextFile("output/cv-improvements.md", renderCvImprovements(rawAnalysis.applicationAssets));
-  await writeTextFile("output/linkedin-message.txt", `${rawAnalysis.applicationAssets.linkedinMessage.trim()}\n`);
-  await writeTextFile("output/cover-letter.txt", `${rawAnalysis.applicationAssets.coverLetter.trim()}\n`);
-  await writeTextFile("output/interview-prep.md", renderInterviewPrep(rawAnalysis.applicationAssets));
-  await writeTextFile("output/raw-analysis.json", `${JSON.stringify(rawAnalysis, null, 2)}\n`);
+export async function writeAnalysisOutput(rawAnalysis: RawAnalysis): Promise<string[]> {
+  const outputDir = buildOutputDir(rawAnalysis);
+  const outputFiles = OUTPUT_FILE_NAMES.map((fileName) => `${outputDir}/${fileName}`);
 
-  return OUTPUT_FILES;
+  await writeTextFile(outputFiles[0], renderMatchReport(rawAnalysis.matchAnalysis));
+  await writeTextFile(outputFiles[1], renderCvImprovements(rawAnalysis.applicationAssets));
+  await writeTextFile(outputFiles[2], `${rawAnalysis.applicationAssets.linkedinMessage.trim()}\n`);
+  await writeTextFile(outputFiles[3], `${rawAnalysis.applicationAssets.coverLetter.trim()}\n`);
+  await writeTextFile(outputFiles[4], renderInterviewPrep(rawAnalysis.applicationAssets));
+  await writeTextFile(outputFiles[5], `${JSON.stringify(rawAnalysis.cvProfile, null, 2)}\n`);
+  await writeTextFile(outputFiles[6], `${JSON.stringify(rawAnalysis, null, 2)}\n`);
+
+  return outputFiles;
+}
+
+function buildOutputDir(rawAnalysis: RawAnalysis): string {
+  const candidateName = sanitizePathPart(rawAnalysis.cvProfile.name ?? "candidate");
+  const timestamp = formatTimestamp(new Date(rawAnalysis.generatedAt));
+  return `output/${candidateName}_${timestamp}`;
+}
+
+function sanitizePathPart(value: string): string {
+  const sanitized = value
+    .trim()
+    .replace(/[^a-zA-Z0-9]+/g, "_")
+    .replace(/^_+|_+$/g, "");
+
+  return sanitized || "candidate";
+}
+
+function formatTimestamp(date: Date): string {
+  const year = date.getFullYear();
+  const month = pad(date.getMonth() + 1);
+  const day = pad(date.getDate());
+  const hours = pad(date.getHours());
+  const minutes = pad(date.getMinutes());
+  const seconds = pad(date.getSeconds());
+
+  return `${year}-${month}-${day}_${hours}-${minutes}-${seconds}`;
+}
+
+function pad(value: number): string {
+  return String(value).padStart(2, "0");
 }
 
 function renderMatchReport(analysis: MatchAnalysis): string {
