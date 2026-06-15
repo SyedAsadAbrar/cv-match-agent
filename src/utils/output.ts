@@ -148,7 +148,7 @@ function normalizeTechnologySpacing(text: string): string {
 }
 
 function renderCoverLetter(coverLetter: string, rawAnalysis: RawAnalysis): string {
-  const trimmed = coverLetter.trim();
+  const trimmed = normalizeTechnologySpacing(coverLetter).trim();
   const candidateName = rawAnalysis.cvProfile.name?.trim() || "Candidate";
 
   if (hasProfessionalClosing(trimmed)) {
