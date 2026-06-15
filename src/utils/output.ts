@@ -126,7 +126,7 @@ function renderLinkedinMessage(message: string): string {
     .filter(Boolean);
 
   if (paragraphs.length >= 2) {
-    return `${paragraphs.join("\n\n")}\n`;
+    return `${paragraphs.slice(0, 2).join("\n\n")}\n`;
   }
 
   const sentences = splitSentences(trimmed);
@@ -135,10 +135,8 @@ function renderLinkedinMessage(message: string): string {
   }
 
   const greeting = sentences[0];
-  const askStart = Math.max(2, sentences.length - 2);
-  const background = sentences.slice(1, askStart).join(" ");
-  const ask = sentences.slice(askStart).join(" ");
-  const formatted = [greeting, background, ask].filter(Boolean).join("\n\n");
+  const body = sentences.slice(1).join(" ");
+  const formatted = [greeting, body].filter(Boolean).join("\n\n");
 
   return `${formatted}\n`;
 }
