@@ -68,9 +68,11 @@ Extraction rules:
 - Do not create duplicate entries for the same company, role, startDate, and endDate.
 - For each work experience role, process every bullet under that role until the next role or section starts.
 - If a bullet wraps across multiple lines in the CV, join it into one complete bullet before classifying it.
-- Every meaningful work experience bullet must appear in either "responsibilities" or "achievements". Do not summarize several bullets into only the first bullet.
-- Put action/scope/ownership bullets in "responsibilities".
-- Put measurable impact, scale, savings, growth, awards, mentoring outcomes, performance results, or business outcomes in "achievements".
+- Copy every meaningful work experience bullet for a role into that role's "responsibilities" array. Do not summarize several bullets into only the first bullet.
+- Preserve the original meaning and specific metrics of each responsibility. Light cleanup is fine, but do not drop tools, numbers, outcomes, or scope.
+- Put measurable impact, scale, savings, growth, awards, mentoring outcomes, performance results, or business outcomes in that same role's "achievements" array as highlighted duplicates.
+- Do not move work experience bullets only to top-level "achievements"; keep them attached to their workExperience role.
+- Use top-level "achievements" only for standalone awards or achievements outside a specific role.
 - If one role mentions multiple technologies, responsibilities, or achievements, combine them into the same workExperience entry.
 - Keep "technologies" to concise technology/tool names only, not full responsibility phrases.
 - Keep "companies" as a simple list of employer names.
