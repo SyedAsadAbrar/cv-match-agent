@@ -1,8 +1,11 @@
 import { z } from "zod";
 
 const text = z.string().trim().min(1);
-const textArray = z.array(text).default([]);
-const optionalText = text.optional();
+const textArray = z.array(z.string().trim()).default([]).transform((items) => items.filter(Boolean));
+const optionalText = z.preprocess(
+  (value) => (typeof value === "string" && value.trim().length === 0 ? undefined : value),
+  text.optional()
+);
 
 export const cvProfileSchema = z.object({
   name: optionalText,
