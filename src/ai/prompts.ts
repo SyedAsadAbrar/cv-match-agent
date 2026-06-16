@@ -138,7 +138,9 @@ Rules:
 - Do not hallucinate missing experience.
 - Use profile.workExperience, projects, achievements, skills, and education as primary evidence.
 - Missing required skills should appear in gaps or risks.
-- If the job requires a degree or educational background, compare it against profile.education and mark missing evidence as a gap.
+- Only evaluate education when job.educationRequirements is non-empty.
+- If the job has no educationRequirements, do not add education or degree gaps.
+- If the job requires a degree or educational background, compare it against profile.education and mark missing evidence as a gap only when it is genuinely missing.
 - Compare job.location against profile.location and workExperience locations when available. If location, remote, hybrid, relocation, or work authorization requirements are unclear or unsupported, include that under gaps or risks.
 
 Candidate profile JSON:
