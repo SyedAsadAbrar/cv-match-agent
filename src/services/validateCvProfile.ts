@@ -32,8 +32,7 @@ function hasMeaningfulExperience(profile: CvProfile): boolean {
     profile.workExperience.some(
       (experience) =>
         (hasText(experience.company) || hasText(experience.role)) &&
-        (hasText(experience.description) ||
-          experience.responsibilities.length > 0 ||
+        (experience.responsibilities.length > 0 ||
           experience.achievements.length > 0 ||
           experience.technologies.length > 0)
     ) ||

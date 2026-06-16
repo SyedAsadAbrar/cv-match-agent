@@ -45,7 +45,6 @@ Return a single JSON object with exactly this shape:
       "location": "optional string",
       "startDate": "optional string",
       "endDate": "optional string",
-      "description": "optional string",
       "responsibilities": ["string"],
       "technologies": ["string"],
       "achievements": ["string"]
@@ -75,7 +74,6 @@ Extraction rules:
 - If one role mentions multiple technologies, responsibilities, or achievements, combine them into the same workExperience entry.
 - Keep "technologies" to concise technology/tool names only, not full responsibility phrases.
 - Keep "companies" as a simple list of employer names.
-- The "description" field should be a brief one-sentence role summary, not a replacement for responsibilities or achievements.
 - The "summary" field is required; if the CV has no explicit summary, write a concise evidence-based summary from the CV content.
 
 CV:

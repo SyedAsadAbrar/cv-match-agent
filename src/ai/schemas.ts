@@ -34,7 +34,6 @@ export const cvProfileSchema = z.object({
       location: optionalText,
       startDate: optionalText,
       endDate: optionalText,
-      description: optionalText,
       responsibilities: textArray,
       technologies: textArray,
       achievements: textArray
