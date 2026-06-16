@@ -62,7 +62,21 @@ Return a single JSON object with exactly this shape:
   "achievements": ["string"]
 }
 
-Use empty arrays where no evidence exists. Omit optional fields when unknown; do not output empty strings. Extract candidate location into top-level "location" when present, and role-specific locations into workExperience[].location. Extract each work experience entry by company and role into "workExperience"; do not use a "title" key. Do not create duplicate entries for the same company, role, startDate, and endDate. If one role mentions multiple technologies, responsibilities, or achievements, combine them into the same entry. If the same company has genuinely different roles, create one entry per role. Preserve every meaningful bullet under each work experience role: put action/scope bullets in "responsibilities" and measurable impact, scale, savings, growth, awards, mentoring outcomes, or performance results in "achievements". Do not drop bullets just because they mention technologies. Keep "technologies" to concise technology/tool names only, not full responsibility phrases. Keep "companies" as a simple list of employer names. The "summary" field is required; if the CV has no explicit summary, write a concise evidence-based summary from the CV content.
+Extraction rules:
+- Use empty arrays where no evidence exists. Omit optional fields when unknown; do not output empty strings.
+- Extract candidate location into top-level "location" when present, and role-specific locations into workExperience[].location.
+- Extract each work experience entry by company and role into "workExperience"; do not use a "title" key.
+- Do not create duplicate entries for the same company, role, startDate, and endDate.
+- For each work experience role, process every bullet under that role until the next role or section starts.
+- If a bullet wraps across multiple lines in the CV, join it into one complete bullet before classifying it.
+- Every meaningful work experience bullet must appear in either "responsibilities" or "achievements". Do not summarize several bullets into only the first bullet.
+- Put action/scope/ownership bullets in "responsibilities".
+- Put measurable impact, scale, savings, growth, awards, mentoring outcomes, performance results, or business outcomes in "achievements".
+- If one role mentions multiple technologies, responsibilities, or achievements, combine them into the same workExperience entry.
+- Keep "technologies" to concise technology/tool names only, not full responsibility phrases.
+- Keep "companies" as a simple list of employer names.
+- The "description" field should be a brief one-sentence role summary, not a replacement for responsibilities or achievements.
+- The "summary" field is required; if the CV has no explicit summary, write a concise evidence-based summary from the CV content.
 
 CV:
 ${cvText}`
