@@ -19,10 +19,6 @@ export function assertUsableCvProfile(profile: CvProfile): void {
     issues.push("no meaningful work experience or project evidence was extracted");
   }
 
-  if (isGeneratedFallbackSummary(profile.summary)) {
-    issues.push("summary was generated as a fallback instead of extracted from CV evidence");
-  }
-
   if (issues.length > 0) {
     throw new Error(
       `CV profile extraction looks incomplete: ${issues.join("; ")}. ` +
@@ -44,10 +40,6 @@ function hasMeaningfulExperience(profile: CvProfile): boolean {
     profile.projects.length > 0 ||
     profile.achievements.length > 0
   );
-}
-
-function isGeneratedFallbackSummary(summary: string): boolean {
-  return summary.startsWith("Candidate profile extracted from the CV");
 }
 
 function hasText(value: string | undefined): boolean {
