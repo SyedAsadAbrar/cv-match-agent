@@ -7,6 +7,7 @@ export function buildFallbackMatchAnalysis(profile: CvProfile, job: JobRequireme
   const niceToHaveMatches = partitionByEvidence(job.niceToHaveSkills, evidenceText, normalizedEvidenceText);
   const educationMatches = partitionByEvidence(job.educationRequirements, evidenceText, normalizedEvidenceText);
   const keywordMatches = partitionByEvidence(job.keywords, evidenceText, normalizedEvidenceText);
+  const locationFit = evaluateLocationFit(profile, job);
   const totalRequirements = job.requiredSkills.length + job.educationRequirements.length;
   const matchedRequirements = requiredSkillMatches.matches.length + educationMatches.matches.length;
   const requiredCoverage = totalRequirements === 0 ? 0.65 : matchedRequirements / totalRequirements;
@@ -26,18 +27,23 @@ export function buildFallbackMatchAnalysis(profile: CvProfile, job: JobRequireme
     ...niceToHaveMatches.matches.map((skill) => `Nice-to-have evidence found: ${skill}`),
     ...keywordMatches.matches
       .filter((keyword) => !hasCaseInsensitive(requiredSkillMatches.matches, keyword))
-      .map((keyword) => `Keyword evidence found: ${keyword}`)
+      .map((keyword) => `Keyword evidence found: ${keyword}`),
+    ...locationFit.matches
   ];
   const gaps = [
     ...requiredSkillMatches.missing.map((skill) => `No clear evidence for required skill: ${skill}`),
-    ...educationMatches.missing.map((requirement) => `No clear evidence for education requirement: ${requirement}`)
+    ...educationMatches.missing.map((requirement) => `No clear evidence for education requirement: ${requirement}`),
+    ...locationFit.gaps
   ];
   const keywordSuggestions = uniqueCaseInsensitive([
     ...requiredSkillMatches.missing,
     ...niceToHaveMatches.missing,
     ...keywordMatches.missing
   ]).slice(0, 12);
-  const risks = gaps.length > 0 ? ["Some required evidence was not found in the parsed CV profile."] : [];
+  const risks = [
+    ...(gaps.length > 0 ? ["Some required evidence was not found in the parsed CV profile."] : []),
+    ...locationFit.risks
+  ];
   const fallbackSummary =
     `Fallback analysis based on parsed CV/profile data. Estimated match is ${matchScore}/100 against ` +
     `${job.roleTitle}. Review the generated gaps carefully because no LLM match analysis JSON was available.`;
@@ -58,6 +64,7 @@ function buildEvidenceText(profile: CvProfile): string {
   const values: string[] = [
     profile.summary,
     profile.currentTitle,
+    profile.location,
     ...profile.skills,
     ...profile.industries,
     ...profile.companies,
@@ -86,6 +93,42 @@ function buildEvidenceText(profile: CvProfile): string {
   ].filter((value): value is string => typeof value === "string" && value.trim().length > 0);
 
   return values.join("\n").toLowerCase();
+}
+
+function evaluateLocationFit(
+  profile: CvProfile,
+  job: JobRequirements
+): { matches: string[]; gaps: string[]; risks: string[] } {
+  if (!job.location) {
+    return { matches: [], gaps: [], risks: [] };
+  }
+
+  const jobLocation = job.location.toLowerCase();
+  const profileLocations = [profile.location, ...profile.workExperience.map((experience) => experience.location)]
+    .filter((value): value is string => typeof value === "string" && value.trim().length > 0)
+    .map((value) => value.toLowerCase());
+
+  if (jobLocation.includes("remote")) {
+    return { matches: ["Job location appears remote or remote-friendly."], gaps: [], risks: [] };
+  }
+
+  if (profileLocations.length === 0) {
+    return {
+      matches: [],
+      gaps: [`No clear candidate location evidence for job location: ${job.location}`],
+      risks: ["Location fit is unclear from the parsed CV profile."]
+    };
+  }
+
+  if (profileLocations.some((location) => location.includes(jobLocation) || jobLocation.includes(location))) {
+    return { matches: [`Location evidence appears aligned with job location: ${job.location}`], gaps: [], risks: [] };
+  }
+
+  return {
+    matches: [],
+    gaps: [],
+    risks: [`Candidate location evidence may not match job location: ${job.location}`]
+  };
 }
 
 function partitionByEvidence(

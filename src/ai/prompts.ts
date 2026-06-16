@@ -23,6 +23,7 @@ Return a single JSON object with exactly this shape:
 {
   "name": "optional string",
   "currentTitle": "optional string",
+  "location": "optional string",
   "yearsOfExperience": 0,
   "summary": "string",
   "education": [
@@ -61,7 +62,7 @@ Return a single JSON object with exactly this shape:
   "achievements": ["string"]
 }
 
-Use empty arrays where no evidence exists. Omit optional fields when unknown; do not output empty strings. Extract each work experience entry by company and role into "workExperience"; do not use a "title" key. Do not create duplicate entries for the same company, role, startDate, and endDate. If one role mentions multiple technologies, responsibilities, or achievements, combine them into the same entry. If the same company has genuinely different roles, create one entry per role. Keep "companies" as a simple list of employer names. The "summary" field is required; if the CV has no explicit summary, write a concise evidence-based summary from the CV content.
+Use empty arrays where no evidence exists. Omit optional fields when unknown; do not output empty strings. Extract candidate location into top-level "location" when present, and role-specific locations into workExperience[].location. Extract each work experience entry by company and role into "workExperience"; do not use a "title" key. Do not create duplicate entries for the same company, role, startDate, and endDate. If one role mentions multiple technologies, responsibilities, or achievements, combine them into the same entry. If the same company has genuinely different roles, create one entry per role. Keep "companies" as a simple list of employer names. The "summary" field is required; if the CV has no explicit summary, write a concise evidence-based summary from the CV content.
 
 CV:
 ${cvText}`
@@ -90,7 +91,7 @@ Return a single JSON object with exactly this shape:
   "keywords": ["string"]
 }
 
-Use empty arrays where no evidence exists. Omit optional fields when unknown.
+Use empty arrays where no evidence exists. Omit optional fields when unknown. Extract job location exactly when present, including remote/hybrid/on-site signals.
 
 Job description:
 ${jobText}`
@@ -124,6 +125,7 @@ Rules:
 - Use profile.workExperience, projects, achievements, skills, and education as primary evidence.
 - Missing required skills should appear in gaps or risks.
 - If the job requires a degree or educational background, compare it against profile.education and mark missing evidence as a gap.
+- Compare job.location against profile.location and workExperience locations when available. If location, remote, hybrid, relocation, or work authorization requirements are unclear or unsupported, include that under gaps or risks.
 
 Candidate profile JSON:
 ${JSON.stringify(profile, null, 2)}

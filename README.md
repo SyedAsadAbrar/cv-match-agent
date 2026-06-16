@@ -1,6 +1,6 @@
 # cv-match-agent
 
-`cv-match-agent` is a production-oriented TypeScript CLI for matching a CV against a job description with an AI workflow. It extracts structured CV and job data, scores the match, and generates practical application assets from the terminal.
+`cv-match-agent` is a production-oriented TypeScript CLI for matching a CV against a job description with an AI workflow. It extracts structured CV and job data, including location when available, scores the match, and generates practical application assets from the terminal.
 
 There is no frontend, database, authentication, or remote app server. The tool is local-first: files are read from your machine, outputs are written to `output/`, and you can use a local Ollama model when you do not want CV content sent to a cloud provider.
 

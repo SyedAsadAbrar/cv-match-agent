@@ -15,7 +15,7 @@ export async function writeAnalysisOutput(rawAnalysis: RawAnalysis): Promise<str
   const outputDir = buildOutputDir(rawAnalysis);
   const outputFiles = OUTPUT_FILE_NAMES.map((fileName) => `${outputDir}/${fileName}`);
 
-  await writeTextFile(outputFiles[0], renderMatchReport(rawAnalysis.matchAnalysis));
+  await writeTextFile(outputFiles[0], renderMatchReport(rawAnalysis));
   await writeTextFile(outputFiles[1], renderCvImprovements(rawAnalysis.applicationAssets));
   await writeTextFile(outputFiles[2], renderLinkedinMessage(rawAnalysis.applicationAssets.linkedinMessage));
   await writeTextFile(outputFiles[3], renderCoverLetter(rawAnalysis.applicationAssets.coverLetter, rawAnalysis));
@@ -56,8 +56,18 @@ function pad(value: number): string {
   return String(value).padStart(2, "0");
 }
 
-function renderMatchReport(analysis: MatchAnalysis): string {
+function renderMatchReport(rawAnalysis: RawAnalysis): string {
+  const analysis = rawAnalysis.matchAnalysis;
+
   return `# CV Match Report
+
+## Role
+
+${rawAnalysis.jobRequirements.roleTitle}
+
+## Location
+
+${renderLocationSummary(rawAnalysis)}
 
 ## Match Score
 
@@ -91,6 +101,13 @@ ${analysis.suggestedPositioning}
 
 ${renderList(analysis.keywordSuggestions)}
 `;
+}
+
+function renderLocationSummary(rawAnalysis: RawAnalysis): string {
+  return [
+    `Job: ${rawAnalysis.jobRequirements.location ?? "Not specified"}`,
+    `Candidate: ${rawAnalysis.cvProfile.location ?? "Not specified"}`
+  ].join("\n");
 }
 
 function renderCvImprovements(assets: ApplicationAssets): string {

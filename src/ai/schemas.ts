@@ -3,6 +3,7 @@ import { z } from "zod";
 const cvProfileBaseSchema = z.object({
   name: z.string().optional(),
   currentTitle: z.string().optional(),
+  location: z.string().optional(),
   yearsOfExperience: z.number().nonnegative().optional(),
   summary: z.string().min(1),
   education: z
