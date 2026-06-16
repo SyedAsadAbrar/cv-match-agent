@@ -18,7 +18,7 @@ export class OllamaProvider implements LlmProvider {
     this.model = process.env.OLLAMA_MODEL ?? "llama3.1:8b";
   }
 
-  async generateText(messages: LlmMessage[]): Promise<string> {
+  async generateText(messages: LlmMessage[], options?: { json?: boolean }): Promise<string> {
     let response: Response;
 
     try {
@@ -30,6 +30,7 @@ export class OllamaProvider implements LlmProvider {
         body: JSON.stringify({
           model: this.model,
           messages,
+          format: options?.json ? "json" : undefined,
           stream: false
         })
       });

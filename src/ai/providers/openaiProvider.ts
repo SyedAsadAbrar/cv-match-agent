@@ -23,7 +23,7 @@ export class OpenAIProvider implements LlmProvider {
     this.model = model;
   }
 
-  async generateText(messages: LlmMessage[]): Promise<string> {
+  async generateText(messages: LlmMessage[], _options?: { json?: boolean }): Promise<string> {
     const response = await this.client.responses.create({
       model: this.model,
       input: messages.map((message) => ({

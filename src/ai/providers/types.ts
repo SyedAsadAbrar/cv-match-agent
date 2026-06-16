@@ -5,7 +5,7 @@ export type LlmMessage = {
 
 export type LlmProvider = {
   name: string;
-  generateText(messages: LlmMessage[]): Promise<string>;
+  generateText(messages: LlmMessage[], options?: { json?: boolean }): Promise<string>;
 };
 
 export type ProviderName = "ollama" | "openai";
