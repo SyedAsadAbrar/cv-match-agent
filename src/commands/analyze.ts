@@ -12,6 +12,7 @@ import {
   PROFILE_CONTEXT_PATH,
   saveProfileContext
 } from "../services/profileContext";
+import { assertUsableCvProfile } from "../services/validateCvProfile";
 import { readTextFile } from "../utils/file";
 import { logger } from "../utils/logger";
 import { writeAnalysisOutput } from "../utils/output";
@@ -52,6 +53,7 @@ async function runAnalyze(options: AnalyzeOptions): Promise<void> {
     provider = createProvider(options.provider);
     logger.info("Extracting CV profile...");
     profile = await extractCvProfile(provider, cvText);
+    assertUsableCvProfile(profile);
 
     if (options.saveContext !== false) {
       await saveProfileContext(profile);
@@ -60,6 +62,7 @@ async function runAnalyze(options: AnalyzeOptions): Promise<void> {
   } else if (await hasProfileContext()) {
     logger.info(`Loading profile from ${PROFILE_CONTEXT_PATH}...`);
     profile = await loadProfileContext();
+    assertUsableCvProfile(profile);
   } else {
     throw new Error("No CV provided and no context/profile.json found. Pass --cv or run profile build.");
   }

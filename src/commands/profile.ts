@@ -8,6 +8,7 @@ import {
   resetProfileContext,
   saveProfileContext
 } from "../services/profileContext";
+import { assertUsableCvProfile } from "../services/validateCvProfile";
 import { readTextFile } from "../utils/file";
 import { logger } from "../utils/logger";
 
@@ -53,6 +54,7 @@ async function runProfileBuild(options: ProfileBuildOptions): Promise<void> {
 
   logger.info("Extracting CV profile...");
   const profile = await extractCvProfile(provider, cvText);
+  assertUsableCvProfile(profile);
 
   await saveProfileContext(profile);
   logger.success(`Saved parsed profile to ${PROFILE_CONTEXT_PATH}`);
