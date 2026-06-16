@@ -8,8 +8,8 @@ import {
   resetProfileContext,
   saveProfileContext
 } from "../services/profileContext";
+import { readCvFile } from "../services/readCvFile";
 import { assertUsableCvProfile } from "../services/validateCvProfile";
-import { readTextFile } from "../utils/file";
 import { logger } from "../utils/logger";
 
 type ProfileBuildOptions = {
@@ -23,7 +23,7 @@ export function createProfileCommand(): Command {
   profileCommand
     .command("build")
     .description("Extract a CV profile and save it to context/profile.json.")
-    .requiredOption("--cv <path>", "Path to a CV/resume text or markdown file.")
+    .requiredOption("--cv <path>", "Path to a CV/resume PDF, text, or markdown file.")
     .option("--provider <provider>", "LLM provider to use: ollama or openai.")
     .action(async (options: ProfileBuildOptions) => {
       await runProfileBuild(options);
@@ -50,7 +50,7 @@ async function runProfileBuild(options: ProfileBuildOptions): Promise<void> {
   const provider = createProvider(options.provider);
 
   logger.info("Reading CV...");
-  const cvText = await readTextFile(options.cv);
+  const cvText = await readCvFile(options.cv);
 
   logger.info("Extracting CV profile...");
   const profile = await extractCvProfile(provider, cvText);

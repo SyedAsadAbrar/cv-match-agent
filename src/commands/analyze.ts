@@ -12,6 +12,7 @@ import {
   PROFILE_CONTEXT_PATH,
   saveProfileContext
 } from "../services/profileContext";
+import { readCvFile } from "../services/readCvFile";
 import { assertUsableCvProfile } from "../services/validateCvProfile";
 import { readTextFile } from "../utils/file";
 import { logger } from "../utils/logger";
@@ -27,7 +28,7 @@ type AnalyzeOptions = {
 export function createAnalyzeCommand(): Command {
   return new Command("analyze")
     .description("Analyze a CV/profile against a job description and generate application assets.")
-    .option("--cv <path>", "Path to a CV/resume text or markdown file.")
+    .option("--cv <path>", "Path to a CV/resume PDF, text, or markdown file.")
     .requiredOption("--job <path>", "Path to a job description text file.")
     .option("--provider <provider>", "LLM provider to use: ollama or openai.")
     .option("--no-save-context", "Do not save an extracted --cv profile to context/profile.json.")
@@ -43,7 +44,7 @@ async function runAnalyze(options: AnalyzeOptions): Promise<void> {
 
   if (options.cv) {
     logger.info("Reading CV...");
-    cvText = await readTextFile(options.cv);
+    cvText = await readCvFile(options.cv);
   }
 
   logger.info("Reading job description...");

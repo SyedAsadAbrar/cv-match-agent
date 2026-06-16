@@ -52,6 +52,12 @@ Run an analysis with an explicit CV:
 npm run dev -- analyze --cv ./examples/cv.md --job ./examples/job.txt --provider ollama
 ```
 
+CV input can be Markdown, plain text, or a text-based PDF:
+
+```bash
+npm run dev -- analyze --cv ./private/resume.pdf --job ./examples/job.txt --provider ollama
+```
+
 The Ollama provider uses:
 
 ```env
@@ -82,6 +88,12 @@ You can create or replace `context/profile.json` directly:
 
 ```bash
 npm run dev -- profile build --cv ./examples/cv.md --provider ollama
+```
+
+PDF CVs are also supported:
+
+```bash
+npm run dev -- profile build --cv ./private/resume.pdf --provider ollama
 ```
 
 Show the saved profile:
@@ -198,7 +210,6 @@ npm start -- analyze --cv ./examples/cv.md --job ./examples/job.txt --provider o
 
 - Claude provider
 - Gemini provider
-- PDF CV parsing
 - DOCX CV parsing
 - Job tracker
 - Evaluation tests

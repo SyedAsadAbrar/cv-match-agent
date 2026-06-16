@@ -15,6 +15,16 @@ export async function readTextFile(filePath: string): Promise<string> {
   }
 }
 
+export async function readBinaryFile(filePath: string): Promise<Buffer> {
+  const absolutePath = resolveFromCwd(filePath);
+
+  try {
+    return await fs.readFile(absolutePath);
+  } catch (error) {
+    throw new Error(`Could not read file "${filePath}": ${formatError(error)}`);
+  }
+}
+
 export async function writeTextFile(filePath: string, content: string): Promise<void> {
   const absolutePath = resolveFromCwd(filePath);
   await ensureDir(path.dirname(absolutePath));
