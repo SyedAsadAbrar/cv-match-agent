@@ -183,9 +183,11 @@ Return a single JSON object with exactly this shape:
 
 Rules:
 - The LinkedIn message must start with a professional salutation; use the recipient's name if present, otherwise use "Hello,".
-- Format the LinkedIn message as a concise note with a salutation, relevant background/fit, and a clear ask.
-- Use either one short paragraph after the salutation or two compact paragraphs total; do not force three paragraphs.
-- Keep the LinkedIn message formal, direct, recruiter-friendly, meaningful, and roughly 60-100 words.
+- Format the LinkedIn message with the salutation on its own line, then one compact paragraph.
+- Include 2 specific relevance points from the profile and job, such as matching technologies, domain experience, product work, testing, APIs, leadership, or measurable outcomes.
+- End with a clear call to action asking for a brief conversation, referral, or guidance on the next step.
+- Do not say only that the candidate is interested; explain why the background is relevant to this specific role.
+- Keep the LinkedIn message formal, direct, recruiter-friendly, meaningful, and roughly 80-120 words.
 - Avoid casual phrasing such as "excited", exclamation marks, or overly enthusiastic language.
 - The cover letter should be substantial enough to be useful: 4-6 concise paragraphs and roughly 250-400 words.
 - Keep the cover letter formal, direct, and professional. Avoid casual phrasing, exclamation marks, and overly enthusiastic language.
