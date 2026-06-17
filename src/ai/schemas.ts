@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 const text = z.string().trim().min(1);
-const textArray = z.array(z.string().trim()).default([]).transform((items) => items.filter(Boolean));
+const textArray = z.array(z.unknown()).default([]).transform(normalizeTextArray).pipe(z.array(text));
 const optionalText = z.preprocess(
   (value) => (typeof value === "string" && value.trim().length === 0 ? undefined : value),
   text.optional()
@@ -133,3 +133,24 @@ export type MatchAnalysis = z.infer<typeof matchAnalysisSchema>;
 export type ApplicationAssets = z.infer<typeof applicationAssetsSchema>;
 export type SemanticCv = z.infer<typeof semanticCvSchema>;
 export type RawAnalysis = z.infer<typeof rawAnalysisSchema>;
+
+function normalizeTextArray(items: unknown[]): string[] {
+  return items.map(normalizeTextArrayItem).filter((item): item is string => typeof item === "string" && item.length > 0);
+}
+
+function normalizeTextArrayItem(item: unknown): string | undefined {
+  if (typeof item === "string") {
+    return item.trim() || undefined;
+  }
+
+  if (typeof item !== "object" || item === null || Array.isArray(item)) {
+    return undefined;
+  }
+
+  const values = Object.values(item)
+    .filter((value): value is string | number => typeof value === "string" || typeof value === "number")
+    .map((value) => String(value).trim())
+    .filter(Boolean);
+
+  return values.length > 0 ? values.join(": ") : undefined;
+}
