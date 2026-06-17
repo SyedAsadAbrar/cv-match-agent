@@ -1,7 +1,7 @@
 import { Command } from "commander";
 import { createProvider } from "../ai/providers";
 import type { LlmProvider } from "../ai/providers/types";
-import { rawAnalysisSchema, type CvProfile } from "../ai/schemas";
+import { rawAnalysisSchema, type CvProfile, type SemanticCv } from "../ai/schemas";
 import { compareCvToJob } from "../services/compareCvToJob";
 import { extractCvProfile } from "../services/extractCvProfile";
 import { extractJobRequirements } from "../services/extractJobRequirements";
@@ -40,6 +40,7 @@ export function createAnalyzeCommand(): Command {
 async function runAnalyze(options: AnalyzeOptions): Promise<void> {
   let cvText: string | undefined;
   let profile: CvProfile;
+  let semanticCv: SemanticCv | undefined;
   let provider: LlmProvider | undefined;
 
   if (options.cv) {
@@ -53,7 +54,9 @@ async function runAnalyze(options: AnalyzeOptions): Promise<void> {
   if (cvText) {
     provider = createProvider(options.provider);
     logger.info("Extracting CV profile...");
-    profile = await extractCvProfile(provider, cvText);
+    const extracted = await extractCvProfile(provider, cvText);
+    profile = extracted.profile;
+    semanticCv = extracted.semanticCv;
     assertUsableCvProfile(profile);
 
     if (options.saveContext !== false) {
@@ -82,6 +85,7 @@ async function runAnalyze(options: AnalyzeOptions): Promise<void> {
   const rawAnalysis = rawAnalysisSchema.parse({
     provider: provider.name,
     generatedAt: new Date().toISOString(),
+    semanticCv,
     cvProfile: profile,
     jobRequirements,
     matchAnalysis,

@@ -53,7 +53,7 @@ async function runProfileBuild(options: ProfileBuildOptions): Promise<void> {
   const cvText = await readCvFile(options.cv);
 
   logger.info("Extracting CV profile...");
-  const profile = await extractCvProfile(provider, cvText);
+  const { profile } = await extractCvProfile(provider, cvText);
   assertUsableCvProfile(profile);
 
   await saveProfileContext(profile);

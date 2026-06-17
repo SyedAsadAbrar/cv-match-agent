@@ -91,9 +91,36 @@ export const applicationAssetsSchema = z.object({
   })
 });
 
+export const semanticCvSchema = z.object({
+  header: textArray,
+  sections: z
+    .array(
+      z.object({
+        type: text,
+        heading: text,
+        content: textArray,
+        items: z
+          .array(
+            z.object({
+              heading: text,
+              role: optionalText,
+              company: optionalText,
+              location: optionalText,
+              startDate: optionalText,
+              endDate: optionalText,
+              bullets: textArray
+            })
+          )
+          .default([])
+      })
+    )
+    .default([])
+});
+
 export const rawAnalysisSchema = z.object({
   provider: z.string(),
   generatedAt: z.string(),
+  semanticCv: semanticCvSchema.optional(),
   cvProfile: cvProfileSchema,
   jobRequirements: jobRequirementsSchema,
   matchAnalysis: matchAnalysisSchema,
@@ -104,4 +131,5 @@ export type CvProfile = z.infer<typeof cvProfileSchema>;
 export type JobRequirements = z.infer<typeof jobRequirementsSchema>;
 export type MatchAnalysis = z.infer<typeof matchAnalysisSchema>;
 export type ApplicationAssets = z.infer<typeof applicationAssetsSchema>;
+export type SemanticCv = z.infer<typeof semanticCvSchema>;
 export type RawAnalysis = z.infer<typeof rawAnalysisSchema>;

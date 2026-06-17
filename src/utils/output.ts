@@ -14,6 +14,7 @@ const OUTPUT_FILE_NAMES = [
 export async function writeAnalysisOutput(rawAnalysis: RawAnalysis): Promise<string[]> {
   const outputDir = buildOutputDir(rawAnalysis);
   const outputFiles = OUTPUT_FILE_NAMES.map((fileName) => `${outputDir}/${fileName}`);
+  const generatedFiles = [...outputFiles];
 
   await writeTextFile(outputFiles[0], renderMatchReport(rawAnalysis));
   await writeTextFile(outputFiles[1], renderCvImprovements(rawAnalysis.applicationAssets));
@@ -23,7 +24,13 @@ export async function writeAnalysisOutput(rawAnalysis: RawAnalysis): Promise<str
   await writeTextFile(outputFiles[5], `${JSON.stringify(rawAnalysis.cvProfile, null, 2)}\n`);
   await writeTextFile(outputFiles[6], `${JSON.stringify(rawAnalysis, null, 2)}\n`);
 
-  return outputFiles;
+  if (rawAnalysis.semanticCv) {
+    const semanticCvPath = `${outputDir}/semantic-cv.json`;
+    await writeTextFile(semanticCvPath, `${JSON.stringify(rawAnalysis.semanticCv, null, 2)}\n`);
+    generatedFiles.push(semanticCvPath);
+  }
+
+  return generatedFiles;
 }
 
 function buildOutputDir(rawAnalysis: RawAnalysis): string {

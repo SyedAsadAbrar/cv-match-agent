@@ -1,4 +1,4 @@
-import type { CvProfile, JobRequirements, MatchAnalysis } from "./schemas";
+import type { CvProfile, JobRequirements, MatchAnalysis, SemanticCv } from "./schemas";
 import type { LlmMessage } from "./providers/types";
 
 const jsonOnlySystemPrompt = [
@@ -12,12 +12,12 @@ const jsonOnlySystemPrompt = [
   "Keep scoring realistic and useful. Do not guarantee interviews or job offers."
 ].join(" ");
 
-export function buildCvExtractionMessages(cvText: string): LlmMessage[] {
+export function buildCvExtractionMessages(semanticCv: SemanticCv): LlmMessage[] {
   return [
     { role: "system", content: jsonOnlySystemPrompt },
     {
       role: "user",
-      content: `Extract a structured CV profile from the CV below.
+      content: `Extract a structured CV profile from the semantic CV sections below.
 
 Return a single JSON object with exactly this shape:
 {
@@ -78,8 +78,8 @@ Extraction rules:
 - Keep "companies" as a simple list of employer names.
 - The "summary" field is required; if the CV has no explicit summary, write a concise evidence-based summary from the CV content.
 
-CV:
-${cvText}`
+Semantic CV sections:
+${JSON.stringify(semanticCv, null, 2)}`
     }
   ];
 }
