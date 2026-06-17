@@ -1,4 +1,11 @@
-import type { CvProfile, JobRequirements, MatchAnalysis, SemanticCv } from "./schemas";
+import type {
+  ApplicationAssets,
+  CvProfile,
+  JobRequirements,
+  MatchAnalysis,
+  SemanticCv,
+  UserPreferences
+} from "./schemas";
 import type { LlmMessage } from "./providers/types";
 
 const jsonOnlySystemPrompt = [
@@ -155,7 +162,8 @@ ${JSON.stringify(job, null, 2)}`
 export function buildAssetGenerationMessages(
   profile: CvProfile,
   job: JobRequirements,
-  analysis: MatchAnalysis
+  analysis: MatchAnalysis,
+  preferences: UserPreferences
 ): LlmMessage[] {
   return [
     { role: "system", content: jsonOnlySystemPrompt },
@@ -193,6 +201,8 @@ Rules:
 - Keep the cover letter formal, direct, and professional. Avoid casual phrasing, exclamation marks, and overly enthusiastic language.
 - Make the cover letter specific to the role, company, profile evidence, and match analysis.
 - End the cover letter with a professional closing in the format "Regards," followed by the candidate's name on the next line. If the candidate name is unknown, use "Regards," followed by "Candidate".
+- Follow user preferences when they are provided, especially tone, preferred roles, cover letter length, and avoidPhrases.
+- Do not use phrases listed in userPreferences.avoidPhrases.
 - Do not claim experience that is not present in the profile.
 - Missing keywords should be keywords from the job that are not clearly present in the profile.
 - Do not imply any guarantee of interviews or offers.
@@ -204,7 +214,53 @@ Job requirements JSON:
 ${JSON.stringify(job, null, 2)}
 
 Match analysis JSON:
-${JSON.stringify(analysis, null, 2)}`
+${JSON.stringify(analysis, null, 2)}
+
+User preferences JSON:
+${JSON.stringify(preferences, null, 2)}`
+    }
+  ];
+}
+
+export function buildOutputReviewMessages(
+  profile: CvProfile,
+  job: JobRequirements,
+  analysis: MatchAnalysis,
+  assets: ApplicationAssets,
+  preferences: UserPreferences
+): LlmMessage[] {
+  return [
+    { role: "system", content: jsonOnlySystemPrompt },
+    {
+      role: "user",
+      content: `Review the generated application outputs for accuracy, usefulness, and preference alignment.
+
+Return a single JSON object with exactly this shape:
+{
+  "passed": true,
+  "issues": ["string"],
+  "suggestedFixes": ["string"]
+}
+
+Rules:
+- Mark passed as false if the outputs claim unsupported experience, omit the LinkedIn call to action, ignore user preferences, or contradict the match analysis.
+- Do not require perfection; focus on concrete issues that would matter to the applicant.
+- Keep issues and suggestedFixes concise and actionable.
+
+Candidate profile JSON:
+${JSON.stringify(profile, null, 2)}
+
+Job requirements JSON:
+${JSON.stringify(job, null, 2)}
+
+Match analysis JSON:
+${JSON.stringify(analysis, null, 2)}
+
+Application assets JSON:
+${JSON.stringify(assets, null, 2)}
+
+User preferences JSON:
+${JSON.stringify(preferences, null, 2)}`
     }
   ];
 }

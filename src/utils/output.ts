@@ -1,3 +1,4 @@
+import type { AiDebugArtifact } from "../ai/json";
 import type { ApplicationAssets, MatchAnalysis, RawAnalysis } from "../ai/schemas";
 import { writeTextFile } from "./file";
 
@@ -11,7 +12,10 @@ const OUTPUT_FILE_NAMES = [
   "raw-analysis.json"
 ] as const;
 
-export async function writeAnalysisOutput(rawAnalysis: RawAnalysis): Promise<string[]> {
+export async function writeAnalysisOutput(
+  rawAnalysis: RawAnalysis,
+  debugArtifacts: AiDebugArtifact[] = []
+): Promise<string[]> {
   const outputDir = buildOutputDir(rawAnalysis);
   const outputFiles = OUTPUT_FILE_NAMES.map((fileName) => `${outputDir}/${fileName}`);
   const generatedFiles = [...outputFiles];
@@ -28,6 +32,18 @@ export async function writeAnalysisOutput(rawAnalysis: RawAnalysis): Promise<str
     const semanticCvPath = `${outputDir}/semantic-cv.json`;
     await writeTextFile(semanticCvPath, `${JSON.stringify(rawAnalysis.semanticCv, null, 2)}\n`);
     generatedFiles.push(semanticCvPath);
+  }
+
+  if (rawAnalysis.review) {
+    const reviewPath = `${outputDir}/review.json`;
+    await writeTextFile(reviewPath, `${JSON.stringify(rawAnalysis.review, null, 2)}\n`);
+    generatedFiles.push(reviewPath);
+  }
+
+  for (const [index, artifact] of debugArtifacts.entries()) {
+    const debugPath = `${outputDir}/debug/${String(index + 1).padStart(2, "0")}-${sanitizePathPart(artifact.label)}.json`;
+    await writeTextFile(debugPath, `${JSON.stringify(artifact, null, 2)}\n`);
+    generatedFiles.push(debugPath);
   }
 
   return generatedFiles;

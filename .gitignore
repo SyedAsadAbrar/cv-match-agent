@@ -1,6 +1,7 @@
 .env
 output/
 context/profile.json
+context/preferences.json
 *.pdf
 *.docx
 private/

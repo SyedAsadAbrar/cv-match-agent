@@ -1,6 +1,19 @@
 import { z } from "zod";
 import type { LlmMessage, LlmProvider } from "./providers/types";
 
+export type AiDebugArtifact = {
+  label: string;
+  messages: LlmMessage[];
+  response: string;
+  error?: string;
+};
+
+let debugRecorder: ((artifact: AiDebugArtifact) => void) | undefined;
+
+export function setAiDebugRecorder(recorder: ((artifact: AiDebugArtifact) => void) | undefined): void {
+  debugRecorder = recorder;
+}
+
 export async function generateJsonWithSchema<TSchema extends z.ZodTypeAny>(
   provider: LlmProvider,
   messages: LlmMessage[],
@@ -8,7 +21,60 @@ export async function generateJsonWithSchema<TSchema extends z.ZodTypeAny>(
   label: string
 ): Promise<z.infer<TSchema>> {
   const response = await provider.generateText(messages, { json: true });
-  return parseJsonWithSchema(response, schema, label);
+
+  try {
+    const parsed = parseJsonWithSchema(response, schema, label);
+    debugRecorder?.({ label, messages, response });
+    return parsed;
+  } catch (error) {
+    const repairMessages = buildJsonRepairMessages(label, response, formatError(error));
+    const repairedResponse = await provider.generateText(repairMessages, { json: true });
+
+    try {
+      const repaired = parseJsonWithSchema(repairedResponse, schema, label);
+      debugRecorder?.({ label, messages, response, error: formatError(error) });
+      debugRecorder?.({ label: `${label} repair`, messages: repairMessages, response: repairedResponse });
+      return repaired;
+    } catch (repairError) {
+      debugRecorder?.({ label, messages, response, error: formatError(error) });
+      debugRecorder?.({
+        label: `${label} repair`,
+        messages: repairMessages,
+        response: repairedResponse,
+        error: formatError(repairError)
+      });
+
+      throw repairError;
+    }
+  }
+}
+
+function buildJsonRepairMessages(label: string, response: string, error: string): LlmMessage[] {
+  return [
+    {
+      role: "system",
+      content: [
+        "You repair invalid JSON model output.",
+        "Return only one valid JSON object.",
+        "Do not add markdown, commentary, or wrapper keys.",
+        "Preserve the original meaning and fields as much as possible."
+      ].join(" ")
+    },
+    {
+      role: "user",
+      content: `Repair this ${label} response so it validates as the expected JSON object.
+
+Validation error:
+${error}
+
+Invalid response:
+${response}`
+    }
+  ];
+}
+
+function formatError(error: unknown): string {
+  return error instanceof Error ? error.message : String(error);
 }
 
 export function parseJsonWithSchema<TSchema extends z.ZodTypeAny>(

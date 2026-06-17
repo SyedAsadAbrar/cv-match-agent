@@ -91,6 +91,19 @@ export const applicationAssetsSchema = z.object({
   })
 });
 
+export const userPreferencesSchema = z.object({
+  linkedinTone: optionalText,
+  coverLetterLength: optionalText,
+  preferredRoles: textArray,
+  avoidPhrases: textArray
+});
+
+export const outputReviewSchema = z.object({
+  passed: z.boolean(),
+  issues: textArray,
+  suggestedFixes: textArray
+});
+
 export const semanticCvSchema = z.object({
   header: textArray,
   sections: z
@@ -124,13 +137,16 @@ export const rawAnalysisSchema = z.object({
   cvProfile: cvProfileSchema,
   jobRequirements: jobRequirementsSchema,
   matchAnalysis: matchAnalysisSchema,
-  applicationAssets: applicationAssetsSchema
+  applicationAssets: applicationAssetsSchema,
+  review: outputReviewSchema.optional()
 });
 
 export type CvProfile = z.infer<typeof cvProfileSchema>;
 export type JobRequirements = z.infer<typeof jobRequirementsSchema>;
 export type MatchAnalysis = z.infer<typeof matchAnalysisSchema>;
 export type ApplicationAssets = z.infer<typeof applicationAssetsSchema>;
+export type UserPreferences = z.infer<typeof userPreferencesSchema>;
+export type OutputReview = z.infer<typeof outputReviewSchema>;
 export type SemanticCv = z.infer<typeof semanticCvSchema>;
 export type RawAnalysis = z.infer<typeof rawAnalysisSchema>;
 
