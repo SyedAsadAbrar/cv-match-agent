@@ -3,11 +3,13 @@ import type { CvProfile, SemanticCv } from "../ai/schemas";
 type SemanticCvItem = SemanticCv["sections"][number]["items"][number];
 
 const SECTION_ALIASES: Array<[string, string[]]> = [
-  ["employment", ["employment", "experience", "work experience", "professional experience"]],
+  ["summary", ["summary", "profile", "professional summary"]],
+  ["employment", ["employment", "experience", "work experience", "professional experience", "work history", "professional history"]],
   ["education", ["education"]],
   ["projects", ["projects", "personal projects", "selected projects"]],
-  ["achievements", ["achievements", "awards", "additional experience and awards", "additional experience"]],
-  ["skills", ["skills", "technologies", "languages, technologies and tools", "languages and technologies"]]
+  ["achievements", ["achievements", "awards", "additional experience and awards", "additional experience", "honors and awards"]],
+  ["skills", ["skills", "technical skills", "technologies", "languages, technologies and tools", "languages and technologies"]],
+  ["certifications", ["certifications", "licenses and certifications"]]
 ];
 
 const DATE_RANGE_PATTERN =
@@ -193,7 +195,7 @@ function parseEmploymentHeading(
   }
 
   const heading = line.slice(0, dateMatch.index).trim();
-  const parts = heading.split(/\t+|\s{2,}/).map((part) => part.trim()).filter(Boolean);
+  const parts = heading.split(/\t+|\s{2,}|\s+\|\s+/).map((part) => part.trim()).filter(Boolean);
 
   if (parts.length < 2) {
     return undefined;
@@ -204,6 +206,7 @@ function parseEmploymentHeading(
       heading,
       role: parts[0],
       company: parts[1],
+      location: parts[2],
       ...dateRange
     },
     nextIndex: index
@@ -299,7 +302,7 @@ function sameMeaning(left: string, right: string): boolean {
 }
 
 function normalizeHeading(line: string): string {
-  return stripMarkdownHeading(line).toLowerCase();
+  return stripMarkdownHeading(line).replace(/:$/, "").toLowerCase();
 }
 
 function stripMarkdownHeading(line: string): string {
