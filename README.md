@@ -26,6 +26,25 @@ context/profile.json
 
 That file stores a previously extracted CV profile. It is only used when `analyze` is run without `--cv`. Explicit CLI input always wins: if both `--cv` and `context/profile.json` exist, the CLI uses `--cv`.
 
+## Preferences
+
+The CLI also supports optional local preferences at:
+
+```txt
+context/preferences.json
+```
+
+If the file does not exist, sensible defaults are used. Preferences can guide output tone, cover letter length, preferred roles, and phrases to avoid:
+
+```json
+{
+  "linkedinTone": "formal and concise",
+  "coverLetterLength": "medium",
+  "preferredRoles": [],
+  "avoidPhrases": ["excited", "perfect fit"]
+}
+```
+
 ## Install
 
 ```bash
@@ -133,20 +152,27 @@ output/Alex_Morgan_2026-06-16_14-30-05/linkedin-message.txt
 output/Alex_Morgan_2026-06-16_14-30-05/cover-letter.txt
 output/Alex_Morgan_2026-06-16_14-30-05/interview-prep.md
 output/Alex_Morgan_2026-06-16_14-30-05/cv-profile.json
+output/Alex_Morgan_2026-06-16_14-30-05/semantic-cv.json
+output/Alex_Morgan_2026-06-16_14-30-05/review.json
 output/Alex_Morgan_2026-06-16_14-30-05/raw-analysis.json
+output/Alex_Morgan_2026-06-16_14-30-05/debug/01-CV_profile.json
 ```
 
-`cv-profile.json` is the standalone parsed CV object. It includes structured skills, education, work experience, projects, companies, and achievements. `raw-analysis.json` includes the parsed CV, job requirements, match analysis, and generated application assets.
+`semantic-cv.json` is the deterministic sectioned CV object extracted before the AI profile step. `cv-profile.json` is the standalone parsed CV profile, including structured skills, education, work experience, projects, companies, and achievements. `review.json` stores the AI review of generated outputs. `raw-analysis.json` includes the semantic CV, parsed profile, job requirements, match analysis, application assets, and review.
+
+The `debug/` folder stores request/response artifacts for each structured AI step and any repair attempt. This is useful when a local model returns invalid JSON or drops evidence from the CV.
 
 The terminal progress looks like:
 
 ```txt
 Reading CV...
 Reading job description...
+Loading preferences...
 Extracting CV profile...
 Extracting job requirements...
 Comparing profile to job...
 Generating application assets...
+Reviewing application output...
 Writing output files...
 
 Done.
@@ -158,7 +184,27 @@ Generated:
 - output/Alex_Morgan_2026-06-16_14-30-05/interview-prep.md
 - output/Alex_Morgan_2026-06-16_14-30-05/cv-profile.json
 - output/Alex_Morgan_2026-06-16_14-30-05/raw-analysis.json
+- output/Alex_Morgan_2026-06-16_14-30-05/semantic-cv.json
+- output/Alex_Morgan_2026-06-16_14-30-05/review.json
+- output/Alex_Morgan_2026-06-16_14-30-05/debug/01-CV_profile.json
 ```
+
+## Workflow
+
+At a high level, `analyze` runs this flow:
+
+```txt
+CV file or saved profile
+  -> semantic CV sections
+  -> structured CV profile
+  -> job requirements
+  -> match analysis
+  -> application assets
+  -> output review
+  -> files in output/
+```
+
+The semantic CV step keeps the workflow more grounded in the original document. The profile extraction step turns those sections into structured data, and deterministic checks make sure important employment bullets are not dropped before later AI calls spend more tokens.
 
 ## Architecture
 
@@ -177,24 +223,32 @@ src/
     schemas.ts
     json.ts
   services/
+    runAnalysisWorkflow.ts
+    readCvFile.ts
+    cvSectionParser.ts
+    cvProfileEvidence.ts
     extractCvProfile.ts
     extractJobRequirements.ts
     compareCvToJob.ts
     generateApplicationAssets.ts
+    reviewApplicationOutput.ts
     profileContext.ts
+    preferencesContext.ts
+    validateCvProfile.ts
   utils/
     file.ts
     logger.ts
     output.ts
 ```
 
-The provider interface returns plain text, so the workflow stays provider-agnostic. Zod schemas validate every structured AI response. If the model wraps JSON in markdown fences or extra prose, the JSON helper attempts to extract a valid object and validates it again.
+The provider interface returns plain text, so the workflow stays provider-agnostic. Zod schemas validate every structured AI response. If the model wraps JSON in markdown fences or extra prose, the JSON helper attempts to extract and repair a valid object, then validates it again.
 
 ## Privacy Notes
 
 - Do not commit real CVs.
 - Do not commit `.env`.
 - `context/profile.json` is gitignored.
+- `context/preferences.json` is gitignored.
 - `output/` is gitignored.
 - Ollama keeps model calls local to your machine.
 - OpenAI mode sends the supplied CV/job content to the OpenAI API.
