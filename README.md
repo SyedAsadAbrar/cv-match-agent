@@ -4,6 +4,18 @@
 
 There is no frontend, database, authentication, or remote app server. The tool is local-first: files are read from your machine, outputs are written to `output/`, and you can use a local Ollama model when you do not want CV content sent to a cloud provider.
 
+## What It Does
+
+- Reads CVs from Markdown, plain text, or text-based PDF files.
+- Splits the CV into semantic sections before asking an AI model to build the profile.
+- Extracts a structured profile with summary, location, education, skills, companies, work experience, projects, and achievements.
+- Preserves work experience bullets so later analysis is grounded in the original CV.
+- Extracts job requirements, including role, company, location, skills, responsibilities, education requirements, and keywords.
+- Compares the profile against the job and produces a realistic match report.
+- Generates CV improvements, a formal LinkedIn outreach message, a cover letter, and interview preparation notes.
+- Reviews generated outputs for unsupported claims, missing calls to action, preference mismatches, and contradictions.
+- Stores debug artifacts so model failures, JSON repair attempts, and prompt responses can be inspected.
+
 ## Context Saved By Default
 
 When you pass `--cv`, the CLI reads and extracts that CV, uses the fresh profile for the current run, and saves the parsed profile to:
@@ -47,6 +59,8 @@ If the file does not exist, sensible defaults are used. Preferences can guide ou
 
 ## Install
 
+Requires Node.js 20 or newer.
+
 ```bash
 npm install
 ```
@@ -55,6 +69,16 @@ Copy the environment template and adjust it:
 
 ```bash
 cp .env.example .env
+```
+
+The default environment looks like:
+
+```env
+DEFAULT_PROVIDER=ollama
+OLLAMA_BASE_URL=http://localhost:11434
+OLLAMA_MODEL=llama3.1:8b
+OPENAI_API_KEY=
+OPENAI_MODEL=
 ```
 
 ## Run With Ollama
@@ -80,6 +104,7 @@ npm run dev -- analyze --cv ./private/resume.pdf --job ./examples/job.txt --prov
 The Ollama provider uses:
 
 ```env
+DEFAULT_PROVIDER=ollama
 OLLAMA_BASE_URL=http://localhost:11434
 OLLAMA_MODEL=llama3.1:8b
 ```
@@ -100,6 +125,12 @@ npm run dev -- analyze --cv ./examples/cv.md --job ./examples/job.txt --provider
 ```
 
 The OpenAI provider uses the official OpenAI TypeScript SDK and the Responses API. The model is intentionally not hard-coded; configure `OPENAI_MODEL` yourself.
+
+You can also set OpenAI as the default provider:
+
+```env
+DEFAULT_PROVIDER=openai
+```
 
 ## Build A Profile Context
 
@@ -206,6 +237,12 @@ CV file or saved profile
 
 The semantic CV step keeps the workflow more grounded in the original document. The profile extraction step turns those sections into structured data, and deterministic checks make sure important employment bullets are not dropped before later AI calls spend more tokens.
 
+## Is It An AI Agent?
+
+This is a bounded AI agent workflow rather than an open-ended autonomous agent. The program has a goal, local state, model calls, tools, validation, repair attempts, memory through context files, debug traces, and a review step. It does not dynamically decide arbitrary new tools or run an unbounded planning loop.
+
+That design is intentional: code handles structure, validation, file IO, privacy boundaries, and evidence preservation, while AI handles interpretation, comparison, writing, and review.
+
 ## Architecture
 
 ```txt
@@ -235,6 +272,7 @@ src/
     profileContext.ts
     preferencesContext.ts
     validateCvProfile.ts
+    cvSections.ts
   utils/
     file.ts
     logger.ts
@@ -243,12 +281,26 @@ src/
 
 The provider interface returns plain text, so the workflow stays provider-agnostic. Zod schemas validate every structured AI response. If the model wraps JSON in markdown fences or extra prose, the JSON helper attempts to extract and repair a valid object, then validates it again.
 
+## Generated Files
+
+- `match-report.md`: score, summary, strong matches, partial matches, gaps, risks, positioning, and keywords to add.
+- `cv-improvements.md`: suggested CV bullet rewrites, skills to emphasize, experience to rewrite, and missing keywords.
+- `linkedin-message.txt`: formal outreach message with salutation, relevance points, and a call to action.
+- `cover-letter.txt`: role-specific cover letter with a professional closing.
+- `interview-prep.md`: likely topics, technical questions, behavioral questions, and suggested talking points.
+- `cv-profile.json`: parsed candidate profile used for matching.
+- `semantic-cv.json`: sectioned CV evidence used to build the profile.
+- `raw-analysis.json`: full structured run data.
+- `review.json`: quality review of the generated application assets.
+- `debug/*.json`: AI request, response, validation error, and repair artifacts.
+
 ## Privacy Notes
 
 - Do not commit real CVs.
 - Do not commit `.env`.
 - `context/profile.json` is gitignored.
 - `context/preferences.json` is gitignored.
+- `private/` is gitignored for personal CVs and other local inputs.
 - `output/` is gitignored.
 - Ollama keeps model calls local to your machine.
 - OpenAI mode sends the supplied CV/job content to the OpenAI API.
