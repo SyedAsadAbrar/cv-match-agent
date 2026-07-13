@@ -89,10 +89,28 @@ Install and start Ollama, then make sure the model exists locally:
 ollama pull llama3.1:8b
 ```
 
+List the models already installed in your local Ollama instance:
+
+```bash
+npm run dev -- models list
+```
+
+The CLI never downloads models automatically. Install any model you want to use with `ollama pull`, for example:
+
+```bash
+ollama pull deepseek-r1:8b
+```
+
 Run an analysis with an explicit CV:
 
 ```bash
 npm run dev -- analyze --cv ./examples/cv.md --job ./examples/job.txt --provider ollama
+```
+
+Select a specific installed Ollama model for one analysis run:
+
+```bash
+npm run dev -- analyze --cv ./examples/cv.md --job ./examples/job.txt --provider ollama --model deepseek-r1:8b
 ```
 
 CV input can be Markdown, plain text, or a text-based PDF:
@@ -108,6 +126,8 @@ DEFAULT_PROVIDER=ollama
 OLLAMA_BASE_URL=http://localhost:11434
 OLLAMA_MODEL=llama3.1:8b
 ```
+
+For Ollama, model selection uses this precedence: `--model`, then `OLLAMA_MODEL`, then `llama3.1:8b`. Existing commands without `--model` therefore continue to use the configured environment value or the default. `--model` is only for Ollama; it is rejected with `--provider openai`.
 
 ## Run With OpenAI
 
@@ -138,6 +158,12 @@ You can create or replace `context/profile.json` directly:
 
 ```bash
 npm run dev -- profile build --cv ./examples/cv.md --provider ollama
+```
+
+To build profile context with a particular installed Ollama model:
+
+```bash
+npm run dev -- profile build --cv ./examples/cv.md --provider ollama --model deepseek-r1:8b
 ```
 
 PDF CVs are also supported:
@@ -251,7 +277,9 @@ src/
   commands/
     analyze.ts
     profile.ts
+    models.ts
   ai/
+    ollamaClient.ts
     providers/
       types.ts
       ollamaProvider.ts

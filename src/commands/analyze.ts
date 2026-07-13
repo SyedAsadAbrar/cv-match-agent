@@ -7,6 +7,7 @@ export function createAnalyzeCommand(): Command {
     .option("--cv <path>", "Path to a CV/resume PDF, text, or markdown file.")
     .requiredOption("--job <path>", "Path to a job description text file.")
     .option("--provider <provider>", "LLM provider to use: ollama or openai.")
+    .option("--model <model>", "Installed Ollama model to use for this run.")
     .option("--no-save-context", "Do not save an extracted --cv profile to context/profile.json.")
     .action(async (options: AnalyzeWorkflowOptions) => {
       await runAnalysisWorkflow(options);

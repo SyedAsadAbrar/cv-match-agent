@@ -2,6 +2,7 @@
 import "dotenv/config";
 import { Command } from "commander";
 import { createAnalyzeCommand } from "./commands/analyze";
+import { createModelsCommand } from "./commands/models";
 import { createProfileCommand } from "./commands/profile";
 import { logger } from "./utils/logger";
 
@@ -13,6 +14,7 @@ program
   .version("0.1.0");
 
 program.addCommand(createAnalyzeCommand());
+program.addCommand(createModelsCommand());
 program.addCommand(createProfileCommand());
 
 program.exitOverride();

@@ -5,6 +5,7 @@ export type LlmMessage = {
 
 export type LlmProvider = {
   name: string;
+  model: string;
   generateText(messages: LlmMessage[], options?: { json?: boolean }): Promise<string>;
 };
 

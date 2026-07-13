@@ -15,6 +15,7 @@ import { logger } from "../utils/logger";
 type ProfileBuildOptions = {
   cv: string;
   provider?: string;
+  model?: string;
 };
 
 export function createProfileCommand(): Command {
@@ -25,6 +26,7 @@ export function createProfileCommand(): Command {
     .description("Extract a CV profile and save it to context/profile.json.")
     .requiredOption("--cv <path>", "Path to a CV/resume PDF, text, or markdown file.")
     .option("--provider <provider>", "LLM provider to use: ollama or openai.")
+    .option("--model <model>", "Installed Ollama model to use for this run.")
     .action(async (options: ProfileBuildOptions) => {
       await runProfileBuild(options);
     });
@@ -47,7 +49,7 @@ export function createProfileCommand(): Command {
 }
 
 async function runProfileBuild(options: ProfileBuildOptions): Promise<void> {
-  const provider = createProvider(options.provider);
+  const provider = createProvider({ provider: options.provider, model: options.model });
 
   logger.info("Reading CV...");
   const cvText = await readCvFile(options.cv);

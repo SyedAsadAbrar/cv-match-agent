@@ -2,14 +2,22 @@ import { OllamaProvider } from "./ollamaProvider";
 import { OpenAIProvider } from "./openaiProvider";
 import type { LlmProvider, ProviderName } from "./types";
 
-export function createProvider(providerName?: string): LlmProvider {
-  const selected = (providerName ?? process.env.DEFAULT_PROVIDER ?? "ollama").toLowerCase();
+export type CreateProviderOptions = {
+  provider?: string;
+  model?: string;
+};
+
+export function createProvider(options: CreateProviderOptions = {}): LlmProvider {
+  const selected = normalizeProviderName(options.provider);
 
   if (selected === "ollama") {
-    return new OllamaProvider();
+    return new OllamaProvider({ model: options.model });
   }
 
   if (selected === "openai") {
+    if (options.model !== undefined) {
+      throw new Error("The --model option selects an Ollama model and cannot be used with --provider openai.");
+    }
     return new OpenAIProvider();
   }
 

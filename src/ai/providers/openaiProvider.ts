@@ -3,9 +3,9 @@ import type { LlmMessage, LlmProvider } from "./types";
 
 export class OpenAIProvider implements LlmProvider {
   public readonly name = "openai";
+  public readonly model: string;
 
   private readonly client: OpenAI;
-  private readonly model: string;
 
   constructor() {
     const apiKey = process.env.OPENAI_API_KEY;

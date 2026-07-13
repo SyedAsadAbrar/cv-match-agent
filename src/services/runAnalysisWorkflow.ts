@@ -8,6 +8,7 @@ import {
   type JobRequirements,
   type MatchAnalysis,
   type OutputReview,
+  type RawAnalysis,
   type SemanticCv,
   type UserPreferences
 } from "../ai/schemas";
@@ -33,6 +34,7 @@ export type AnalyzeWorkflowOptions = {
   cv?: string;
   job: string;
   provider?: string;
+  model?: string;
   saveContext?: boolean;
 };
 
@@ -67,7 +69,7 @@ export async function runAnalysisWorkflow(options: AnalyzeWorkflowOptions): Prom
     state.preferences = await loadUserPreferences();
 
     if (state.cvText) {
-      state.provider = createProvider(options.provider);
+      state.provider = createProvider({ provider: options.provider, model: options.model });
       logger.info("Extracting CV profile...");
       const extracted = await extractCvProfile(state.provider, state.cvText);
       state.profile = extracted.profile;
@@ -86,7 +88,7 @@ export async function runAnalysisWorkflow(options: AnalyzeWorkflowOptions): Prom
       throw new Error("No CV provided and no context/profile.json found. Pass --cv or run profile build.");
     }
 
-    state.provider ??= createProvider(options.provider);
+    state.provider ??= createProvider({ provider: options.provider, model: options.model });
 
     logger.info("Extracting job requirements...");
     state.jobRequirements = await extractJobRequirements(state.provider, state.jobText);
@@ -114,7 +116,7 @@ export async function runAnalysisWorkflow(options: AnalyzeWorkflowOptions): Prom
     );
 
     const rawAnalysis = rawAnalysisSchema.parse({
-      provider: state.provider.name,
+      ...getAnalysisProviderMetadata(state.provider),
       generatedAt: new Date().toISOString(),
       semanticCv: state.semanticCv,
       cvProfile: state.profile,
@@ -136,4 +138,8 @@ export async function runAnalysisWorkflow(options: AnalyzeWorkflowOptions): Prom
   } finally {
     setAiDebugRecorder(undefined);
   }
+}
+
+export function getAnalysisProviderMetadata(provider: LlmProvider): Pick<RawAnalysis, "provider" | "model"> {
+  return { provider: provider.name, model: provider.model };
 }

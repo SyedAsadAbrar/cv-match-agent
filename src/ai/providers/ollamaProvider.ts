@@ -1,5 +1,10 @@
 import type { LlmMessage, LlmProvider } from "./types";
 
+export type OllamaProviderOptions = {
+  model?: string;
+  baseUrl?: string;
+};
+
 type OllamaChatResponse = {
   message?: {
     content?: string;
@@ -9,13 +14,12 @@ type OllamaChatResponse = {
 
 export class OllamaProvider implements LlmProvider {
   public readonly name = "ollama";
-
   private readonly baseUrl: string;
-  private readonly model: string;
+  public readonly model: string;
 
-  constructor() {
-    this.baseUrl = process.env.OLLAMA_BASE_URL ?? "http://localhost:11434";
-    this.model = process.env.OLLAMA_MODEL ?? "llama3.1:8b";
+  constructor(options: OllamaProviderOptions = {}) {
+    this.baseUrl = resolveOllamaBaseUrl(options.baseUrl);
+    this.model = resolveOllamaModel(options.model);
   }
 
   async generateText(messages: LlmMessage[], options?: { json?: boolean }): Promise<string> {
@@ -42,12 +46,18 @@ export class OllamaProvider implements LlmProvider {
 
     if (!response.ok) {
       const body = await response.text();
+      if (isMissingModelError(body, this.model)) {
+        throw new Error(missingModelMessage(this.model));
+      }
       throw new Error(`Ollama request failed with HTTP ${response.status}: ${body}`);
     }
 
     const data = (await response.json()) as OllamaChatResponse;
 
     if (data.error) {
+      if (isMissingModelError(data.error, this.model)) {
+        throw new Error(missingModelMessage(this.model));
+      }
       throw new Error(`Ollama error: ${data.error}`);
     }
 
@@ -58,6 +68,29 @@ export class OllamaProvider implements LlmProvider {
 
     return text;
   }
+}
+
+export function resolveOllamaModel(explicitModel?: string, environmentModel = process.env.OLLAMA_MODEL): string {
+  const model = explicitModel ?? environmentModel ?? "llama3.1:8b";
+  if (!model.trim()) {
+    throw new Error("An Ollama model must not be empty.");
+  }
+
+  return model;
+}
+
+function resolveOllamaBaseUrl(explicitBaseUrl?: string): string {
+  const baseUrl = explicitBaseUrl ?? process.env.OLLAMA_BASE_URL ?? "http://localhost:11434";
+  return baseUrl.replace(/\/+$/, "");
+}
+
+function isMissingModelError(message: string, model: string): boolean {
+  const normalized = message.toLowerCase();
+  return normalized.includes(model.toLowerCase()) && /(not found|does not exist|not installed)/.test(normalized);
+}
+
+function missingModelMessage(model: string): string {
+  return `Ollama model "${model}" is not installed. Install it with: ollama pull ${model}`;
 }
 
 function formatError(error: unknown): string {

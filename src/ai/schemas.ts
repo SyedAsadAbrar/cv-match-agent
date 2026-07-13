@@ -132,6 +132,7 @@ export const semanticCvSchema = z.object({
 
 export const rawAnalysisSchema = z.object({
   provider: z.string(),
+  model: z.string(),
   generatedAt: z.string(),
   semanticCv: semanticCvSchema.optional(),
   cvProfile: cvProfileSchema,
