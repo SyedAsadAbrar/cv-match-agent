@@ -1,5 +1,10 @@
 import { z } from "zod";
-import type { LlmMessage, LlmProvider } from "./providers/types";
+import type {
+  LlmGenerationOptions,
+  LlmGenerationResult,
+  LlmMessage,
+  LlmProvider
+} from "./providers/types";
 
 export type AiDebugArtifact = {
   label: string;
@@ -7,6 +12,24 @@ export type AiDebugArtifact = {
   response: string;
   error?: string;
 };
+
+export type JsonGenerationDetails<T> = {
+  value: T;
+  generations: LlmGenerationResult[];
+  repairAttempts: number;
+  firstResponseValid: boolean;
+};
+
+export class JsonGenerationError extends Error {
+  constructor(
+    message: string,
+    public readonly generations: LlmGenerationResult[],
+    public readonly repairAttempts: number
+  ) {
+    super(message);
+    this.name = "JsonGenerationError";
+  }
+}
 
 let debugRecorder: ((artifact: AiDebugArtifact) => void) | undefined;
 
@@ -20,36 +43,79 @@ export async function generateJsonWithSchema<TSchema extends z.ZodTypeAny>(
   schema: TSchema,
   label: string
 ): Promise<z.infer<TSchema>> {
-  const response = await provider.generateText(messages, { json: true });
+  let details: JsonGenerationDetails<z.infer<TSchema>>;
+  try {
+    details = await generateJsonWithSchemaDetailed(provider, messages, schema, label);
+  } catch (error) {
+    if (error instanceof JsonGenerationError) {
+      const [first, repaired] = error.generations;
+      if (first) debugRecorder?.({ label, messages, response: first.text, error: error.message });
+      if (repaired) {
+        debugRecorder?.({
+          label: `${label} repair`,
+          messages: buildJsonRepairMessages(label, first?.text ?? "", error.message),
+          response: repaired.text,
+          error: error.message
+        });
+      }
+    }
+    throw error;
+  }
+  const response = details.generations[0].text;
+
+  if (details.repairAttempts === 0) {
+    debugRecorder?.({ label, messages, response });
+  } else {
+    debugRecorder?.({ label, messages, response, error: "Initial response required JSON repair." });
+    debugRecorder?.({
+      label: `${label} repair`,
+      messages: buildJsonRepairMessages(label, response, "Initial response did not validate."),
+      response: details.generations[1].text
+    });
+  }
+
+  return details.value;
+}
+
+export async function generateJsonWithSchemaDetailed<TSchema extends z.ZodTypeAny>(
+  provider: LlmProvider,
+  messages: LlmMessage[],
+  schema: TSchema,
+  label: string,
+  generationOptions: LlmGenerationOptions = {}
+): Promise<JsonGenerationDetails<z.infer<TSchema>>> {
+  const first = await provider.generate(messages, { ...generationOptions, json: true });
 
   try {
-    const parsed = parseJsonWithSchema(response, schema, label);
-    debugRecorder?.({ label, messages, response });
-    return parsed;
+    return {
+      value: parseJsonWithSchema(first.text, schema, label),
+      generations: [first],
+      repairAttempts: 0,
+      firstResponseValid: true
+    };
   } catch (error) {
-    const repairMessages = buildJsonRepairMessages(label, response, formatError(error));
-    const repairedResponse = await provider.generateText(repairMessages, { json: true });
+    const repairMessages = buildJsonRepairMessages(label, first.text, formatError(error));
+    let repaired: LlmGenerationResult;
+    try {
+      repaired = await provider.generate(repairMessages, { ...generationOptions, json: true });
+    } catch (repairRequestError) {
+      throw new JsonGenerationError(formatError(repairRequestError), [first], 1);
+    }
 
     try {
-      const repaired = parseJsonWithSchema(repairedResponse, schema, label);
-      debugRecorder?.({ label, messages, response, error: formatError(error) });
-      debugRecorder?.({ label: `${label} repair`, messages: repairMessages, response: repairedResponse });
-      return repaired;
+      return {
+        value: parseJsonWithSchema(repaired.text, schema, label),
+        generations: [first, repaired],
+        repairAttempts: 1,
+        firstResponseValid: false
+      };
     } catch (repairError) {
-      debugRecorder?.({ label, messages, response, error: formatError(error) });
-      debugRecorder?.({
-        label: `${label} repair`,
-        messages: repairMessages,
-        response: repairedResponse,
-        error: formatError(repairError)
-      });
-
-      throw repairError;
+      throw new JsonGenerationError(formatError(repairError), [first, repaired], 1);
     }
   }
 }
 
-function buildJsonRepairMessages(label: string, response: string, error: string): LlmMessage[] {
+export function buildJsonRepairMessages(label: string, response: string, error: string): LlmMessage[] {
   return [
     {
       role: "system",

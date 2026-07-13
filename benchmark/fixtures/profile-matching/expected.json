@@ -1,0 +1,26 @@
+{
+  "fixtureVersion": "1",
+  "strongMatches": [
+    { "id": "match-typescript", "aliases": ["typescript"] },
+    { "id": "match-react", "aliases": ["react"] },
+    { "id": "match-node", "aliases": ["node.js", "nodejs", "node"] },
+    { "id": "match-rest", "aliases": ["rest api", "rest"] },
+    { "id": "match-testing", "aliases": ["jest", "playwright", "automated testing"] },
+    { "id": "match-accessibility", "aliases": ["accessible", "accessibility"] },
+    { "id": "match-mentoring", "aliases": ["mentor", "code review"] }
+  ],
+  "partialMatches": [
+    { "id": "partial-kubernetes", "aliases": ["kubernetes", "docker", "container"] }
+  ],
+  "gaps": [
+    { "id": "gap-graphql", "aliases": ["graphql"] },
+    { "id": "gap-location", "aliases": ["austin", "hybrid", "location", "relocat"] }
+  ],
+  "forbidden": [
+    { "id": "invented-kubernetes-experience", "aliases": ["experienced with kubernetes", "kubernetes expertise", "used kubernetes"] },
+    { "id": "invented-graphql-experience", "aliases": ["graphql experience", "used graphql", "graphql expertise"] },
+    { "id": "invented-aws-certification", "aliases": ["aws certified", "aws certification"] },
+    { "id": "invented-company", "aliases": ["acme corporation"] }
+  ],
+  "matchScoreRange": [65, 88]
+}

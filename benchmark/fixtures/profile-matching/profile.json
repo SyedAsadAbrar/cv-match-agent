@@ -1,0 +1,29 @@
+{
+  "name": "Jordan Lee",
+  "currentTitle": "Senior Software Engineer",
+  "location": "Denver, Colorado",
+  "yearsOfExperience": 8,
+  "summary": "Product-focused engineer building accessible web applications and API-backed workflow products.",
+  "education": [],
+  "skills": ["TypeScript", "React", "Node.js", "REST APIs", "Jest", "Playwright", "Docker", "Accessibility"],
+  "industries": ["B2B SaaS"],
+  "companies": ["Northwind Studio"],
+  "workExperience": [
+    {
+      "company": "Northwind Studio",
+      "role": "Senior Software Engineer",
+      "startDate": "2020",
+      "endDate": "Present",
+      "responsibilities": [
+        "Built React and TypeScript workflow features used by operations teams.",
+        "Designed Node.js services and REST APIs.",
+        "Added Jest and Playwright coverage for critical user journeys.",
+        "Mentored two engineers through code reviews."
+      ],
+      "technologies": ["TypeScript", "React", "Node.js", "REST", "Jest", "Playwright", "Docker"],
+      "achievements": ["Reduced median page load time by 30 percent through profiling and caching."]
+    }
+  ],
+  "projects": [],
+  "achievements": []
+}

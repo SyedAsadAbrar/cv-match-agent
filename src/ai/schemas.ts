@@ -130,9 +130,22 @@ export const semanticCvSchema = z.object({
     .default([])
 });
 
+export const modelSelectionSchema = z.discriminatedUnion("type", [
+  z.object({ type: z.literal("explicit") }),
+  z.object({ type: z.literal("environment") }),
+  z.object({ type: z.literal("default") }),
+  z.object({
+    type: z.literal("benchmark-recommendation"),
+    mode: z.enum(["fast", "balanced", "quality"]),
+    benchmarkVersion: z.string(),
+    modelDigest: z.string()
+  })
+]);
+
 export const rawAnalysisSchema = z.object({
   provider: z.string(),
   model: z.string(),
+  modelSelection: modelSelectionSchema,
   generatedAt: z.string(),
   semanticCv: semanticCvSchema.optional(),
   cvProfile: cvProfileSchema,
@@ -150,6 +163,7 @@ export type UserPreferences = z.infer<typeof userPreferencesSchema>;
 export type OutputReview = z.infer<typeof outputReviewSchema>;
 export type SemanticCv = z.infer<typeof semanticCvSchema>;
 export type RawAnalysis = z.infer<typeof rawAnalysisSchema>;
+export type ModelSelectionMetadata = z.infer<typeof modelSelectionSchema>;
 
 function normalizeTextArray(items: unknown[]): string[] {
   return items.map(normalizeTextArrayItem).filter((item): item is string => typeof item === "string" && item.length > 0);

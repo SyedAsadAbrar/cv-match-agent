@@ -7,6 +7,7 @@ import {
   type CvProfile,
   type JobRequirements,
   type MatchAnalysis,
+  type ModelSelectionMetadata,
   type OutputReview,
   type RawAnalysis,
   type SemanticCv,
@@ -29,12 +30,14 @@ import {
 import { readCvFile } from "./readCvFile";
 import { reviewApplicationOutput } from "./reviewApplicationOutput";
 import { assertUsableCvProfile } from "./validateCvProfile";
+import { resolveModelSelection } from "./modelSelection";
 
 export type AnalyzeWorkflowOptions = {
   cv?: string;
   job: string;
   provider?: string;
   model?: string;
+  mode?: string;
   saveContext?: boolean;
 };
 
@@ -50,6 +53,7 @@ type AnalyzeState = {
   applicationAssets?: ApplicationAssets;
   review?: OutputReview;
   debugArtifacts: AiDebugArtifact[];
+  modelSelection?: ModelSelectionMetadata;
 };
 
 export async function runAnalysisWorkflow(options: AnalyzeWorkflowOptions): Promise<void> {
@@ -57,6 +61,9 @@ export async function runAnalysisWorkflow(options: AnalyzeWorkflowOptions): Prom
   setAiDebugRecorder((artifact) => state.debugArtifacts.push(artifact));
 
   try {
+    const resolvedSelection = await resolveModelSelection(options);
+    state.modelSelection = resolvedSelection.metadata;
+
     if (options.cv) {
       logger.info("Reading CV...");
       state.cvText = await readCvFile(options.cv);
@@ -69,7 +76,7 @@ export async function runAnalysisWorkflow(options: AnalyzeWorkflowOptions): Prom
     state.preferences = await loadUserPreferences();
 
     if (state.cvText) {
-      state.provider = createProvider({ provider: options.provider, model: options.model });
+      state.provider = createProvider({ provider: resolvedSelection.provider, model: resolvedSelection.model });
       logger.info("Extracting CV profile...");
       const extracted = await extractCvProfile(state.provider, state.cvText);
       state.profile = extracted.profile;
@@ -88,7 +95,7 @@ export async function runAnalysisWorkflow(options: AnalyzeWorkflowOptions): Prom
       throw new Error("No CV provided and no context/profile.json found. Pass --cv or run profile build.");
     }
 
-    state.provider ??= createProvider({ provider: options.provider, model: options.model });
+    state.provider ??= createProvider({ provider: resolvedSelection.provider, model: resolvedSelection.model });
 
     logger.info("Extracting job requirements...");
     state.jobRequirements = await extractJobRequirements(state.provider, state.jobText);
@@ -116,7 +123,7 @@ export async function runAnalysisWorkflow(options: AnalyzeWorkflowOptions): Prom
     );
 
     const rawAnalysis = rawAnalysisSchema.parse({
-      ...getAnalysisProviderMetadata(state.provider),
+      ...getAnalysisProviderMetadata(state.provider, state.modelSelection),
       generatedAt: new Date().toISOString(),
       semanticCv: state.semanticCv,
       cvProfile: state.profile,
@@ -140,6 +147,9 @@ export async function runAnalysisWorkflow(options: AnalyzeWorkflowOptions): Prom
   }
 }
 
-export function getAnalysisProviderMetadata(provider: LlmProvider): Pick<RawAnalysis, "provider" | "model"> {
-  return { provider: provider.name, model: provider.model };
+export function getAnalysisProviderMetadata(
+  provider: LlmProvider,
+  modelSelection: ModelSelectionMetadata
+): Pick<RawAnalysis, "provider" | "model" | "modelSelection"> {
+  return { provider: provider.name, model: provider.model, modelSelection };
 }

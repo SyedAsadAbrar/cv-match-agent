@@ -129,6 +129,86 @@ OLLAMA_MODEL=llama3.1:8b
 
 For Ollama, model selection uses this precedence: `--model`, then `OLLAMA_MODEL`, then `llama3.1:8b`. Existing commands without `--model` therefore continue to use the configured environment value or the default. `--model` is only for Ollama; it is rejected with `--provider openai`.
 
+## Benchmark Local Ollama Models
+
+The local benchmark compares installed Ollama generation models on three synthetic tasks taken from this application's real workflow:
+
+- Job-requirement extraction using the production prompt and schema.
+- Profile-to-job matching using the production prompt and pre-generated structured inputs.
+- Bounded, grounded application writing with three CV recommendations and a short recruiter message.
+
+The fixtures contain synthetic candidate and employer data only. Models run sequentially to avoid GPU contention, misleading timing, and memory exhaustion. Benchmarking can be computationally expensive: the default is three runs for each of three tasks per model.
+
+Benchmark every compatible installed model:
+
+```bash
+npm run dev -- models benchmark
+```
+
+Benchmark selected models and repeat each task three times:
+
+```bash
+npm run dev -- models benchmark --model deepseek-r1:8b --model qwen3:14b --runs 3
+```
+
+Use `--runs 1` for a quicker but less representative check, up to a maximum of 10. Use `--force` to bypass otherwise valid cached results:
+
+```bash
+npm run dev -- models benchmark --model deepseek-r1:8b --runs 1
+npm run dev -- models benchmark --force
+```
+
+Models must already be installed. The benchmark never downloads models, never calls OpenAI, sends no external telemetry, and does not upload reports. A model without reported Ollama capability metadata is tested by the first generation as a compatibility probe; embedding-only models are excluded when Ollama reports that capability clearly.
+
+Benchmark requests use JSON mode, temperature `0`, seed `42`, and a 1,500-token output limit. Reports mark these settings as requested but unverified because Ollama does not return per-option acceptance metadata; a model that ignores an option is not falsely reported as having confirmed it.
+
+### Deterministic Scoring
+
+Each task produces a 0–100 score with machine-readable deductions. Task scoring is 45% factual grounding, 35% completeness, and 20% final schema validity. Missing requirements, wrong required/preferred classification, omitted genuine gaps, unsupported experience, fabricated employers, technologies, certifications, metrics, or years all produce explicit deductions. Invalid final JSON receives a severe failure result. No LLM judge is used.
+
+The aggregate quality score is independent of speed:
+
+- Grounding: 40%
+- Completeness: 30%
+- Schema reliability: 20%
+- Semantic consistency across runs: 10%
+
+Consistency compares stable facts such as detected requirements, gaps, and forbidden claims; it does not compare exact prose. A model is eligible only when it has at least one successful run for every task, at least 80% overall task success, at least 80% final schema success, a grounding score of at least 75, a quality score of at least 70, and no catastrophic fabricated claims. Thresholds are never lowered merely to produce a winner.
+
+The recommendations are calculated as follows:
+
+- `quality`: highest eligible quality score, with grounding, schema reliability, completeness, duration, and model name as deterministic tie-breakers.
+- `fast`: lowest average duration among eligible models only.
+- `balanced`: 70% quality and 30% speed normalized relative to the eligible model set.
+
+Grounding therefore gates every recommendation, while speed affects only `fast` and `balanced`. Parameter count and file size never determine quality.
+
+### Cache And Reports
+
+Detailed JSON, Markdown, and raw synthetic model responses are saved under the platform application-data directory, not the Git repository. Set `CV_MATCH_AGENT_DATA_DIR` to override the root. Cache identity includes model name, model digest, benchmark version, fixture version, prompt version, schema version, and requested run count. A change to any of those values invalidates reuse. Corrupt cache files are ignored safely, and `--force` always reruns selected models.
+
+View the latest cached recommendations without starting a benchmark:
+
+```bash
+npm run dev -- models recommendations
+```
+
+The command verifies that each recommended model is still installed, its digest has not changed, it remains eligible, and the benchmark versions are current.
+
+### Use A Recommendation
+
+Use a valid cached recommendation for analysis:
+
+```bash
+npm run dev -- analyze --cv ./examples/cv.md --job ./examples/job.txt --provider ollama --mode fast
+npm run dev -- analyze --cv ./examples/cv.md --job ./examples/job.txt --provider ollama --mode balanced
+npm run dev -- analyze --cv ./examples/cv.md --job ./examples/job.txt --provider ollama --mode quality
+```
+
+`--model` and `--mode` cannot be combined. `--mode` works only with Ollama and never starts a benchmark automatically. Explicit `--model` selection remains available and existing commands without either option continue to use `OLLAMA_MODEL` or the default. Analysis metadata records whether selection was explicit, environment/default based, or a digest-validated benchmark recommendation.
+
+These results measure suitability for this repository's CV extraction, matching, and grounded-writing tasks on the current machine and Ollama build. They are not general-purpose model rankings, hardware benchmarks, or claims that the largest model is best.
+
 ## Run With OpenAI
 
 Set both OpenAI variables in `.env` or your shell:
@@ -217,6 +297,8 @@ output/Alex_Morgan_2026-06-16_14-30-05/debug/01-CV_profile.json
 
 `semantic-cv.json` is the deterministic sectioned CV object extracted before the AI profile step. `cv-profile.json` is the standalone parsed CV profile, including structured skills, education, work experience, projects, companies, and achievements. `review.json` stores the AI review of generated outputs. `raw-analysis.json` includes the semantic CV, parsed profile, job requirements, match analysis, application assets, and review.
 
+`raw-analysis.json` also records the exact provider, model, and model-selection source. Recommendation-based runs include the benchmark mode, version, and model digest used for validation.
+
 The `debug/` folder stores request/response artifacts for each structured AI step and any repair attempt. This is useful when a local model returns invalid JSON or drops evidence from the CV.
 
 The terminal progress looks like:
@@ -287,6 +369,13 @@ src/
     prompts.ts
     schemas.ts
     json.ts
+  benchmark/
+    benchmarkRunner.ts
+    cache.ts
+    constants.ts
+    fixtures.ts
+    recommendations.ts
+    scoring/
   services/
     runAnalysisWorkflow.ts
     readCvFile.ts
@@ -349,4 +438,6 @@ npm start -- analyze --cv ./examples/cv.md --job ./examples/job.txt --provider o
 - Evaluation tests
 - Streaming output
 - Side-by-side model comparison
+- Optional hardware-aware benchmark annotations
+- Additional versioned CV-workflow benchmark fixtures
 - Local vector search for larger profile/document context

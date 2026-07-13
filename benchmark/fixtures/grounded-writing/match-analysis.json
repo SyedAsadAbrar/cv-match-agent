@@ -1,0 +1,10 @@
+{
+  "matchScore": 78,
+  "summary": "Jordan has strong product engineering fundamentals with gaps in GraphQL, Kubernetes, and the Austin hybrid requirement.",
+  "strongMatches": ["TypeScript and React workflow product experience", "Node.js and REST API development", "Jest and Playwright testing", "Accessibility and performance work"],
+  "partialMatches": ["Docker experience is transferable to learning Kubernetes"],
+  "gaps": ["No GraphQL experience shown", "No Kubernetes production experience shown", "Austin hybrid availability is unconfirmed"],
+  "risks": ["Do not imply GraphQL or Kubernetes experience"],
+  "suggestedPositioning": "Lead with grounded workflow, testing, accessibility, and performance evidence.",
+  "keywordSuggestions": ["GraphQL", "Kubernetes"]
+}

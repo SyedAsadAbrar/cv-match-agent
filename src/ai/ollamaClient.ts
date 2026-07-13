@@ -19,6 +19,19 @@ export type OllamaClientOptions = {
   timeoutMs?: number;
 };
 
+export type OllamaModelInfo = {
+  model: string;
+  modifiedAt?: string;
+  details?: OllamaModel["details"];
+  capabilities?: string[];
+};
+
+export type OllamaModelCompatibility = {
+  compatible: boolean;
+  inspection: "capabilities" | "probe-required";
+  reason?: string;
+};
+
 const DEFAULT_OLLAMA_BASE_URL = "http://localhost:11434";
 const DEFAULT_TIMEOUT_MS = 10_000;
 
@@ -69,6 +82,48 @@ export class OllamaClient {
 
     return payload.models.map(mapOllamaModel).filter((model): model is OllamaModel => model !== undefined);
   }
+
+  async showModel(model: string): Promise<OllamaModelInfo> {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), this.timeoutMs);
+
+    let response: Response;
+    try {
+      response = await fetch(`${this.baseUrl}/api/show`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ model }),
+        signal: controller.signal
+      });
+    } catch (error) {
+      const detail = isAbortError(error)
+        ? `Request timed out after ${Math.ceil(this.timeoutMs / 1000)} seconds.`
+        : formatError(error);
+      throw new Error(`Could not inspect Ollama model "${model}" at ${this.baseUrl}. ${detail}`);
+    } finally {
+      clearTimeout(timeout);
+    }
+
+    if (!response.ok) {
+      const body = await response.text();
+      const suffix = body.trim() ? `: ${body.trim()}` : "";
+      throw new Error(`Ollama model inspection failed for "${model}" with HTTP ${response.status}${suffix}`);
+    }
+
+    let payload: unknown;
+    try {
+      payload = await response.json();
+    } catch (error) {
+      throw new Error(`Ollama returned invalid inspection data for "${model}": ${formatError(error)}`);
+    }
+
+    const info = mapOllamaModelInfo(model, payload);
+    if (!info) {
+      throw new Error(`Ollama returned malformed inspection data for "${model}".`);
+    }
+
+    return info;
+  }
 }
 
 export function resolveOllamaBaseUrl(explicitBaseUrl?: string): string {
@@ -93,6 +148,46 @@ export function mapOllamaModel(value: unknown): OllamaModel | undefined {
 
   const details = mapOllamaModelDetails(value.details);
   return details ? { name, model, modifiedAt, size, digest, details } : { name, model, modifiedAt, size, digest };
+}
+
+export function mapOllamaModelInfo(model: string, value: unknown): OllamaModelInfo | undefined {
+  if (!isRecord(value)) {
+    return undefined;
+  }
+
+  const modifiedAt = readString(value.modified_at);
+  const details = mapOllamaModelDetails(value.details);
+  const capabilities = readStringArray(value.capabilities);
+
+  return {
+    model,
+    ...(modifiedAt ? { modifiedAt } : {}),
+    ...(details ? { details } : {}),
+    ...(capabilities ? { capabilities } : {})
+  };
+}
+
+export function inspectModelCompatibility(info: OllamaModelInfo): OllamaModelCompatibility {
+  if (!info.capabilities || info.capabilities.length === 0) {
+    return {
+      compatible: true,
+      inspection: "probe-required",
+      reason: "Ollama did not report capabilities; the first benchmark generation acts as a compatibility probe."
+    };
+  }
+
+  const capabilities = new Set(info.capabilities.map((capability) => capability.toLowerCase()));
+  if (capabilities.has("completion") || capabilities.has("chat")) {
+    return { compatible: true, inspection: "capabilities" };
+  }
+
+  return {
+    compatible: false,
+    inspection: "capabilities",
+    reason: capabilities.has("embedding")
+      ? "Model exposes embedding capability but no text completion or chat capability."
+      : "Model exposes no text completion or chat capability."
+  };
 }
 
 function mapOllamaModelDetails(value: unknown): OllamaModel["details"] | undefined {

@@ -1,0 +1,12 @@
+{
+  "roleTitle": "Senior Product Engineer",
+  "company": "Meridian Systems",
+  "location": "Austin, Texas — hybrid two days per week",
+  "seniority": "Senior",
+  "requiredSkills": ["TypeScript", "React", "Node.js", "REST APIs", "Automated testing"],
+  "niceToHaveSkills": ["GraphQL", "Kubernetes"],
+  "educationRequirements": [],
+  "responsibilities": ["Build accessible workflow features", "Improve frontend performance", "Mentor engineers"],
+  "domain": "B2B workflow software",
+  "keywords": ["TypeScript", "React", "Node.js", "REST", "Jest", "Playwright", "GraphQL", "Kubernetes"]
+}

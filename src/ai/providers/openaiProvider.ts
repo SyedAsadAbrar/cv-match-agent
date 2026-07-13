@@ -1,5 +1,5 @@
 import OpenAI from "openai";
-import type { LlmMessage, LlmProvider } from "./types";
+import type { LlmGenerationOptions, LlmGenerationResult, LlmMessage, LlmProvider } from "./types";
 
 export class OpenAIProvider implements LlmProvider {
   public readonly name = "openai";
@@ -23,7 +23,7 @@ export class OpenAIProvider implements LlmProvider {
     this.model = model;
   }
 
-  async generateText(messages: LlmMessage[], _options?: { json?: boolean }): Promise<string> {
+  async generate(messages: LlmMessage[], _options?: LlmGenerationOptions): Promise<LlmGenerationResult> {
     const response = await this.client.responses.create({
       model: this.model,
       input: messages.map((message) => ({
@@ -37,6 +37,21 @@ export class OpenAIProvider implements LlmProvider {
       throw new Error("OpenAI returned an empty response.");
     }
 
-    return text;
+    return {
+      text,
+      provider: this.name,
+      model: this.model,
+      usage: response.usage
+        ? {
+            promptTokens: response.usage.input_tokens,
+            outputTokens: response.usage.output_tokens,
+            totalTokens: response.usage.total_tokens
+          }
+        : undefined
+    };
+  }
+
+  async generateText(messages: LlmMessage[], options?: LlmGenerationOptions): Promise<string> {
+    return (await this.generate(messages, options)).text;
   }
 }

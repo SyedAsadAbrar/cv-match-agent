@@ -1,0 +1,20 @@
+{
+  "fixtureVersion": "1",
+  "requiredConcepts": [
+    { "id": "concept-typescript-react", "aliases": ["typescript", "react"] },
+    { "id": "concept-node-rest", "aliases": ["node.js", "node", "rest api", "rest"] },
+    { "id": "concept-testing", "aliases": ["jest", "playwright", "testing"] },
+    { "id": "concept-workflow", "aliases": ["workflow", "product"] }
+  ],
+  "forbidden": [
+    { "id": "fabricated-employer", "aliases": ["acme corporation", "globex"] },
+    { "id": "fabricated-certification", "aliases": ["aws certified", "aws certification", "kubernetes certified"] },
+    { "id": "fabricated-java", "aliases": ["java experience", "built with java"] },
+    { "id": "fabricated-years", "aliases": ["10 years", "ten years", "12 years"] },
+    { "id": "fabricated-kubernetes", "aliases": ["kubernetes expertise", "production kubernetes experience", "used kubernetes in production"] },
+    { "id": "fabricated-graphql", "aliases": ["graphql expertise", "production graphql experience", "built graphql"] },
+    { "id": "unsupported-superlative", "aliases": ["world-class", "industry-leading", "unmatched"] }
+  ],
+  "recommendationCount": 3,
+  "messageWordRange": [45, 110]
+}

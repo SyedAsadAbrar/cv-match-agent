@@ -1,4 +1,9 @@
-import type { LlmMessage, LlmProvider } from "./types";
+import type {
+  LlmGenerationOptions,
+  LlmGenerationResult,
+  LlmMessage,
+  LlmProvider
+} from "./types";
 
 export type OllamaProviderOptions = {
   model?: string;
@@ -10,6 +15,13 @@ type OllamaChatResponse = {
     content?: string;
   };
   error?: string;
+  done_reason?: string;
+  total_duration?: number;
+  load_duration?: number;
+  prompt_eval_count?: number;
+  prompt_eval_duration?: number;
+  eval_count?: number;
+  eval_duration?: number;
 };
 
 export class OllamaProvider implements LlmProvider {
@@ -22,7 +34,7 @@ export class OllamaProvider implements LlmProvider {
     this.model = resolveOllamaModel(options.model);
   }
 
-  async generateText(messages: LlmMessage[], options?: { json?: boolean }): Promise<string> {
+  async generate(messages: LlmMessage[], options: LlmGenerationOptions = {}): Promise<LlmGenerationResult> {
     let response: Response;
 
     try {
@@ -34,7 +46,12 @@ export class OllamaProvider implements LlmProvider {
         body: JSON.stringify({
           model: this.model,
           messages,
-          format: options?.json ? "json" : undefined,
+          format: options.json ? "json" : undefined,
+          options: {
+            temperature: options.temperature,
+            seed: options.seed,
+            num_predict: options.maxTokens
+          },
           stream: false
         })
       });
@@ -66,8 +83,59 @@ export class OllamaProvider implements LlmProvider {
       throw new Error("Ollama returned an empty response.");
     }
 
-    return text;
+    const promptTokens = readNonNegativeNumber(data.prompt_eval_count);
+    const outputTokens = readNonNegativeNumber(data.eval_count);
+
+    return {
+      text,
+      provider: this.name,
+      model: this.model,
+      finishReason: readString(data.done_reason),
+      usage: buildUsage(promptTokens, outputTokens),
+      timing: buildTiming(data),
+    };
   }
+
+  async generateText(messages: LlmMessage[], options?: LlmGenerationOptions): Promise<string> {
+    return (await this.generate(messages, options)).text;
+  }
+}
+
+export function mapOllamaDurationToMilliseconds(durationNanoseconds: number | undefined): number | undefined {
+  return durationNanoseconds === undefined || !Number.isFinite(durationNanoseconds) || durationNanoseconds < 0
+    ? undefined
+    : durationNanoseconds / 1_000_000;
+}
+
+function buildUsage(promptTokens?: number, outputTokens?: number): LlmGenerationResult["usage"] {
+  if (promptTokens === undefined && outputTokens === undefined) {
+    return undefined;
+  }
+
+  return {
+    promptTokens,
+    outputTokens,
+    totalTokens: promptTokens !== undefined && outputTokens !== undefined ? promptTokens + outputTokens : undefined
+  };
+}
+
+function buildTiming(data: OllamaChatResponse): LlmGenerationResult["timing"] {
+  const timing = {
+    totalDurationMs: mapOllamaDurationToMilliseconds(readNonNegativeNumber(data.total_duration)),
+    loadDurationMs: mapOllamaDurationToMilliseconds(readNonNegativeNumber(data.load_duration)),
+    promptEvaluationDurationMs: mapOllamaDurationToMilliseconds(readNonNegativeNumber(data.prompt_eval_duration)),
+    generationDurationMs: mapOllamaDurationToMilliseconds(readNonNegativeNumber(data.eval_duration))
+  };
+
+  return Object.values(timing).some((value) => value !== undefined) ? timing : undefined;
+}
+
+function readNonNegativeNumber(value: unknown): number | undefined {
+  return typeof value === "number" && Number.isFinite(value) && value >= 0 ? value : undefined;
+}
+
+function readString(value: unknown): string | undefined {
+  return typeof value === "string" && value.trim().length > 0 ? value : undefined;
 }
 
 export function resolveOllamaModel(explicitModel?: string, environmentModel = process.env.OLLAMA_MODEL): string {

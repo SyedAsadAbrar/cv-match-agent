@@ -1,0 +1,27 @@
+{
+  "fixtureVersion": "1",
+  "required": [
+    { "id": "req-typescript", "aliases": ["typescript"] },
+    { "id": "req-react", "aliases": ["react"] },
+    { "id": "req-node", "aliases": ["node.js", "nodejs", "node"] },
+    { "id": "req-rest", "aliases": ["rest api", "restful"] },
+    { "id": "req-testing", "aliases": ["automated testing", "jest", "playwright"] }
+  ],
+  "preferred": [
+    { "id": "pref-graphql", "aliases": ["graphql"] },
+    { "id": "pref-kubernetes", "aliases": ["kubernetes"] }
+  ],
+  "grounded": [
+    { "id": "location-austin-hybrid", "aliases": ["austin", "hybrid", "two days"] },
+    { "id": "experience-six-years", "aliases": ["6+ years", "6 years", "six years"] },
+    { "id": "responsibility-accessibility", "aliases": ["accessible", "accessibility"] },
+    { "id": "responsibility-performance", "aliases": ["performance"] },
+    { "id": "responsibility-mentoring", "aliases": ["mentor", "code review"] }
+  ],
+  "forbidden": [
+    { "id": "invented-java", "aliases": ["java"] },
+    { "id": "invented-aws", "aliases": ["aws", "amazon web services"] },
+    { "id": "invented-python", "aliases": ["python"] },
+    { "id": "invented-remote", "aliases": ["fully remote", "remote only"] }
+  ]
+}

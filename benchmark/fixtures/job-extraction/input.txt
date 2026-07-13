@@ -1,0 +1,21 @@
+Senior Product Engineer — Meridian Systems
+
+Location: Austin, Texas. Hybrid work is required two days per week.
+Experience: 6+ years building production web applications.
+
+Required qualifications:
+- Advanced TypeScript and React experience.
+- Backend development with Node.js.
+- Experience designing and consuming REST APIs.
+- Automated testing with Jest, Playwright, or equivalent tools.
+
+Responsibilities:
+- Build accessible workflow features with product and design partners.
+- Improve frontend performance and application reliability.
+- Mentor engineers through code review and technical planning.
+
+Preferred qualifications:
+- GraphQL experience.
+- Kubernetes familiarity.
+
+No certification or specific university degree is required.
