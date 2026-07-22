@@ -8,6 +8,7 @@ import { createJobsCommand } from "./commands/jobs";
 import { createDatabaseCommand } from "./commands/database";
 import { createDemoCommand } from "./commands/demo";
 import { createServeCommand } from "./commands/serve";
+import { createCompaniesCommand } from "./commands/companies";
 import { logger } from "./utils/logger";
 
 const program = new Command();
@@ -24,6 +25,7 @@ program.addCommand(createJobsCommand());
 program.addCommand(createDatabaseCommand());
 program.addCommand(createDemoCommand());
 program.addCommand(createServeCommand());
+program.addCommand(createCompaniesCommand());
 
 program.exitOverride();
 
@@ -32,8 +34,14 @@ async function main(): Promise<void> {
     await program.parseAsync(process.argv);
   } catch (error) {
     if (error instanceof Error && error.name === "CommanderError") {
-      const commanderError = error as Error & { code?: string; exitCode?: number };
-      process.exitCode = commanderError.code === "commander.helpDisplayed" ? 0 : commanderError.exitCode ?? 1;
+      const commanderError = error as Error & {
+        code?: string;
+        exitCode?: number;
+      };
+      process.exitCode =
+        commanderError.code === "commander.helpDisplayed"
+          ? 0
+          : (commanderError.exitCode ?? 1);
       return;
     }
 

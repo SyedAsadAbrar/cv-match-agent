@@ -1,4 +1,4 @@
-import type { JobSourceType, TargetCompany } from "../domain/schemas";
+import { targetCompanySchema, type JobSourceType } from "../domain/schemas";
 import type {
   DiscoveredJobReference,
   JobDiscoveryContext,
@@ -8,7 +8,7 @@ import type {
 
 const base = "https://fictional.example/jobs";
 
-export const DEMO_COMPANIES: TargetCompany[] = [
+export const DEMO_COMPANIES = [
   {
     id: "demo-northstar",
     name: "Northstar Labs (Fictional)",
@@ -19,6 +19,16 @@ export const DEMO_COMPANIES: TargetCompany[] = [
     atsIdentifier: "fictional-northstar",
     sponsorshipEvidence: "possible",
     sponsorshipEvidenceSources: ["Fictional demo fixture"],
+    verificationStatus: "monitored",
+    sourceRecords: [
+      {
+        sourceRecordId: "demo-northstar",
+        sourceType: "fictional-demo",
+        sourceName: "Fictional demo fixture",
+        sourceUrl: "https://fictional.example/source",
+        sourceRetrievedAt: new Date(0).toISOString(),
+      },
+    ],
     enabled: true,
   },
   {
@@ -31,6 +41,16 @@ export const DEMO_COMPANIES: TargetCompany[] = [
     atsIdentifier: "fictional-duplicate",
     sponsorshipEvidence: "unknown",
     sponsorshipEvidenceSources: [],
+    verificationStatus: "monitored",
+    sourceRecords: [
+      {
+        sourceRecordId: "demo-second-source",
+        sourceType: "fictional-demo",
+        sourceName: "Fictional demo fixture",
+        sourceUrl: "https://fictional.example/source",
+        sourceRetrievedAt: new Date(0).toISOString(),
+      },
+    ],
     enabled: true,
   },
   {
@@ -43,9 +63,19 @@ export const DEMO_COMPANIES: TargetCompany[] = [
     atsIdentifier: "fictional-failure",
     sponsorshipEvidence: "unknown",
     sponsorshipEvidenceSources: [],
+    verificationStatus: "monitored",
+    sourceRecords: [
+      {
+        sourceRecordId: "demo-failing-source",
+        sourceType: "fictional-demo",
+        sourceName: "Fictional demo fixture",
+        sourceUrl: "https://fictional.example/source",
+        sourceRetrievedAt: new Date(0).toISOString(),
+      },
+    ],
     enabled: true,
   },
-];
+].map((company) => targetCompanySchema.parse(company));
 
 const jobs: RawJobPosting[] = [
   job(

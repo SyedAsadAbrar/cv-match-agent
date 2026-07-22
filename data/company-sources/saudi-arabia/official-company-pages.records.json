@@ -1,0 +1,47 @@
+{
+  "records": [
+    {
+      "sourceRecordId": "stc-careers",
+      "legalName": "Saudi Telecom Company",
+      "displayName": "stc",
+      "aliases": ["STC"],
+      "sourceType": "official-company-page",
+      "sourceName": "Verified Saudi technology employer pages",
+      "sourceUrl": "https://www.stc.com.sa/",
+      "sourceRetrievedAt": "2026-07-23T00:00:00.000Z",
+      "country": "Saudi Arabia",
+      "cities": ["Riyadh"],
+      "websiteUrl": "https://www.stc.com.sa/",
+      "careersUrl": "https://careers.stc.com.sa/",
+      "industries": ["telecom", "digital platforms"]
+    },
+    {
+      "sourceRecordId": "hungerstation-careers",
+      "legalName": "HungerStation",
+      "aliases": [],
+      "sourceType": "official-company-page",
+      "sourceName": "Verified Saudi technology employer pages",
+      "sourceUrl": "https://hungerstation.com/",
+      "sourceRetrievedAt": "2026-07-23T00:00:00.000Z",
+      "country": "Saudi Arabia",
+      "cities": ["Riyadh"],
+      "websiteUrl": "https://hungerstation.com/",
+      "careersUrl": "https://careers.hungerstation.com/",
+      "industries": ["marketplace", "logistics technology", "e-commerce"]
+    },
+    {
+      "sourceRecordId": "tamara-careers",
+      "legalName": "Tamara",
+      "aliases": [],
+      "sourceType": "official-company-page",
+      "sourceName": "Verified Saudi technology employer pages",
+      "sourceUrl": "https://tamara.co/",
+      "sourceRetrievedAt": "2026-07-23T00:00:00.000Z",
+      "country": "Saudi Arabia",
+      "cities": ["Riyadh"],
+      "websiteUrl": "https://tamara.co/",
+      "careersUrl": "https://tamara.co/en-sa/careers",
+      "industries": ["fintech", "payments"]
+    }
+  ]
+}

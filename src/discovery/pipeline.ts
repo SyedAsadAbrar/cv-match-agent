@@ -1,9 +1,14 @@
-import type { JobSourceType, TargetCompany } from "../domain/schemas";
+import {
+  targetCompanySchema,
+  type JobSourceType,
+  type TargetCompany,
+} from "../domain/schemas";
 import type { LocalAIProvider } from "../ai/localAIProvider";
 import { JobCopilotStore } from "../db/store";
 import { AshbyConnector } from "./connectors/ashby";
 import { GreenhouseConnector } from "./connectors/greenhouse";
 import { LeverConnector } from "./connectors/lever";
+import { CareersPageConnector } from "./connectors/careersPage";
 import { applyHardFilters } from "./filter";
 import { normalizeJob } from "./normalize";
 import { generateSearchPlan } from "./searchPlan";
@@ -34,10 +39,15 @@ export async function runDiscovery(options: DiscoveryPipelineOptions = {}) {
       greenhouse: new GreenhouseConnector(),
       lever: new LeverConnector(),
       ashby: new AshbyConnector(),
+      "company-careers": new CareersPageConnector(),
     };
-  const companies = (options.companies ?? store.listCompanies()).filter(
-    (company) => company.enabled,
-  );
+  const companies = (options.companies ?? store.listCompanies())
+    .map((company) => targetCompanySchema.parse(company))
+    .filter(
+      (company) =>
+        company.enabled &&
+        ["source-verified", "monitored"].includes(company.verificationStatus),
+    );
   const errors = [...run.errors];
   const webResults: Array<{
     query: string;
@@ -88,9 +98,12 @@ export async function runDiscovery(options: DiscoveryPipelineOptions = {}) {
       async (company) => {
         sourcesChecked += 1;
         const syncId = store.startSourceSync(run.id, company);
-        const source = company.atsProvider as JobSourceType | undefined;
+        const source = connectorSource(company);
         const connector = source ? connectors[source] : undefined;
-        if (!connector || !company.atsIdentifier) {
+        if (
+          !connector ||
+          (source !== "company-careers" && !company.atsIdentifier)
+        ) {
           return {
             company,
             syncId,
@@ -134,6 +147,8 @@ export async function runDiscovery(options: DiscoveryPipelineOptions = {}) {
         result.references.length,
       );
       jobsDiscovered += result.references.length;
+      const seenJobIds: string[] = [];
+      let jobErrors = 0;
       await mapWithConcurrency(
         result.references,
         discoveryConcurrency,
@@ -147,6 +162,7 @@ export async function runDiscovery(options: DiscoveryPipelineOptions = {}) {
             }
             const job = normalizeJob(raw);
             const imported = store.importJob(job);
+            seenJobIds.push(imported.jobId);
             if (imported.duplicate) duplicatesFound += 1;
             else jobsImported += 1;
             const storedJob = { ...job, id: imported.jobId };
@@ -255,6 +271,7 @@ export async function runDiscovery(options: DiscoveryPipelineOptions = {}) {
             );
             evaluatedJobIds.push(imported.jobId);
           } catch (error) {
+            jobErrors += 1;
             errors.push({
               source: `${result.company.name}:${reference.externalId}`,
               message: formatError(error),
@@ -263,6 +280,8 @@ export async function runDiscovery(options: DiscoveryPipelineOptions = {}) {
           }
         },
       );
+      if (jobErrors === 0)
+        store.recordSuccessfulCompanyJobSnapshot(result.company.id, seenJobIds);
     }
 
     const analysisLimit = readPositiveInteger(
@@ -349,6 +368,30 @@ export async function runDiscovery(options: DiscoveryPipelineOptions = {}) {
   } finally {
     if (ownsStore) store.close();
   }
+}
+
+function connectorSource(company: TargetCompany): JobSourceType | undefined {
+  if (
+    (company.atsProvider === "greenhouse" &&
+      readBoolean(process.env.GREENHOUSE_ENABLED, true)) ||
+    (company.atsProvider === "lever" &&
+      readBoolean(process.env.LEVER_ENABLED, true)) ||
+    (company.atsProvider === "ashby" &&
+      readBoolean(process.env.ASHBY_ENABLED, true))
+  )
+    return company.atsProvider;
+  if (
+    company.atsProvider === "custom" &&
+    company.careersUrl &&
+    readBoolean(process.env.CAREERS_CRAWLER_ENABLED, true)
+  )
+    return "company-careers";
+  return undefined;
+}
+
+function readBoolean(value: string | undefined, fallback: boolean): boolean {
+  if (value === undefined) return fallback;
+  return value.trim().toLowerCase() === "true";
 }
 
 async function mapWithConcurrency<T, R>(

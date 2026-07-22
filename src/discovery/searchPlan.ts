@@ -21,6 +21,16 @@ export function generateSearchPlan(profile: CandidateProfile): SearchPlan {
   const queries = new Set<string>();
   const skillTerms = skills.slice(0, 3).join(" ");
 
+  for (const role of roles.slice(0, 4)) {
+    for (const host of [
+      "boards.greenhouse.io",
+      "jobs.lever.co",
+      "jobs.ashbyhq.com",
+    ]) {
+      queries.add(clean(`site:${host} ${role} ${locations[0] ?? ""}`));
+    }
+  }
+
   for (const role of roles) {
     for (const location of locations.length > 0 ? locations : [""]) {
       queries.add(clean(`${role} ${skillTerms} ${location} careers`));
@@ -32,16 +42,6 @@ export function generateSearchPlan(profile: CandidateProfile): SearchPlan {
       }
     }
   }
-  for (const role of roles.slice(0, 4)) {
-    for (const host of [
-      "boards.greenhouse.io",
-      "jobs.lever.co",
-      "jobs.ashbyhq.com",
-    ]) {
-      queries.add(clean(`site:${host} ${role} ${locations[0] ?? ""}`));
-    }
-  }
-
   return {
     generatedAt: new Date().toISOString(),
     roles,

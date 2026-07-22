@@ -8,6 +8,8 @@ let state = {
   sourceClaims: [],
   dashboard: null,
   sources: null,
+  companyPage: null,
+  companyFilters: { country: "", status: "", search: "" },
   settings: null,
 };
 
@@ -33,13 +35,15 @@ async function api(url, options = {}) {
 }
 
 async function refresh() {
-  const [jobs, profile, dashboard, sources, settings] = await Promise.all([
-    api("/api/jobs?includeDismissed=true&includeClosed=true"),
-    api("/api/profile"),
-    api("/api/dashboard"),
-    api("/api/sources"),
-    api("/api/settings"),
-  ]);
+  const [jobs, profile, dashboard, sources, settings, companyPage] =
+    await Promise.all([
+      api("/api/jobs?includeDismissed=true&includeClosed=true"),
+      api("/api/profile"),
+      api("/api/dashboard"),
+      api("/api/sources"),
+      api("/api/settings"),
+      api("/api/companies?page=1&pageSize=25"),
+    ]);
   state = {
     jobs,
     profile: profile.profile,
@@ -47,6 +51,8 @@ async function refresh() {
     dashboard,
     sources,
     settings,
+    companyPage,
+    companyFilters: state.companyFilters,
   };
   findButton.disabled = dashboard.discoveryRunning;
   findButton.textContent = dashboard.discoveryRunning
@@ -215,18 +221,18 @@ async function uploadCv(event) {
 
 function renderSources() {
   const s = state.sources;
-  app.innerHTML = `<div class="panel"><div class="panel-head"><div><h2>Internet discovery</h2><p class="muted">${s.webSearchConfigured ? `${e(s.webSearchProvider)} is configured.` : "Broad internet discovery needs WEB_SEARCH_PROVIDER and WEB_SEARCH_API_KEY. ATS feeds still work without a key."}</p></div></div></div><div class="panel"><h2>Company registry</h2>${
-    s.companies.length
-      ? s.companies
-          .map((c) => {
-            const status = (s.sourceStatuses || []).find(
-              (item) => item.companyId === c.id,
-            );
-            return `<div class="source-card"><div><strong>${e(c.name)}</strong><div class="job-meta"><span>${e(c.atsProvider || "unsupported/custom")}</span><span>${e(c.atsIdentifier || "identifier missing")}</span><span>checked ${e(c.lastCheckedAt || "never")}</span><span>last success ${e(status?.lastSuccessAt || "never")}</span></div>${status?.lastError ? `<p class="small fictional">${e(status.lastError)}</p>` : ""}</div><div class="actions"><button class="ghost" data-source-toggle="${e(c.id)}">${c.enabled ? "Disable" : "Enable"}</button><button class="secondary" data-source-sync="${e(c.id)}">Sync</button></div></div>`;
-          })
-          .join("")
-      : `<div class="empty">No companies configured. Add a verified public ATS board below.</div>`
-  }</div><form id="company-form" class="panel"><h2>Add company source</h2><div class="form-grid"><label>Name<input name="name" required></label><label>Company domain<input name="domain" placeholder="example.com" required></label><label>ATS<select name="ats"><option>greenhouse</option><option>lever</option><option>ashby</option></select></label><label>Public ATS identifier<input name="identifier" required></label><label class="wide">Countries (comma-separated)<input name="countries"></label></div><div class="actions"><button class="primary">Add source</button></div><p class="small muted">Identifiers are user-provided and are only treated as working after a successful sync.</p></form>`;
+  const stats = s.registryStats || {};
+  const page = state.companyPage || {
+    items: [],
+    page: 1,
+    pageSize: 25,
+    total: 0,
+  };
+  app.innerHTML = `<div class="grid stats">${stat("Candidate companies", stats.totalCompanies)}${stat("Source verified", stats.byStatus?.["source-verified"] || 0)}${stat("Monitored", stats.byStatus?.monitored || 0)}${stat("Unresolved", stats.unresolved)}${stat("Failing", stats.verificationFailures)}${stat("Source records", stats.totalSourceRecords)}</div>
+  <div class="panel"><div class="panel-head"><div><h2>Free company-registry discovery</h2><p class="muted">Version 1 monitors maintained official career pages and public ATS feeds. It does not search the entire internet.</p></div><div class="actions"><a class="secondary" href="/api/companies/unresolved.csv">Export unresolved CSV</a><label class="secondary">Import reviewed CSV<input id="resolution-csv" type="file" accept=".csv,text/csv" hidden></label></div></div><p class="small muted">Sponsor-register or permit history is positive company evidence, not a guarantee for a specific vacancy.</p></div>
+  <div class="panel"><div class="panel-head"><h2>Companies</h2><span class="muted small">${page.total} total · page ${page.page}</span></div><div class="filters"><label>Search<input id="company-search" value="${e(state.companyFilters.search)}"></label><label>Country<input id="company-country" value="${e(state.companyFilters.country)}" placeholder="Germany"></label><label>Status<select id="company-status"><option value="">All</option>${["candidate", "domain-resolved", "careers-page-found", "source-verified", "monitored", "temporarily-failing", "inactive", "rejected"].map((status) => `<option value="${status}" ${state.companyFilters.status === status ? "selected" : ""}>${status}</option>`).join("")}</select></label><button class="secondary" data-company-filter>Filter</button></div>${companyTable(page.items)}<div class="actions"><button class="ghost" data-company-page="${Math.max(1, page.page - 1)}" ${page.page <= 1 ? "disabled" : ""}>Previous</button><button class="ghost" data-company-page="${page.page + 1}" ${page.page * page.pageSize >= page.total ? "disabled" : ""}>Next</button></div></div>
+  <div class="two-col"><div class="panel"><h2>Recent imports</h2>${runList(s.importRuns, (run) => `${run.sourceName}: ${run.recordsCreated} created, ${run.recordsUpdated} updated`)}</div><div class="panel"><h2>Recent verifications</h2>${runList(s.verificationRuns, (run) => `${run.detectedProvider || "custom"}: ${run.companyId}`)}</div></div>
+  <form id="company-form" class="panel"><h2>Add candidate company</h2><div class="form-grid"><label>Name<input name="name" required></label><label>Official domain<input name="domain" placeholder="example.com"></label><label>Careers URL<input name="careersUrl" type="url"></label><label>ATS<select name="ats"><option value="">Detect from careers URL</option>${["greenhouse", "lever", "ashby", "workable", "smartrecruiters", "workday", "personio", "recruitee", "successfactors", "oracle", "custom"].map((value) => `<option>${value}</option>`).join("")}</select></label><label>ATS identifier<input name="identifier"></label><label>Country<input name="countries"></label><label>Industries<input name="industries" placeholder="fintech, product"></label><label class="wide">Evidence URL<input name="evidenceUrl" type="url" required></label><label class="wide">Notes<textarea name="notes"></textarea></label></div><div class="actions"><button class="primary">Add candidate</button></div><p class="small muted">New records remain disabled until their official source verifies successfully.</p></form>`;
   document
     .querySelector("#company-form")
     .addEventListener("submit", addCompany);
@@ -240,6 +246,54 @@ function renderSources() {
     .forEach((b) =>
       b.addEventListener("click", () => syncSource(b.dataset.sourceSync)),
     );
+  document
+    .querySelectorAll("[data-source-verify]")
+    .forEach((b) =>
+      b.addEventListener("click", () => verifySource(b.dataset.sourceVerify)),
+    );
+  document
+    .querySelectorAll("[data-source-reject]")
+    .forEach((b) =>
+      b.addEventListener("click", () => rejectSource(b.dataset.sourceReject)),
+    );
+  document
+    .querySelectorAll("[data-source-merge]")
+    .forEach((b) =>
+      b.addEventListener("click", () => mergeSource(b.dataset.sourceMerge)),
+    );
+  document
+    .querySelectorAll("[data-resolve-form]")
+    .forEach((form) => form.addEventListener("submit", resolveSource));
+  document
+    .querySelector("[data-company-filter]")
+    .addEventListener("click", () => loadCompanyPage(1));
+  document
+    .querySelectorAll("[data-company-page]")
+    .forEach((button) =>
+      button.addEventListener("click", () =>
+        loadCompanyPage(Number(button.dataset.companyPage)),
+      ),
+    );
+  document
+    .querySelector("#resolution-csv")
+    .addEventListener("change", importResolutionCsv);
+}
+
+function runList(runs, summary) {
+  if (!runs?.length) return `<div class="empty">No runs recorded yet.</div>`;
+  return `<ul class="evidence-list">${runs
+    .slice(0, 5)
+    .map(
+      (run) =>
+        `<li><strong>${e(run.status)}</strong> · ${e(summary(run))}<br><span class="small muted">${date(run.completedAt || run.startedAt)}${run.error ? ` · ${e(run.error)}` : ""}</span></li>`,
+    )
+    .join("")}</ul>`;
+}
+
+function companyTable(companies) {
+  if (!companies.length)
+    return `<div class="empty">No companies match these filters.</div>`;
+  return `<div class="table-wrap"><table><thead><tr><th>Company</th><th>Country / cities</th><th>Industry</th><th>Official source</th><th>ATS</th><th>Evidence</th><th>Status</th><th>Last sync</th><th>Actions</th></tr></thead><tbody>${companies.map((c) => `<tr><td><strong>${e(c.displayName)}</strong><br><span class="small muted">${e(c.legalName)}</span></td><td>${e(c.headquartersCountry || c.operatingCountries.join(", "))}<br><span class="small muted">${e(c.knownCities.join(", "))}</span></td><td>${e(c.industries.join(", ") || "unknown")}<br><span class="small muted">engineering ${e(c.engineeringRelevance)}</span></td><td>${c.companyDomain ? `<a target="_blank" rel="noopener noreferrer" href="https://${e(c.companyDomain)}">${e(c.companyDomain)}</a>` : "unresolved"}<br>${c.careersUrl ? `<a target="_blank" rel="noopener noreferrer" href="${e(c.careersUrl)}">Careers</a>` : ""}</td><td>${e(c.atsProvider || "unresolved")}<br><span class="small muted">${e(c.atsIdentifier || "")}</span></td><td>sponsor ${e(c.sponsorshipEvidence)}<br>relocation ${e(c.relocationEvidence)}</td><td><span class="badge ${e(c.verificationStatus)}">${e(c.verificationStatus)}</span><br><span class="small muted">${c.enabled ? "enabled" : "disabled"}</span></td><td>${date(c.lastSuccessfulSyncAt)}</td><td><div class="actions"><button class="ghost" data-source-verify="${e(c.id)}">Verify</button><button class="ghost" data-source-sync="${e(c.id)}">Sync</button><button class="ghost" data-source-toggle="${e(c.id)}">${c.enabled ? "Disable" : "Enable"}</button><button class="ghost" data-source-merge="${e(c.id)}">Merge</button><button class="ghost" data-source-reject="${e(c.id)}">Reject</button></div><details><summary class="small">Resolve / edit</summary><form data-resolve-form="${e(c.id)}"><label>Official domain<input name="officialDomain" value="${e(c.companyDomain || "")}"></label><label>Careers URL<input name="careersUrl" value="${e(c.careersUrl || "")}"></label><label>ATS provider<input name="atsProvider" value="${e(c.atsProvider || "")}"></label><label>ATS identifier<input name="atsIdentifier" value="${e(c.atsIdentifier || "")}"></label><label>Evidence URL<input name="evidenceUrl" type="url" required></label><label>Notes<textarea name="notes">${e(c.notes || "")}</textarea></label><button class="secondary">Save resolution</button></form></details></td></tr>`).join("")}</tbody></table></div>`;
 }
 async function addCompany(event) {
   event.preventDefault();
@@ -250,21 +304,27 @@ async function addCompany(event) {
         method: "POST",
         body: JSON.stringify({
           name: f.get("name"),
-          companyDomain: f.get("domain"),
-          atsProvider: f.get("ats"),
-          atsIdentifier: f.get("identifier"),
+          companyDomain: f.get("domain") || undefined,
+          careersUrl: f.get("careersUrl") || undefined,
+          atsProvider: f.get("ats") || undefined,
+          atsIdentifier: f.get("identifier") || undefined,
           countries: String(f.get("countries") || "")
             .split(",")
             .map((x) => x.trim())
             .filter(Boolean),
-          enabled: true,
+          industries: String(f.get("industries") || "")
+            .split(",")
+            .map((x) => x.trim())
+            .filter(Boolean),
+          evidenceUrl: f.get("evidenceUrl"),
+          notes: f.get("notes") || undefined,
         }),
       }),
     "Company source added.",
   );
 }
 async function toggleSource(id) {
-  const c = state.sources.companies.find((x) => x.id === id);
+  const c = state.companyPage.items.find((x) => x.id === id);
   await action(
     () =>
       api(`/api/companies/${encodeURIComponent(id)}`, {
@@ -272,6 +332,87 @@ async function toggleSource(id) {
         body: JSON.stringify({ ...c, enabled: !c.enabled }),
       }),
     "Source updated.",
+  );
+}
+async function verifySource(id) {
+  await action(
+    () =>
+      api(`/api/companies/${encodeURIComponent(id)}/verify`, {
+        method: "POST",
+        body: "{}",
+      }),
+    "Company source verified.",
+  );
+}
+async function rejectSource(id) {
+  await action(
+    () =>
+      api(`/api/companies/${encodeURIComponent(id)}/reject`, {
+        method: "POST",
+        body: "{}",
+      }),
+    "Company rejected.",
+  );
+}
+async function mergeSource(id) {
+  const targetCompanyId = window.prompt("Target company ID to preserve");
+  if (!targetCompanyId) return;
+  await action(
+    () =>
+      api(`/api/companies/${encodeURIComponent(id)}/merge`, {
+        method: "POST",
+        body: JSON.stringify({ targetCompanyId }),
+      }),
+    "Duplicate company merged.",
+  );
+}
+async function resolveSource(event) {
+  event.preventDefault();
+  const form = event.currentTarget;
+  const fields = new FormData(form);
+  const value = (name) => String(fields.get(name) || "").trim() || undefined;
+  await action(
+    () =>
+      api(
+        `/api/companies/${encodeURIComponent(form.dataset.resolveForm)}/resolve`,
+        {
+          method: "POST",
+          body: JSON.stringify({
+            officialDomain: value("officialDomain"),
+            careersUrl: value("careersUrl"),
+            atsProvider: value("atsProvider"),
+            atsIdentifier: value("atsIdentifier"),
+            evidenceUrl: value("evidenceUrl"),
+            notes: value("notes"),
+          }),
+        },
+      ),
+    "Company resolution saved; verify it before enabling.",
+  );
+}
+async function loadCompanyPage(page) {
+  state.companyFilters = {
+    search: document.querySelector("#company-search")?.value || "",
+    country: document.querySelector("#company-country")?.value || "",
+    status: document.querySelector("#company-status")?.value || "",
+  };
+  const query = new URLSearchParams({ page: String(page), pageSize: "25" });
+  for (const [key, value] of Object.entries(state.companyFilters))
+    if (value) query.set(key, value);
+  state.companyPage = await api(`/api/companies?${query}`);
+  renderSources();
+}
+async function importResolutionCsv(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const csv = await file.text();
+  await action(
+    () =>
+      api("/api/companies/resolutions", {
+        method: "POST",
+        body: JSON.stringify({ csv }),
+      }),
+    "Reviewed resolutions imported.",
   );
 }
 async function syncSource(id) {
@@ -346,12 +487,9 @@ function renderSettings() {
     ],
   )}</div><div class="panel"><h2>Discovery</h2>${settingsRows([
     ["Database", s.database],
-    ["Web search", s.webSearchProvider || "Not configured"],
-    [
-      "Search key",
-      s.webSearchApiKeyConfigured ? "Configured (hidden)" : "Not configured",
-    ],
-  ])}</div></div><div class="panel"><h2>Privacy and limitations</h2><p class="muted">${e(s.privacy)}</p><p class="muted">A local language model does not independently browse the internet. Configure company/ATS sources or an internet-search provider to discover new job URLs.</p><p class="muted">Work-authorisation is preliminary evidence, not legal advice. Salary does not include tax or cost-of-living normalisation.</p></div>`;
+    ["Mode", s.discoveryMode],
+    ["Sources", "Official company pages and public ATS feeds"],
+  ])}</div></div><div class="panel"><h2>Privacy and limitations</h2><p class="muted">${e(s.privacy)}</p><p class="muted">Version 1 does not search the entire internet. It checks enabled, verified employers from the maintained registry.</p><p class="muted">Work-authorisation is preliminary evidence, not legal advice. Salary does not include tax or cost-of-living normalisation.</p></div>`;
 }
 
 function bindCommon() {

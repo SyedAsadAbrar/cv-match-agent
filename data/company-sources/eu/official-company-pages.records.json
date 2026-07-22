@@ -1,0 +1,79 @@
+{
+  "records": [
+    {
+      "sourceRecordId": "spotify-sweden",
+      "legalName": "Spotify AB",
+      "displayName": "Spotify",
+      "aliases": [],
+      "sourceType": "official-company-page",
+      "sourceName": "Verified EU technology employer pages",
+      "sourceUrl": "https://www.spotify.com/",
+      "sourceRetrievedAt": "2026-07-23T00:00:00.000Z",
+      "country": "Sweden",
+      "cities": ["Stockholm"],
+      "websiteUrl": "https://www.spotify.com/",
+      "careersUrl": "https://www.lifeatspotify.com/jobs",
+      "industries": ["media technology", "product"]
+    },
+    {
+      "sourceRecordId": "bolt-estonia",
+      "legalName": "Bolt Technology OÜ",
+      "displayName": "Bolt",
+      "aliases": [],
+      "sourceType": "official-company-page",
+      "sourceName": "Verified EU technology employer pages",
+      "sourceUrl": "https://bolt.eu/",
+      "sourceRetrievedAt": "2026-07-23T00:00:00.000Z",
+      "country": "Estonia",
+      "cities": ["Tallinn"],
+      "websiteUrl": "https://bolt.eu/",
+      "careersUrl": "https://bolt.eu/en/careers/",
+      "industries": ["mobility", "marketplace"]
+    },
+    {
+      "sourceRecordId": "klarna-sweden",
+      "legalName": "Klarna Bank AB",
+      "displayName": "Klarna",
+      "aliases": [],
+      "sourceType": "official-company-page",
+      "sourceName": "Verified EU technology employer pages",
+      "sourceUrl": "https://www.klarna.com/",
+      "sourceRetrievedAt": "2026-07-23T00:00:00.000Z",
+      "country": "Sweden",
+      "cities": ["Stockholm"],
+      "websiteUrl": "https://www.klarna.com/",
+      "careersUrl": "https://www.klarna.com/careers/",
+      "industries": ["fintech", "payments"]
+    },
+    {
+      "sourceRecordId": "doctolib-france",
+      "legalName": "Doctolib SAS",
+      "displayName": "Doctolib",
+      "aliases": [],
+      "sourceType": "official-company-page",
+      "sourceName": "Verified EU technology employer pages",
+      "sourceUrl": "https://www.doctolib.com/",
+      "sourceRetrievedAt": "2026-07-23T00:00:00.000Z",
+      "country": "France",
+      "cities": ["Paris"],
+      "websiteUrl": "https://www.doctolib.com/",
+      "careersUrl": "https://careers.doctolib.com/",
+      "industries": ["health technology", "saas"]
+    },
+    {
+      "sourceRecordId": "revolut-eu",
+      "legalName": "Revolut Bank UAB",
+      "displayName": "Revolut",
+      "aliases": [],
+      "sourceType": "official-company-page",
+      "sourceName": "Verified EU technology employer pages",
+      "sourceUrl": "https://www.revolut.com/",
+      "sourceRetrievedAt": "2026-07-23T00:00:00.000Z",
+      "country": "Lithuania",
+      "cities": ["Vilnius", "Remote EU"],
+      "websiteUrl": "https://www.revolut.com/",
+      "careersUrl": "https://www.revolut.com/careers/",
+      "industries": ["digital banking", "fintech"]
+    }
+  ]
+}

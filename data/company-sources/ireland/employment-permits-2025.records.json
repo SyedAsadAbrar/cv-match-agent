@@ -1,0 +1,76 @@
+{
+  "records": [
+    {
+      "sourceRecordId": "2025-microsoft-ireland",
+      "legalName": "Microsoft Ireland Operations Limited",
+      "displayName": "Microsoft Ireland",
+      "aliases": ["Microsoft"],
+      "sourceType": "official-permit-list",
+      "sourceName": "Ireland Employment Permit Statistics 2025",
+      "sourceUrl": "https://enterprise.gov.ie/en/publications/employment-permit-statistics-2025.html",
+      "sourcePublishedAt": "2026-01-02",
+      "sourceRetrievedAt": "2026-07-23T00:00:00.000Z",
+      "country": "Ireland",
+      "cities": ["Dublin"],
+      "websiteUrl": "https://www.microsoft.com/",
+      "careersUrl": "https://jobs.careers.microsoft.com/global/en/search?q=&lc=Ireland",
+      "industries": ["cloud", "enterprise software"],
+      "sponsorshipEvidence": {
+        "level": "permit-history",
+        "countries": ["Ireland"],
+        "sourceUrls": [
+          "https://enterprise.gov.ie/en/publications/employment-permit-statistics-2025.html"
+        ],
+        "observedAt": "2025-12-31"
+      }
+    },
+    {
+      "sourceRecordId": "2025-google-ireland",
+      "legalName": "Google Ireland Limited",
+      "displayName": "Google Ireland",
+      "aliases": ["Google"],
+      "sourceType": "official-permit-list",
+      "sourceName": "Ireland Employment Permit Statistics 2025",
+      "sourceUrl": "https://enterprise.gov.ie/en/publications/employment-permit-statistics-2025.html",
+      "sourcePublishedAt": "2026-01-02",
+      "sourceRetrievedAt": "2026-07-23T00:00:00.000Z",
+      "country": "Ireland",
+      "cities": ["Dublin"],
+      "websiteUrl": "https://about.google/",
+      "careersUrl": "https://www.google.com/about/careers/applications/locations/dublin/",
+      "industries": ["internet", "cloud", "artificial intelligence"],
+      "sponsorshipEvidence": {
+        "level": "permit-history",
+        "countries": ["Ireland"],
+        "sourceUrls": [
+          "https://enterprise.gov.ie/en/publications/employment-permit-statistics-2025.html"
+        ],
+        "observedAt": "2025-12-31"
+      }
+    },
+    {
+      "sourceRecordId": "2025-amazon-development-centre",
+      "legalName": "Amazon Development Centre Ireland Limited",
+      "displayName": "Amazon Ireland",
+      "aliases": ["Amazon"],
+      "sourceType": "official-permit-list",
+      "sourceName": "Ireland Employment Permit Statistics 2025",
+      "sourceUrl": "https://enterprise.gov.ie/en/publications/employment-permit-statistics-2025.html",
+      "sourcePublishedAt": "2026-01-02",
+      "sourceRetrievedAt": "2026-07-23T00:00:00.000Z",
+      "country": "Ireland",
+      "cities": ["Dublin"],
+      "websiteUrl": "https://www.amazon.jobs/",
+      "careersUrl": "https://www.amazon.jobs/en/locations/dublin-ireland",
+      "industries": ["cloud", "e-commerce", "logistics technology"],
+      "sponsorshipEvidence": {
+        "level": "permit-history",
+        "countries": ["Ireland"],
+        "sourceUrls": [
+          "https://enterprise.gov.ie/en/publications/employment-permit-statistics-2025.html"
+        ],
+        "observedAt": "2025-12-31"
+      }
+    }
+  ]
+}

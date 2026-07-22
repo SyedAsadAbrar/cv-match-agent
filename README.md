@@ -12,6 +12,8 @@ Requires Node.js 20 or newer, npm, and (for AI extraction/analysis) a locally ru
 npm install
 cp .env.example .env
 npm run db:migrate
+npm run companies:import
+npm run companies:normalise
 npm run web
 ```
 
@@ -28,12 +30,13 @@ Every demo company and job is labelled fictional. The fixture includes a strong 
 - `src/ai`, `src/services`: existing provider abstractions, JSON repair/validation, CV parsing, matching, and generated application assets.
 - `src/domain`: validated discovery/profile/job/application schemas.
 - `src/db`: ordered SQLite migrations and transaction-oriented repository.
-- `src/discovery`: source contracts, ATS/search adapters, normalisation, deduplication, filters, scoring, trust, sponsorship, salary, and orchestration.
+- `src/company`: source import, name normalisation, conservative duplicate detection, official-link resolution, ATS detection, verification, auditing, reporting, and the bounded careers crawler.
+- `src/discovery`: source contracts, ATS/careers adapters, normalisation, deduplication, filters, scoring, trust, sponsorship, salary, and orchestration.
 - `src/security`: URL/SSRF controls, bounded fetches, upload validation, and HTML-to-text sanitisation.
 - `src/web` and `public`: local HTTP API and responsive dashboard.
 - `src/demo`: deterministic fictional product demonstration.
 
-The detailed inspection and implementation rationale is in [`docs/autonomous-job-discovery-plan.md`](docs/autonomous-job-discovery-plan.md).
+The original discovery design is in [`docs/autonomous-job-discovery-plan.md`](docs/autonomous-job-discovery-plan.md). The Version 1 registry inspection, source strategy, migration plan, and limitations are in [`docs/version-1-company-registry-plan.md`](docs/version-1-company-registry-plan.md).
 
 ## Local Profile Workflow
 
@@ -42,25 +45,61 @@ The detailed inspection and implementation rationale is in [`docs/autonomous-job
 3. Review/edit the location, work-permit flag, role targets, countries, exclusions, maximum age, skills, and evidence. CV-derived claims are counted separately.
 4. The initial editable context is Dubai, United Arab Emirates; Pakistani citizenship; European work permit required; and AED 22,000 monthly gross/net unknown. It is a comparison baseline, never an automatic rejection threshold. No desired salary is required.
 
-## Discovery Sources
+## Free Version 1 Discovery
 
-Add a company on **Sources** with a verified public ATS identifier. Zero-key discovery supports:
+> Version 1 does not search the entire internet.
+>
+> It automatically monitors a large, maintained registry of known employers using official career pages and public job feeds.
+
+No paid search service, search-engine scraping, authenticated job-platform scraping, proxy service, or API key is used for discovery. Pressing **Find New Jobs** checks only enabled companies whose source has already reached `source-verified` or `monitored`. One company failure is retained in the run summary and does not discard successful sources. Applications always happen manually through the preserved official URL.
+
+Active ingestion is implemented for:
 
 - Greenhouse Job Board API board tokens.
 - Lever Postings API site identifiers.
 - Ashby public Job Postings API board names.
+- Conservative same-domain official careers crawling, including `JobPosting` JSON-LD and sitemap-discovered job pages.
 
-The registry starts without unverified real identifiers. A failed source is recorded without failing successful sources. Use **Sync** for one company or:
+Workable, SmartRecruiters, Workday, Personio, Recruitee, SAP SuccessFactors, and Oracle Recruiting are detected and stored, but are detection-only in this version.
+
+The crawler starts only from a reviewed official careers URL. It checks `robots.txt`, follows declared or conventional sitemaps, stays on the official domain, and enforces depth, page, redirect, response-size, content-type, timeout, retry, and optional delay limits. It does not execute third-party JavaScript, bypass login or CAPTCHA controls, or operate as a general crawler.
+
+### Registry provenance and statuses
+
+Every imported record contains a source record ID, type, title, official URL, retrieval date, country, and the original structured evidence. Refresh runs are recorded, and changed source evidence is appended to observation history rather than silently replacing the previous version.
+
+The lifecycle is `candidate` → `domain-resolved` → `careers-page-found` → `source-verified` → `monitored`. `temporarily-failing`, `inactive`, and `rejected` preserve operational and review outcomes. Only `source-verified` and `monitored` companies are active sources; a previously verified enabled source may remain `temporarily-failing` while it is retried.
+
+Being listed as a recognised sponsor or having historical permit activity is positive evidence, not a guarantee that a specific vacancy offers sponsorship. Sponsorship is still assessed at vacancy level, and missing evidence remains unknown.
+
+### Source data and maintenance
+
+Small, reviewable structured derivatives live under `data/company-sources/`. They currently cover the official Netherlands IND recognised-sponsor register, official Irish permit-history material, Hub71 ecosystem companies, and directly verified official company pages across Saudi Arabia, Germany, and other target EU countries. These seed derivatives are representative, not a fabricated attempt to hit the soft scale targets. The Netherlands importer can refresh the full official HTML register when network access is available and refuses suspiciously small parses.
 
 ```bash
+npm run companies:import -- --dry-run
+npm run companies:import
+npm run companies:normalise -- --dry-run
+npm run companies:normalise
+npm run companies:resolve -- --limit 25
+npm run companies:verify -- --limit 25
+npm run companies:audit
+npm run companies:stats
+npm run companies:refresh -- --official --dry-run
 npm run jobs:discover
 ```
 
-Broad internet discovery is optional. Set `WEB_SEARCH_PROVIDER=brave` and a server-side `WEB_SEARCH_API_KEY` to use Brave Search. API keys are never returned to or displayed by the browser. Search queries contain role, skill, location, seniority, recency, and public preference terms—not compensation, citizenship, or full CV text. Search plans and results are retained for debugging.
+`companies:resolve` never guesses a missing domain. Export unresolved records from **Sources** or `/api/companies/unresolved.csv`, review the official domain, careers URL, provider/identifier, evidence URL, and notes, then import the CSV in the UI or with `npm run dev -- companies import-resolutions --file reviewed.csv`. After saving, verify the source before enabling it. The company table is server-paginated and supports country, status, ATS, sponsorship, enabled, and text filters through the API.
 
-> A local language model does not independently browse the internet.
->
-> The application needs either configured company/ATS sources or an internet-search provider to discover new job URLs.
+To add another maintained source, create a validated JSON derivative under the relevant country directory, run the import in dry-run mode, then normalise, resolve, verify, audit, and regenerate reports. The repository-local Codex maintenance skill packages that workflow:
+
+```text
+$company-source-onboarding Import and verify new Irish employers from the latest official employment-permit company listing.
+$company-source-onboarding Audit UAE sources not checked in the last 30 days.
+$company-source-onboarding Add German technology employers without inventing unsupported ATS IDs.
+```
+
+The skill lives in `.agents/skills/company-source-onboarding/`; it is a project-maintenance workflow, not the runtime engine.
 
 ## Ollama Models
 
@@ -87,12 +126,21 @@ OLLAMA_BASE_URL=http://localhost:11434
 OLLAMA_EXTRACTION_MODEL=qwen3:8b
 OLLAMA_REASONING_MODEL=deepseek-r1:8b
 OLLAMA_EMBEDDING_MODEL=qwen3-embedding:0.6b
-WEB_SEARCH_PROVIDER=
-WEB_SEARCH_API_KEY=
+WEB_SEARCH_PROVIDER=none
+GREENHOUSE_ENABLED=true
+LEVER_ENABLED=true
+ASHBY_ENABLED=true
+CAREERS_CRAWLER_ENABLED=true
 DETAILED_ANALYSIS_LIMIT=25
 MAX_JOB_AGE_DAYS=30
 JOB_DISCOVERY_CONCURRENCY=4
 JOB_FETCH_TIMEOUT_MS=15000
+JOB_FETCH_RETRY_LIMIT=2
+JOB_FETCH_MAX_RESPONSE_BYTES=5000000
+CAREERS_CRAWLER_MAX_DEPTH=2
+CAREERS_CRAWLER_MAX_PAGES_PER_COMPANY=100
+CAREERS_CRAWLER_CONCURRENCY=3
+CAREERS_CRAWLER_DELAY_MS=250
 HOST=127.0.0.1
 PORT=4310
 ```
@@ -103,6 +151,10 @@ The default database is `data/job-copilot.db`. Migrations are idempotent and app
 
 ```bash
 npm run db:migrate
+npm run companies:import
+npm run companies:normalise
+npm run companies:audit
+npm run companies:stats
 npm run web
 npm run jobs:discover
 npm run demo
@@ -134,26 +186,26 @@ Missing sponsorship text means **unknown**, not incompatible. Explicit no-sponso
 
 ## Known Limitations and Troubleshooting
 
-- Only Greenhouse, Lever, and Ashby have structured source adapters. Custom careers pages need a future connector.
-- Web-search results discover URLs, but unsupported generic pages are not executed or scraped into trusted jobs.
+- Only Greenhouse, Lever, Ashby, and conservative official careers pages have active ingestion. Other recognised ATS providers remain detection-only.
+- The committed registry derivatives are intentionally small and attributable. Run authorised official refreshes and reviewed onboarding to grow coverage; current counts are reported honestly in `reports/`.
+- Domain-less companies require manual resolution. JavaScript-only career sites may need a future dedicated public connector.
 - No automatic applications, LinkedIn scraping, browser automation, CAPTCHA bypass, authentication bypass, or always-on scheduler is included.
 - CV PDFs must contain extractable text; scanned PDFs need OCR before upload.
 - Salary has no tax/cost-of-living model. Immigration rules are not a comprehensive legal rules engine.
-- If the feed is empty, add and successfully sync an ATS company or configure Brave Search. If extraction fails, confirm Ollama is running and the extraction model is installed. If a source fails, open **Sources** or the latest dashboard run to see the isolated error.
+- If the feed is empty, import the registry, resolve and verify official sources, then enable the source. If extraction fails, confirm Ollama is running and the extraction model is installed. Source failures appear under **Sources** and in the latest discovery run.
 - If SQLite cannot open, ensure the process can write `data/` and that `DATABASE_URL` points to a local writable file.
 
 ## Roadmap
 
-1. More ATS connectors.
-2. Official sponsor-register imports.
+1. More active ATS connectors.
+2. More authorised official register and ecosystem importers.
 3. Versioned immigration rules.
 4. Tax and cost-of-living comparison.
-5. A small Chrome extension that never scrapes authenticated LinkedIn pages or auto-applies.
-6. Automated local scheduling.
-7. Email or desktop summaries.
-8. Multiple CV variants.
-9. Application-answer assistance.
-10. Optional cloud deployment.
+5. Automated local scheduling.
+6. Email or desktop summaries.
+7. Multiple CV variants.
+8. Application-answer assistance.
+9. Optional cloud deployment.
 
 ## What It Does
 

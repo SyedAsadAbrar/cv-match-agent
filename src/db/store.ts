@@ -1,8 +1,10 @@
-import { randomUUID } from "node:crypto";
+import { createHash, randomUUID } from "node:crypto";
 import { z } from "zod";
 import {
   applicationSchema,
   candidateProfileSchema,
+  companyImportRunSchema,
+  companySourceRecordSchema,
   createInitialCandidateProfile,
   discoveryRunSchema,
   jobPostingSchema,
@@ -13,6 +15,8 @@ import {
   workAuthorizationAssessmentSchema,
   type Application,
   type CandidateProfile,
+  type CompanyImportRun,
+  type CompanySourceRecord,
   type DiscoveryRun,
   type JobPosting,
   type JobTrustAssessment,
@@ -21,6 +25,7 @@ import {
   type TargetCompany,
   type WorkAuthorizationAssessment,
 } from "../domain/schemas";
+import { normaliseCompanyName } from "../company/normalise";
 import { openDatabase, type SqliteDatabase } from "./database";
 
 export type RankedJob = {
@@ -37,6 +42,29 @@ export type RankedJob = {
 export type RankedJobListOptions = {
   includeDismissed?: boolean;
   includeClosed?: boolean;
+};
+
+export type CompanyListOptions = {
+  page?: number;
+  pageSize?: number;
+  country?: string;
+  status?: TargetCompany["verificationStatus"];
+  atsProvider?: TargetCompany["atsProvider"];
+  sponsorshipEvidence?: TargetCompany["sponsorshipEvidence"];
+  enabled?: boolean;
+  search?: string;
+};
+
+export type CompanyVerificationRun = {
+  id: string;
+  companyId: string;
+  status: "running" | "completed" | "failed";
+  startedAt: string;
+  completedAt?: string;
+  evidenceUrl?: string;
+  detectedProvider?: string;
+  error?: string;
+  payload: Record<string, unknown>;
 };
 
 export class JobCopilotStore {
@@ -159,29 +187,293 @@ export class JobCopilotStore {
       );
   }
 
+  listCompaniesPage(options: CompanyListOptions = {}): {
+    items: TargetCompany[];
+    total: number;
+    page: number;
+    pageSize: number;
+  } {
+    const page = Math.max(1, options.page ?? 1);
+    const pageSize = Math.min(100, Math.max(1, options.pageSize ?? 25));
+    const filtered = this.listCompanies().filter(
+      (company) =>
+        (!options.country ||
+          company.operatingCountries.includes(options.country) ||
+          company.hiringCountries.includes(options.country)) &&
+        (!options.status || company.verificationStatus === options.status) &&
+        (!options.atsProvider || company.atsProvider === options.atsProvider) &&
+        (!options.sponsorshipEvidence ||
+          company.sponsorshipEvidence === options.sponsorshipEvidence) &&
+        (options.enabled === undefined ||
+          company.enabled === options.enabled) &&
+        (!options.search ||
+          [company.legalName, company.displayName, ...company.aliases]
+            .join(" ")
+            .toLowerCase()
+            .includes(options.search.toLowerCase())),
+    );
+    const offset = (page - 1) * pageSize;
+    return {
+      items: filtered.slice(offset, offset + pageSize),
+      total: filtered.length,
+      page,
+      pageSize,
+    };
+  }
+
   saveCompany(input: TargetCompany): TargetCompany {
     const company = targetCompanySchema.parse(input);
-    this.database
-      .prepare(
-        `
-      INSERT INTO target_companies(id, name, company_domain, ats_provider, ats_identifier, enabled, last_checked_at, payload)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+    if (
+      company.enabled &&
+      !["source-verified", "monitored", "temporarily-failing"].includes(
+        company.verificationStatus,
+      )
+    )
+      throw new Error("Only source-verified companies may be enabled.");
+    const save = this.database.transaction(() => {
+      this.database
+        .prepare(
+          `
+      INSERT INTO target_companies(id, name, company_domain, ats_provider, ats_identifier, enabled, last_checked_at,
+        payload, legal_name, normalized_name, headquarters_country, verification_status,
+        engineering_relevance, sponsorship_evidence, last_successful_sync_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       ON CONFLICT(id) DO UPDATE SET name=excluded.name, company_domain=excluded.company_domain,
         ats_provider=excluded.ats_provider, ats_identifier=excluded.ats_identifier, enabled=excluded.enabled,
-        last_checked_at=excluded.last_checked_at, payload=excluded.payload
+        last_checked_at=excluded.last_checked_at, payload=excluded.payload, legal_name=excluded.legal_name,
+        normalized_name=excluded.normalized_name, headquarters_country=excluded.headquarters_country,
+        verification_status=excluded.verification_status, engineering_relevance=excluded.engineering_relevance,
+        sponsorship_evidence=excluded.sponsorship_evidence, last_successful_sync_at=excluded.last_successful_sync_at
     `,
+        )
+        .run(
+          company.id,
+          company.name,
+          company.companyDomain ?? "",
+          company.atsProvider ?? null,
+          company.atsIdentifier ?? null,
+          company.enabled ? 1 : 0,
+          company.lastCheckedAt ?? null,
+          JSON.stringify(company),
+          company.legalName,
+          normaliseCompanyName(company.legalName),
+          company.headquartersCountry ?? null,
+          company.verificationStatus,
+          company.engineeringRelevance,
+          company.sponsorshipEvidence,
+          company.lastSuccessfulSyncAt ?? null,
+        );
+      for (const table of [
+        "company_countries",
+        "company_cities",
+        "company_industries",
+      ])
+        this.database
+          .prepare(`DELETE FROM ${table} WHERE company_id = ?`)
+          .run(company.id);
+      const country = this.database.prepare(
+        "INSERT OR IGNORE INTO company_countries(company_id, country, kind) VALUES (?, ?, ?)",
+      );
+      for (const value of company.operatingCountries)
+        country.run(company.id, value, "operating");
+      for (const value of company.hiringCountries)
+        country.run(company.id, value, "hiring");
+      const city = this.database.prepare(
+        "INSERT OR IGNORE INTO company_cities(company_id, city) VALUES (?, ?)",
+      );
+      for (const value of company.knownCities) city.run(company.id, value);
+      const industry = this.database.prepare(
+        "INSERT OR IGNORE INTO company_industries(company_id, industry) VALUES (?, ?)",
+      );
+      for (const value of company.industries) industry.run(company.id, value);
+    });
+    save();
+    return company;
+  }
+
+  saveCompanySourceRecord(companyId: string, input: CompanySourceRecord): void {
+    const record = companySourceRecordSchema.parse(input);
+    const payload = JSON.stringify(record);
+    const importedAt = new Date().toISOString();
+    const save = this.database.transaction(() => {
+      this.database
+        .prepare(
+          `INSERT INTO company_source_records(id, company_id, source_record_id, source_type, source_name,
+        source_url, source_published_at, source_retrieved_at, country, payload, imported_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ON CONFLICT(source_name, source_record_id) DO UPDATE SET company_id=excluded.company_id,
+        source_published_at=excluded.source_published_at, source_retrieved_at=excluded.source_retrieved_at,
+        country=excluded.country, payload=excluded.payload, imported_at=excluded.imported_at`,
+        )
+        .run(
+          randomUUID(),
+          companyId,
+          record.sourceRecordId,
+          record.sourceType,
+          record.sourceName,
+          record.sourceUrl,
+          record.sourcePublishedAt ?? null,
+          record.sourceRetrievedAt,
+          record.country,
+          payload,
+          importedAt,
+        );
+      this.database
+        .prepare(
+          `INSERT OR IGNORE INTO company_source_observations(id, company_id, source_name,
+          source_record_id, payload_hash, payload, observed_at, imported_at)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+        )
+        .run(
+          randomUUID(),
+          companyId,
+          record.sourceName,
+          record.sourceRecordId,
+          createHash("sha256").update(payload).digest("hex"),
+          payload,
+          record.sourcePublishedAt ?? record.sourceRetrievedAt,
+          importedAt,
+        );
+    });
+    save();
+  }
+
+  countCompanySourceRecords(): number {
+    return (
+      this.database
+        .prepare("SELECT COUNT(*) AS count FROM company_source_records")
+        .get() as {
+        count: number;
+      }
+    ).count;
+  }
+
+  saveCompanyImportRun(input: CompanyImportRun): CompanyImportRun {
+    const run = companyImportRunSchema.parse(input);
+    this.database
+      .prepare(
+        `INSERT INTO company_import_runs(id, source_name, status, source_url, source_version,
+        source_published_at, started_at, completed_at, records_read, records_created, records_updated,
+        duplicates_found, records_rejected, errors) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ON CONFLICT(id) DO UPDATE SET status=excluded.status, completed_at=excluded.completed_at,
+        records_read=excluded.records_read, records_created=excluded.records_created,
+        records_updated=excluded.records_updated, duplicates_found=excluded.duplicates_found,
+        records_rejected=excluded.records_rejected, errors=excluded.errors`,
       )
       .run(
-        company.id,
-        company.name,
-        company.companyDomain,
-        company.atsProvider ?? null,
-        company.atsIdentifier ?? null,
-        company.enabled ? 1 : 0,
-        company.lastCheckedAt ?? null,
-        JSON.stringify(company),
+        run.id,
+        run.sourceName,
+        run.status,
+        run.sourceUrl,
+        run.sourceVersion ?? null,
+        run.sourcePublishedAt ?? null,
+        run.startedAt,
+        run.completedAt ?? null,
+        run.recordsRead,
+        run.recordsCreated,
+        run.recordsUpdated,
+        run.duplicatesFound,
+        run.recordsRejected,
+        JSON.stringify(run.errors),
       );
-    return company;
+    return run;
+  }
+
+  listCompanyImportRuns(limit = 20): CompanyImportRun[] {
+    return (
+      this.database
+        .prepare(
+          "SELECT * FROM company_import_runs ORDER BY started_at DESC LIMIT ?",
+        )
+        .all(Math.max(1, Math.min(100, limit))) as Array<
+        Record<string, unknown>
+      >
+    ).map((row) =>
+      companyImportRunSchema.parse({
+        id: row.id,
+        sourceName: row.source_name,
+        status: row.status,
+        sourceUrl: row.source_url,
+        sourceVersion: row.source_version ?? undefined,
+        sourcePublishedAt: row.source_published_at ?? undefined,
+        startedAt: row.started_at,
+        completedAt: row.completed_at ?? undefined,
+        recordsRead: row.records_read,
+        recordsCreated: row.records_created,
+        recordsUpdated: row.records_updated,
+        duplicatesFound: row.duplicates_found,
+        recordsRejected: row.records_rejected,
+        errors: JSON.parse(String(row.errors)) as unknown,
+      }),
+    );
+  }
+
+  startCompanyVerificationRun(company: TargetCompany): string {
+    const id = randomUUID();
+    this.database
+      .prepare(
+        `INSERT INTO company_verification_runs(id, company_id, status, started_at,
+        evidence_url, detected_provider, payload) VALUES (?, ?, 'running', ?, ?, ?, ?)`,
+      )
+      .run(
+        id,
+        company.id,
+        new Date().toISOString(),
+        company.careersUrl ?? company.websiteUrl ?? null,
+        company.atsProvider ?? null,
+        JSON.stringify({ atsIdentifier: company.atsIdentifier }),
+      );
+    return id;
+  }
+
+  finishCompanyVerificationRun(
+    id: string,
+    company: TargetCompany,
+    error?: string,
+  ): void {
+    this.database
+      .prepare(
+        `UPDATE company_verification_runs SET status = ?, completed_at = ?, evidence_url = ?,
+        detected_provider = ?, error = ?, payload = ? WHERE id = ?`,
+      )
+      .run(
+        error ? "failed" : "completed",
+        new Date().toISOString(),
+        company.careersUrl ?? company.websiteUrl ?? null,
+        company.atsProvider ?? null,
+        error ?? null,
+        JSON.stringify({
+          atsIdentifier: company.atsIdentifier,
+          verificationStatus: company.verificationStatus,
+        }),
+        id,
+      );
+  }
+
+  listCompanyVerificationRuns(limit = 20): CompanyVerificationRun[] {
+    return (
+      this.database
+        .prepare(
+          `SELECT id, company_id, status, started_at, completed_at, evidence_url,
+          detected_provider, error, payload FROM company_verification_runs
+          ORDER BY started_at DESC LIMIT ?`,
+        )
+        .all(Math.max(1, Math.min(100, limit))) as Array<
+        Record<string, unknown>
+      >
+    ).map((row) => ({
+      id: String(row.id),
+      companyId: String(row.company_id),
+      status: row.status as CompanyVerificationRun["status"],
+      startedAt: String(row.started_at),
+      completedAt: row.completed_at ? String(row.completed_at) : undefined,
+      evidenceUrl: row.evidence_url ? String(row.evidence_url) : undefined,
+      detectedProvider: row.detected_provider
+        ? String(row.detected_provider)
+        : undefined,
+      error: row.error ? String(row.error) : undefined,
+      payload: JSON.parse(String(row.payload)) as Record<string, unknown>,
+    }));
   }
 
   startSourceSync(discoveryRunId: string, company: TargetCompany): string {
@@ -239,7 +531,19 @@ export class JobCopilotStore {
           last_error = ? WHERE company_id = ?`,
         )
         .run(error ?? null, now, error ?? null, company.id);
-      this.saveCompany({ ...company, lastCheckedAt: now });
+      this.saveCompany({
+        ...company,
+        lastCheckedAt: now,
+        lastSuccessfulSyncAt: error ? company.lastSuccessfulSyncAt : now,
+        verificationStatus: error
+          ? company.verificationStatus === "candidate"
+            ? "candidate"
+            : "temporarily-failing"
+          : company.enabled
+            ? "monitored"
+            : "source-verified",
+        verificationError: error,
+      });
     });
     finish();
   }
@@ -264,6 +568,58 @@ export class JobCopilotStore {
       lastSuccessAt: row.last_success_at ?? undefined,
       lastError: row.last_error ?? undefined,
     }));
+  }
+
+  recordSuccessfulCompanyJobSnapshot(
+    companyId: string,
+    seenJobIds: string[],
+    possiblyClosedAfter = 3,
+  ): void {
+    const now = new Date().toISOString();
+    const seen = new Set(seenJobIds);
+    const rows = this.database
+      .prepare(
+        `SELECT observation.job_id, observation.consecutive_misses, jobs.payload
+        FROM company_job_observations observation
+        JOIN jobs ON jobs.id = observation.job_id
+        WHERE observation.company_id = ?`,
+      )
+      .all(companyId) as Array<{
+      job_id: string;
+      consecutive_misses: number;
+      payload: string;
+    }>;
+    const save = this.database.transaction(() => {
+      const upsert = this.database.prepare(
+        `INSERT INTO company_job_observations(company_id, job_id, consecutive_misses,
+        last_seen_at, last_successful_snapshot_at) VALUES (?, ?, 0, ?, ?)
+        ON CONFLICT(company_id, job_id) DO UPDATE SET consecutive_misses = 0,
+        last_seen_at = excluded.last_seen_at,
+        last_successful_snapshot_at = excluded.last_successful_snapshot_at`,
+      );
+      for (const jobId of seen) upsert.run(companyId, jobId, now, now);
+      for (const row of rows) {
+        if (seen.has(row.job_id)) continue;
+        const misses = row.consecutive_misses + 1;
+        this.database
+          .prepare(
+            `UPDATE company_job_observations SET consecutive_misses = ?,
+            last_successful_snapshot_at = ? WHERE company_id = ? AND job_id = ?`,
+          )
+          .run(misses, now, companyId, row.job_id);
+        if (misses < possiblyClosedAfter) continue;
+        const job = parseStored(row.payload, jobPostingSchema, "job posting");
+        if (job.status === "closed") continue;
+        const possiblyClosed = jobPostingSchema.parse({
+          ...job,
+          status: "possibly-closed",
+        });
+        this.database
+          .prepare("UPDATE jobs SET status = ?, payload = ? WHERE id = ?")
+          .run("possibly-closed", JSON.stringify(possiblyClosed), row.job_id);
+      }
+    });
+    save();
   }
 
   startDiscoveryRun(searchesExecuted: number): DiscoveryRun {

@@ -93,36 +93,222 @@ export const candidateProfileSchema = z.object({
   }),
 });
 
-export const targetCompanySchema = z.object({
-  id: text,
-  name: text,
-  companyDomain: text,
-  careersUrl: optionalText,
-  countries: stringList,
-  atsProvider: z
-    .enum([
-      "greenhouse",
-      "lever",
-      "ashby",
-      "workable",
-      "smartrecruiters",
-      "workday",
-      "personio",
-      "recruitee",
-      "custom",
-    ])
-    .optional(),
-  atsIdentifier: optionalText,
-  sponsorshipEvidence: z.enum([
-    "confirmed",
-    "historical",
-    "possible",
-    "unknown",
-    "unlikely",
+export const companyVerificationStatusSchema = z.enum([
+  "candidate",
+  "domain-resolved",
+  "careers-page-found",
+  "source-verified",
+  "monitored",
+  "temporarily-failing",
+  "inactive",
+  "rejected",
+]);
+
+export const atsProviderSchema = z.enum([
+  "greenhouse",
+  "lever",
+  "ashby",
+  "workable",
+  "smartrecruiters",
+  "workday",
+  "personio",
+  "recruitee",
+  "successfactors",
+  "oracle",
+  "custom",
+]);
+
+export const companySourceReferenceSchema = z.object({
+  sourceRecordId: text,
+  sourceType: text,
+  sourceName: text,
+  sourceUrl: z.string().url(),
+  sourcePublishedAt: optionalText,
+  sourceRetrievedAt: text,
+  originalIdentifier: optionalText,
+});
+
+export const targetCompanySchema = z.preprocess(
+  (value) => {
+    if (!value || typeof value !== "object" || Array.isArray(value))
+      return value;
+    const input = value as Record<string, unknown>;
+    const name = input.displayName ?? input.name ?? input.legalName;
+    return {
+      ...input,
+      name,
+      legalName: input.legalName ?? name,
+      displayName: input.displayName ?? name,
+      aliases: input.aliases ?? [],
+      operatingCountries: input.operatingCountries ?? input.countries ?? [],
+      hiringCountries: input.hiringCountries ?? input.countries ?? [],
+      countries: input.countries ?? input.hiringCountries ?? [],
+      knownCities: input.knownCities ?? [],
+      industries: input.industries ?? [],
+      companyType: input.companyType ?? "unknown",
+      sizeBand: input.sizeBand ?? "unknown",
+      engineeringRelevance: input.engineeringRelevance ?? "unknown",
+      englishEngineeringJobsLikelihood:
+        input.englishEngineeringJobsLikelihood ?? "unknown",
+      sourceType: input.sourceType ?? "legacy-manual",
+      sourceRecords: input.sourceRecords ?? [],
+      sponsorshipCountries: input.sponsorshipCountries ?? [],
+      relocationEvidence: input.relocationEvidence ?? "unknown",
+      remoteHiringEvidence: input.remoteHiringEvidence ?? "unknown",
+      verificationStatus:
+        input.verificationStatus ??
+        (input.enabled ? "source-verified" : "candidate"),
+      discoveredAt: input.discoveredAt ?? new Date(0).toISOString(),
+    };
+  },
+  z.object({
+    id: text,
+    name: text,
+    legalName: text,
+    displayName: text,
+    aliases: stringList,
+    companyDomain: optionalText,
+    websiteUrl: z.string().url().optional(),
+    careersUrl: z.string().url().optional(),
+    headquartersCountry: optionalText,
+    operatingCountries: stringList,
+    hiringCountries: stringList,
+    countries: stringList,
+    knownCities: stringList,
+    industries: stringList,
+    companyType: z.enum([
+      "startup",
+      "scaleup",
+      "enterprise",
+      "government-related",
+      "consultancy",
+      "bank",
+      "telecom",
+      "marketplace",
+      "unknown",
+    ]),
+    sizeBand: z.enum([
+      "1-10",
+      "11-50",
+      "51-200",
+      "201-500",
+      "501-1000",
+      "1001-5000",
+      "5001+",
+      "unknown",
+    ]),
+    engineeringRelevance: z.enum(["high", "medium", "low", "unknown"]),
+    englishEngineeringJobsLikelihood: z.enum([
+      "high",
+      "medium",
+      "low",
+      "unknown",
+    ]),
+    atsProvider: atsProviderSchema.optional(),
+    atsIdentifier: optionalText,
+    sourceType: text,
+    sourceRecords: z.array(companySourceReferenceSchema),
+    sponsorshipEvidence: z.enum([
+      "confirmed",
+      "historical",
+      "possible",
+      "unknown",
+      "unlikely",
+    ]),
+    sponsorshipCountries: stringList,
+    sponsorshipEvidenceSources: stringList,
+    relocationEvidence: z.enum([
+      "confirmed",
+      "historical",
+      "possible",
+      "unknown",
+      "unlikely",
+    ]),
+    remoteHiringEvidence: z.enum([
+      "confirmed",
+      "possible",
+      "unknown",
+      "unlikely",
+    ]),
+    verificationStatus: companyVerificationStatusSchema,
+    enabled: z.boolean(),
+    discoveredAt: text,
+    resolvedAt: optionalText,
+    lastCheckedAt: optionalText,
+    lastSuccessfulSyncAt: optionalText,
+    verificationError: optionalText,
+    notes: optionalText,
+  }),
+);
+
+export const companySourceRecordSchema = z.object({
+  sourceRecordId: text,
+  legalName: text,
+  displayName: optionalText,
+  aliases: stringList,
+  sourceType: z.enum([
+    "official-sponsor-register",
+    "official-permit-list",
+    "official-job-portal",
+    "government-open-data",
+    "government-startup-ecosystem",
+    "official-company-page",
+    "verified-curated-list",
   ]),
-  sponsorshipEvidenceSources: stringList,
-  enabled: z.boolean(),
-  lastCheckedAt: optionalText,
+  sourceName: text,
+  sourceUrl: z.string().url(),
+  sourcePublishedAt: optionalText,
+  sourceRetrievedAt: text,
+  country: text,
+  cities: stringList,
+  websiteUrl: z.string().url().optional(),
+  careersUrl: z.string().url().optional(),
+  industries: stringList,
+  sponsorshipEvidence: z
+    .object({
+      level: z.enum([
+        "confirmed-register",
+        "permit-history",
+        "company-statement",
+        "historical",
+        "possible",
+        "unknown",
+      ]),
+      countries: stringList,
+      sourceUrls: z.array(z.string().url()).default([]),
+      observedAt: optionalText,
+    })
+    .optional(),
+  notes: optionalText,
+});
+
+export const companyRelationshipSchema = z.object({
+  parentCompanyId: optionalText,
+  subsidiaryCompanyId: optionalText,
+  relationship: z.enum([
+    "parent",
+    "subsidiary",
+    "brand",
+    "former-name",
+    "regional-entity",
+  ]),
+});
+
+export const companyImportRunSchema = z.object({
+  id: text,
+  sourceName: text,
+  status: z.enum(["running", "completed", "partially-completed", "failed"]),
+  sourceUrl: z.string().url(),
+  sourceVersion: optionalText,
+  sourcePublishedAt: optionalText,
+  startedAt: text,
+  completedAt: optionalText,
+  recordsRead: z.number().int().nonnegative(),
+  recordsCreated: z.number().int().nonnegative(),
+  recordsUpdated: z.number().int().nonnegative(),
+  duplicatesFound: z.number().int().nonnegative(),
+  recordsRejected: z.number().int().nonnegative(),
+  errors: z.array(z.object({ recordId: optionalText, message: text })),
 });
 
 export const compensationSchema = z.object({
@@ -365,6 +551,15 @@ export const applicationSchema = z.object({
 
 export type CandidateProfile = z.infer<typeof candidateProfileSchema>;
 export type TargetCompany = z.infer<typeof targetCompanySchema>;
+export type CompanySourceRecord = z.infer<typeof companySourceRecordSchema>;
+export type CompanySourceReference = z.infer<
+  typeof companySourceReferenceSchema
+>;
+export type CompanyRelationship = z.infer<typeof companyRelationshipSchema>;
+export type CompanyImportRun = z.infer<typeof companyImportRunSchema>;
+export type CompanyVerificationStatus = z.infer<
+  typeof companyVerificationStatusSchema
+>;
 export type JobPosting = z.infer<typeof jobPostingSchema>;
 export type JobSourceType = z.infer<typeof jobSourceTypeSchema>;
 export type JobTrustAssessment = z.infer<typeof trustAssessmentSchema>;
@@ -405,7 +600,24 @@ export function createInitialCandidateProfile(): CandidateProfile {
       grossOrNet: "unknown",
     },
     targetRoles: [...INITIAL_TARGET_ROLES],
-    targetCountries: ["United Arab Emirates"],
+    targetCountries: [
+      "United Arab Emirates",
+      "Saudi Arabia",
+      "Ireland",
+      "Germany",
+      "Netherlands",
+      "Belgium",
+      "Estonia",
+      "France",
+      "Spain",
+      "Portugal",
+      "Austria",
+      "Denmark",
+      "Sweden",
+      "Finland",
+      "Poland",
+      "Czechia",
+    ],
     experience: [],
     education: [],
     skills: [],

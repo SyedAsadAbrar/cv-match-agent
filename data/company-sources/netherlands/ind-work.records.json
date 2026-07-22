@@ -1,0 +1,100 @@
+{
+  "records": [
+    {
+      "sourceRecordId": "kvk-34259528",
+      "legalName": "Adyen N.V.",
+      "displayName": "Adyen",
+      "aliases": [],
+      "sourceType": "official-sponsor-register",
+      "sourceName": "IND Public Register Work",
+      "sourceUrl": "https://ind.nl/en/public-register-recognised-sponsors/public-register-work",
+      "sourcePublishedAt": "2026-07-01",
+      "sourceRetrievedAt": "2026-07-23T00:00:00.000Z",
+      "country": "Netherlands",
+      "cities": ["Amsterdam"],
+      "websiteUrl": "https://www.adyen.com/",
+      "careersUrl": "https://careers.adyen.com/",
+      "industries": ["fintech", "payments"],
+      "sponsorshipEvidence": {
+        "level": "confirmed-register",
+        "countries": ["Netherlands"],
+        "sourceUrls": [
+          "https://ind.nl/en/public-register-recognised-sponsors/public-register-work"
+        ],
+        "observedAt": "2026-07-23"
+      }
+    },
+    {
+      "sourceRecordId": "kvk-31047344",
+      "legalName": "Booking.com B.V.",
+      "displayName": "Booking.com",
+      "aliases": [],
+      "sourceType": "official-sponsor-register",
+      "sourceName": "IND Public Register Work",
+      "sourceUrl": "https://ind.nl/en/public-register-recognised-sponsors/public-register-work",
+      "sourcePublishedAt": "2026-07-01",
+      "sourceRetrievedAt": "2026-07-23T00:00:00.000Z",
+      "country": "Netherlands",
+      "cities": ["Amsterdam"],
+      "websiteUrl": "https://www.booking.com/",
+      "careersUrl": "https://careers.booking.com/",
+      "industries": ["travel technology", "marketplace"],
+      "sponsorshipEvidence": {
+        "level": "confirmed-register",
+        "countries": ["Netherlands"],
+        "sourceUrls": [
+          "https://ind.nl/en/public-register-recognised-sponsors/public-register-work"
+        ],
+        "observedAt": "2026-07-23"
+      }
+    },
+    {
+      "sourceRecordId": "kvk-17052456",
+      "legalName": "ASML Netherlands B.V.",
+      "displayName": "ASML",
+      "aliases": [],
+      "sourceType": "official-sponsor-register",
+      "sourceName": "IND Public Register Work",
+      "sourceUrl": "https://ind.nl/en/public-register-recognised-sponsors/public-register-work",
+      "sourcePublishedAt": "2026-07-01",
+      "sourceRetrievedAt": "2026-07-23T00:00:00.000Z",
+      "country": "Netherlands",
+      "cities": ["Veldhoven"],
+      "websiteUrl": "https://www.asml.com/",
+      "careersUrl": "https://www.asml.com/en/careers",
+      "industries": ["semiconductors", "industrial technology"],
+      "sponsorshipEvidence": {
+        "level": "confirmed-register",
+        "countries": ["Netherlands"],
+        "sourceUrls": [
+          "https://ind.nl/en/public-register-recognised-sponsors/public-register-work"
+        ],
+        "observedAt": "2026-07-23"
+      }
+    },
+    {
+      "sourceRecordId": "kvk-34076599",
+      "legalName": "TomTom International B.V.",
+      "displayName": "TomTom",
+      "aliases": [],
+      "sourceType": "official-sponsor-register",
+      "sourceName": "IND Public Register Work",
+      "sourceUrl": "https://ind.nl/en/public-register-recognised-sponsors/public-register-work",
+      "sourcePublishedAt": "2026-07-01",
+      "sourceRetrievedAt": "2026-07-23T00:00:00.000Z",
+      "country": "Netherlands",
+      "cities": ["Amsterdam"],
+      "websiteUrl": "https://www.tomtom.com/",
+      "careersUrl": "https://www.tomtom.com/careers/",
+      "industries": ["mobility", "location technology"],
+      "sponsorshipEvidence": {
+        "level": "confirmed-register",
+        "countries": ["Netherlands"],
+        "sourceUrls": [
+          "https://ind.nl/en/public-register-recognised-sponsors/public-register-work"
+        ],
+        "observedAt": "2026-07-23"
+      }
+    }
+  ]
+}

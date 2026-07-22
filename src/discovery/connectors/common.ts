@@ -24,8 +24,13 @@ export class ConnectorHttpClient {
       timeoutMs:
         this.options.timeoutMs ??
         readPositiveInteger(process.env.JOB_FETCH_TIMEOUT_MS, 15_000),
-      retries: this.options.retries ?? 1,
-      maxBytes: 4_000_000,
+      retries:
+        this.options.retries ??
+        readPositiveInteger(process.env.JOB_FETCH_RETRY_LIMIT, 2),
+      maxBytes: readPositiveInteger(
+        process.env.JOB_FETCH_MAX_RESPONSE_BYTES,
+        5_000_000,
+      ),
       allowedContentTypes: ["application/json", "text/json"],
       lookup: this.options.lookup,
     };

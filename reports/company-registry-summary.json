@@ -1,0 +1,78 @@
+{
+  "totalSourceRecords": 12897,
+  "totalCompanies": 12860,
+  "byCountry": {
+    "Netherlands": 12843,
+    "Ireland": 3,
+    "United Arab Emirates": 3,
+    "Estonia": 1,
+    "France": 1,
+    "Saudi Arabia": 3,
+    "Sweden": 2,
+    "Germany": 3,
+    "Lithuania": 1
+  },
+  "verifiedByCountry": {
+    "Netherlands": 1
+  },
+  "monitoredByCountry": {
+    "Netherlands": 1
+  },
+  "unresolvedByCountry": {
+    "Netherlands": 12839
+  },
+  "byStatus": {
+    "candidate": 12842,
+    "monitored": 1,
+    "temporarily-failing": 1,
+    "careers-page-found": 15,
+    "domain-resolved": 1
+  },
+  "byAtsProvider": {
+    "unresolved": 12840,
+    "custom": 20
+  },
+  "byIndustry": {
+    "semiconductors": 1,
+    "industrial technology": 1,
+    "fintech": 7,
+    "payments": 3,
+    "cloud": 4,
+    "e-commerce": 3,
+    "logistics technology": 2,
+    "hr technology": 2,
+    "saas": 2,
+    "mobility": 2,
+    "marketplace": 4,
+    "travel technology": 1,
+    "health technology": 1,
+    "internet": 1,
+    "artificial intelligence": 2,
+    "enterprise software": 2,
+    "digital banking": 3,
+    "media technology": 1,
+    "product": 1,
+    "location technology": 1,
+    "telecom": 1,
+    "digital platforms": 1
+  },
+  "bySponsorshipEvidence": {
+    "confirmed": 12843,
+    "historical": 3,
+    "unknown": 14
+  },
+  "bySource": {
+    "IND Public Register Work": 12880,
+    "Ireland Employment Permit Statistics 2025": 3,
+    "Hub71 Job Board Companies": 2,
+    "Verified EU technology employer pages": 5,
+    "Verified Saudi technology employer pages": 3,
+    "Verified German technology employer pages": 3,
+    "Hub71 Market Partners": 1
+  },
+  "enabled": 1,
+  "unresolved": 12839,
+  "rejected": 0,
+  "duplicates": 0,
+  "verificationFailures": 1
+}

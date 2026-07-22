@@ -1,0 +1,46 @@
+{
+  "records": [
+    {
+      "sourceRecordId": "hub71-bayzat",
+      "legalName": "Bayzat",
+      "aliases": [],
+      "sourceType": "government-startup-ecosystem",
+      "sourceName": "Hub71 Job Board Companies",
+      "sourceUrl": "https://jobs.hub71.com/companies",
+      "sourceRetrievedAt": "2026-07-23T00:00:00.000Z",
+      "country": "United Arab Emirates",
+      "cities": ["Dubai", "Abu Dhabi"],
+      "websiteUrl": "https://www.bayzat.com/",
+      "careersUrl": "https://www.bayzat.com/careers/",
+      "industries": ["fintech", "hr technology", "saas"]
+    },
+    {
+      "sourceRecordId": "hub71-qureos",
+      "legalName": "Qureos",
+      "aliases": [],
+      "sourceType": "government-startup-ecosystem",
+      "sourceName": "Hub71 Job Board Companies",
+      "sourceUrl": "https://jobs.hub71.com/companies",
+      "sourceRetrievedAt": "2026-07-23T00:00:00.000Z",
+      "country": "United Arab Emirates",
+      "cities": ["Dubai", "Abu Dhabi"],
+      "websiteUrl": "https://www.qureos.com/",
+      "industries": ["hr technology", "artificial intelligence"]
+    },
+    {
+      "sourceRecordId": "hub71-wio-bank",
+      "legalName": "Wio Bank PJSC",
+      "displayName": "Wio Bank",
+      "aliases": ["Wio"],
+      "sourceType": "government-startup-ecosystem",
+      "sourceName": "Hub71 Market Partners",
+      "sourceUrl": "https://www.hub71.com/partners",
+      "sourceRetrievedAt": "2026-07-23T00:00:00.000Z",
+      "country": "United Arab Emirates",
+      "cities": ["Abu Dhabi", "Dubai"],
+      "websiteUrl": "https://wio.io/",
+      "careersUrl": "https://wio.io/careers",
+      "industries": ["digital banking", "fintech"]
+    }
+  ]
+}

@@ -388,6 +388,41 @@ textarea {
   border-radius: 12px;
   margin-top: 10px;
 }
+
+.table-wrap {
+  overflow-x: auto;
+  margin: 16px 0;
+}
+
+table {
+  width: 100%;
+  min-width: 1180px;
+  border-collapse: collapse;
+}
+
+th,
+td {
+  padding: 12px 10px;
+  border-bottom: 1px solid var(--border);
+  text-align: left;
+  vertical-align: top;
+}
+
+th {
+  color: var(--muted);
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+td details {
+  margin-top: 8px;
+}
+
+td details form {
+  min-width: 240px;
+  padding-top: 8px;
+}
 .empty {
   padding: 40px 20px;
   text-align: center;

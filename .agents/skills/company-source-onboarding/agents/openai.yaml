@@ -1,0 +1,4 @@
+interface:
+  display_name: "Company Source Onboarding"
+  short_description: "Import and verify official company career sources"
+  default_prompt: "Use $company-source-onboarding to import, resolve, verify, and audit company career sources safely."

@@ -1,0 +1,13 @@
+{
+  "sourceRecordId": "source-stable-id",
+  "legalName": "Example Technology B.V.",
+  "displayName": "Example",
+  "aliases": [],
+  "sourceType": "official-company-page",
+  "sourceName": "Official company page",
+  "sourceUrl": "https://example.com/",
+  "sourceRetrievedAt": "2026-07-23T00:00:00.000Z",
+  "country": "Netherlands",
+  "cities": [],
+  "industries": ["enterprise software"]
+}

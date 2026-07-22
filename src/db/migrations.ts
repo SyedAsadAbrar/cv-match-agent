@@ -129,4 +129,111 @@ export const migrations: Migration[] = [
     CREATE INDEX IF NOT EXISTS idx_applications_status ON applications(status);
   `,
   },
+  {
+    version: 2,
+    name: "version-1-company-registry",
+    sql: `
+    ALTER TABLE target_companies ADD COLUMN legal_name TEXT NOT NULL DEFAULT '';
+    ALTER TABLE target_companies ADD COLUMN normalized_name TEXT NOT NULL DEFAULT '';
+    ALTER TABLE target_companies ADD COLUMN headquarters_country TEXT;
+    ALTER TABLE target_companies ADD COLUMN verification_status TEXT NOT NULL DEFAULT 'candidate';
+    ALTER TABLE target_companies ADD COLUMN engineering_relevance TEXT NOT NULL DEFAULT 'unknown';
+    ALTER TABLE target_companies ADD COLUMN sponsorship_evidence TEXT NOT NULL DEFAULT 'unknown';
+    ALTER TABLE target_companies ADD COLUMN last_successful_sync_at TEXT;
+
+    UPDATE target_companies SET legal_name = name, normalized_name = lower(name),
+      verification_status = CASE WHEN enabled = 1 THEN 'source-verified' ELSE 'candidate' END;
+
+    CREATE TABLE IF NOT EXISTS company_source_records (
+      id TEXT PRIMARY KEY, company_id TEXT NOT NULL REFERENCES target_companies(id) ON DELETE CASCADE,
+      source_record_id TEXT NOT NULL, source_type TEXT NOT NULL, source_name TEXT NOT NULL,
+      source_url TEXT NOT NULL, source_published_at TEXT, source_retrieved_at TEXT NOT NULL,
+      country TEXT NOT NULL, payload TEXT NOT NULL, imported_at TEXT NOT NULL,
+      UNIQUE(source_name, source_record_id)
+    );
+    CREATE TABLE IF NOT EXISTS company_import_runs (
+      id TEXT PRIMARY KEY, source_name TEXT NOT NULL, status TEXT NOT NULL, source_url TEXT NOT NULL,
+      source_version TEXT, source_published_at TEXT, started_at TEXT NOT NULL, completed_at TEXT,
+      records_read INTEGER NOT NULL DEFAULT 0, records_created INTEGER NOT NULL DEFAULT 0,
+      records_updated INTEGER NOT NULL DEFAULT 0, duplicates_found INTEGER NOT NULL DEFAULT 0,
+      records_rejected INTEGER NOT NULL DEFAULT 0, errors TEXT NOT NULL DEFAULT '[]'
+    );
+    CREATE TABLE IF NOT EXISTS company_relationships (
+      id TEXT PRIMARY KEY, parent_company_id TEXT REFERENCES target_companies(id) ON DELETE CASCADE,
+      subsidiary_company_id TEXT REFERENCES target_companies(id) ON DELETE CASCADE,
+      relationship TEXT NOT NULL, created_at TEXT NOT NULL,
+      UNIQUE(parent_company_id, subsidiary_company_id, relationship)
+    );
+    CREATE TABLE IF NOT EXISTS company_verification_runs (
+      id TEXT PRIMARY KEY, company_id TEXT NOT NULL REFERENCES target_companies(id) ON DELETE CASCADE,
+      status TEXT NOT NULL, started_at TEXT NOT NULL, completed_at TEXT,
+      evidence_url TEXT, detected_provider TEXT, error TEXT, payload TEXT NOT NULL
+    );
+    CREATE TABLE IF NOT EXISTS company_countries (
+      company_id TEXT NOT NULL REFERENCES target_companies(id) ON DELETE CASCADE,
+      country TEXT NOT NULL, kind TEXT NOT NULL, PRIMARY KEY(company_id, country, kind)
+    );
+    CREATE TABLE IF NOT EXISTS company_cities (
+      company_id TEXT NOT NULL REFERENCES target_companies(id) ON DELETE CASCADE,
+      city TEXT NOT NULL, PRIMARY KEY(company_id, city)
+    );
+    CREATE TABLE IF NOT EXISTS company_industries (
+      company_id TEXT NOT NULL REFERENCES target_companies(id) ON DELETE CASCADE,
+      industry TEXT NOT NULL, PRIMARY KEY(company_id, industry)
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_companies_legal_name ON target_companies(legal_name);
+    CREATE INDEX IF NOT EXISTS idx_companies_normalized_name ON target_companies(normalized_name);
+    CREATE INDEX IF NOT EXISTS idx_companies_domain ON target_companies(company_domain);
+    CREATE INDEX IF NOT EXISTS idx_companies_headquarters ON target_companies(headquarters_country);
+    CREATE INDEX IF NOT EXISTS idx_companies_ats ON target_companies(ats_provider);
+    CREATE INDEX IF NOT EXISTS idx_companies_verification ON target_companies(verification_status);
+    CREATE INDEX IF NOT EXISTS idx_companies_enabled ON target_companies(enabled);
+    CREATE INDEX IF NOT EXISTS idx_companies_sponsorship ON target_companies(sponsorship_evidence);
+    CREATE INDEX IF NOT EXISTS idx_companies_engineering ON target_companies(engineering_relevance);
+    CREATE INDEX IF NOT EXISTS idx_companies_last_sync ON target_companies(last_successful_sync_at DESC);
+    CREATE INDEX IF NOT EXISTS idx_company_source_country ON company_source_records(country);
+    CREATE INDEX IF NOT EXISTS idx_company_source_name ON company_source_records(source_name);
+    CREATE INDEX IF NOT EXISTS idx_company_country ON company_countries(country, kind);
+    CREATE INDEX IF NOT EXISTS idx_company_city ON company_cities(city);
+    CREATE INDEX IF NOT EXISTS idx_company_industry ON company_industries(industry);
+  `,
+  },
+  {
+    version: 3,
+    name: "company-source-observations",
+    sql: `
+    CREATE TABLE IF NOT EXISTS company_source_observations (
+      id TEXT PRIMARY KEY,
+      company_id TEXT NOT NULL REFERENCES target_companies(id) ON DELETE CASCADE,
+      source_name TEXT NOT NULL,
+      source_record_id TEXT NOT NULL,
+      payload_hash TEXT NOT NULL,
+      payload TEXT NOT NULL,
+      observed_at TEXT NOT NULL,
+      imported_at TEXT NOT NULL,
+      UNIQUE(source_name, source_record_id, payload_hash)
+    );
+    CREATE INDEX IF NOT EXISTS idx_company_source_observation_record
+      ON company_source_observations(source_name, source_record_id, observed_at DESC);
+    CREATE INDEX IF NOT EXISTS idx_company_verification_started
+      ON company_verification_runs(started_at DESC);
+  `,
+  },
+  {
+    version: 4,
+    name: "company-job-snapshot-observations",
+    sql: `
+    CREATE TABLE IF NOT EXISTS company_job_observations (
+      company_id TEXT NOT NULL REFERENCES target_companies(id) ON DELETE CASCADE,
+      job_id TEXT NOT NULL REFERENCES jobs(id) ON DELETE CASCADE,
+      consecutive_misses INTEGER NOT NULL DEFAULT 0,
+      last_seen_at TEXT NOT NULL,
+      last_successful_snapshot_at TEXT NOT NULL,
+      PRIMARY KEY(company_id, job_id)
+    );
+    CREATE INDEX IF NOT EXISTS idx_company_job_observation_misses
+      ON company_job_observations(company_id, consecutive_misses);
+  `,
+  },
 ];

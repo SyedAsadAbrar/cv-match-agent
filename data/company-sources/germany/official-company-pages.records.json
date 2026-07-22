@@ -1,0 +1,47 @@
+{
+  "records": [
+    {
+      "sourceRecordId": "sap-careers",
+      "legalName": "SAP SE",
+      "aliases": ["SAP"],
+      "sourceType": "official-company-page",
+      "sourceName": "Verified German technology employer pages",
+      "sourceUrl": "https://www.sap.com/",
+      "sourceRetrievedAt": "2026-07-23T00:00:00.000Z",
+      "country": "Germany",
+      "cities": ["Walldorf", "Berlin"],
+      "websiteUrl": "https://www.sap.com/",
+      "careersUrl": "https://jobs.sap.com/",
+      "industries": ["enterprise software", "cloud"]
+    },
+    {
+      "sourceRecordId": "zalando-careers",
+      "legalName": "Zalando SE",
+      "aliases": ["Zalando"],
+      "sourceType": "official-company-page",
+      "sourceName": "Verified German technology employer pages",
+      "sourceUrl": "https://www.zalando.com/",
+      "sourceRetrievedAt": "2026-07-23T00:00:00.000Z",
+      "country": "Germany",
+      "cities": ["Berlin"],
+      "websiteUrl": "https://www.zalando.com/",
+      "careersUrl": "https://jobs.zalando.com/",
+      "industries": ["e-commerce", "marketplace"]
+    },
+    {
+      "sourceRecordId": "n26-careers",
+      "legalName": "N26 GmbH",
+      "displayName": "N26",
+      "aliases": [],
+      "sourceType": "official-company-page",
+      "sourceName": "Verified German technology employer pages",
+      "sourceUrl": "https://n26.com/",
+      "sourceRetrievedAt": "2026-07-23T00:00:00.000Z",
+      "country": "Germany",
+      "cities": ["Berlin"],
+      "websiteUrl": "https://n26.com/",
+      "careersUrl": "https://n26.com/en/careers",
+      "industries": ["digital banking", "fintech"]
+    }
+  ]
+}
