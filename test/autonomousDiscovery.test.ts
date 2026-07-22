@@ -447,6 +447,10 @@ test("SSRF protection rejects local and cloud-metadata targets", async () => {
     assertSafePublicUrl("http://169.254.169.254/latest/meta-data"),
     /not allowed/,
   );
+  await assert.rejects(
+    assertSafePublicUrl("http://[::ffff:127.0.0.1]/private"),
+    /not allowed/,
+  );
   await assert.rejects(assertSafePublicUrl("file:///etc/passwd"), /Only HTTP/);
 });
 

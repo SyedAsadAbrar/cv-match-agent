@@ -27,7 +27,15 @@ import {
 
 export type CompanyRegistryStats = {
   totalSourceRecords: number;
+  /** All deduplicated registry entities, irrespective of workflow status. */
   totalCompanies: number;
+  candidateCompanies: number;
+  domainResolved: number;
+  careersPageFound: number;
+  sourceVerified: number;
+  monitored: number;
+  temporarilyFailing: number;
+  inactive: number;
   byCountry: Record<string, number>;
   verifiedByCountry: Record<string, number>;
   monitoredByCountry: Record<string, number>;
@@ -320,11 +328,15 @@ export async function verifyCompanySource(
     throw new Error("A verified official careers URL is required.");
   const verificationRunId = store.startCompanyVerificationRun(company);
   try {
-    await connector.discoverJobs({
+    const references = await connector.discoverJobs({
       profile: store.getProfile(),
       company,
       maximumJobs: 1,
     });
+    if (references.length === 0)
+      throw new Error(
+        "Source returned no current or valid historical job postings; it cannot be source-verified.",
+      );
     const verified = targetCompanySchema.parse({
       ...company,
       verificationStatus: company.enabled ? "monitored" : "source-verified",
@@ -332,11 +344,16 @@ export async function verifyCompanySource(
       verificationError: undefined,
     });
     store.saveCompany(verified);
-    store.finishCompanyVerificationRun(verificationRunId, verified);
+    store.finishCompanyVerificationRun(verificationRunId, verified, undefined, {
+      jobsParsed: references.length,
+      sampleJobUrl: references[0]?.url,
+      sampleExternalId: references[0]?.externalId,
+    });
     return verified;
   } catch (error) {
     const failed = targetCompanySchema.parse({
       ...company,
+      enabled: false,
       verificationStatus: "temporarily-failing",
       lastCheckedAt: new Date().toISOString(),
       verificationError: formatError(error),
@@ -364,9 +381,7 @@ export function auditCompanyRegistry(store: JobCopilotStore): {
       errors.push(`${company.id}: missing source provenance`);
     if (
       company.enabled &&
-      !["source-verified", "monitored", "temporarily-failing"].includes(
-        company.verificationStatus,
-      )
+      !["source-verified", "monitored"].includes(company.verificationStatus)
     )
       errors.push(`${company.id}: enabled without a verified source`);
     if (
@@ -393,6 +408,26 @@ export function generateCompanyRegistryStats(
   return {
     totalSourceRecords: store.countCompanySourceRecords(),
     totalCompanies: companies.length,
+    candidateCompanies: companies.filter(
+      (company) => company.verificationStatus === "candidate",
+    ).length,
+    domainResolved: companies.filter((company) =>
+      Boolean(company.companyDomain),
+    ).length,
+    careersPageFound: companies.filter((company) => Boolean(company.careersUrl))
+      .length,
+    sourceVerified: companies.filter(
+      (company) => company.verificationStatus === "source-verified",
+    ).length,
+    monitored: companies.filter(
+      (company) => company.verificationStatus === "monitored",
+    ).length,
+    temporarilyFailing: companies.filter(
+      (company) => company.verificationStatus === "temporarily-failing",
+    ).length,
+    inactive: companies.filter(
+      (company) => company.verificationStatus === "inactive",
+    ).length,
     byCountry: countMany(
       companies.flatMap((company) => company.operatingCountries),
     ),
@@ -410,7 +445,7 @@ export function generateCompanyRegistryStats(
     ),
     unresolvedByCountry: countMany(
       companies
-        .filter((company) => !company.companyDomain)
+        .filter((company) => company.verificationStatus === "candidate")
         .flatMap((company) => company.operatingCountries),
     ),
     byStatus: countMany(companies.map((company) => company.verificationStatus)),
@@ -427,7 +462,9 @@ export function generateCompanyRegistryStats(
       ),
     ),
     enabled: companies.filter((company) => company.enabled).length,
-    unresolved: companies.filter((company) => !company.companyDomain).length,
+    unresolved: companies.filter(
+      (company) => company.verificationStatus === "candidate",
+    ).length,
     rejected: companies.filter(
       (company) => company.verificationStatus === "rejected",
     ).length,
@@ -458,13 +495,15 @@ export async function writeCompanyRegistryReports(
     fs.writeFile(
       path.join(directory, "unresolved-companies.csv"),
       toCsv(
-        ["id", "legalName", "country", "source"],
+        ["id", "legalName", "country", "officialDomain", "status", "source"],
         companies
-          .filter((company) => !company.companyDomain)
+          .filter((company) => company.verificationStatus === "candidate")
           .map((company) => [
             company.id,
             company.legalName,
             company.headquartersCountry ?? "",
+            company.companyDomain ?? "",
+            company.verificationStatus,
             company.sourceType,
           ]),
       ),
@@ -817,7 +856,7 @@ function countMany(values: string[]): Record<string, number> {
 }
 
 function renderStatsMarkdown(stats: CompanyRegistryStats): string {
-  return `# Company registry summary\n\nGenerated: ${new Date().toISOString()}\n\n- Source records: ${stats.totalSourceRecords}\n- Candidate companies: ${stats.totalCompanies}\n- Domain resolved: ${stats.byStatus["domain-resolved"] ?? 0}\n- Careers pages found: ${stats.byStatus["careers-page-found"] ?? 0}\n- Source verified: ${stats.byStatus["source-verified"] ?? 0}\n- Monitored: ${stats.byStatus.monitored ?? 0}\n- Unresolved: ${stats.unresolved}\n- Rejected: ${stats.rejected}\n- Duplicate candidates: ${stats.duplicates}\n- Verification failures: ${stats.verificationFailures}\n\n## Candidates by country\n\n${renderCountTable(stats.byCountry)}\n\n## Verified by country\n\n${renderCountTable(stats.verifiedByCountry)}\n\n## Monitored by country\n\n${renderCountTable(stats.monitoredByCountry)}\n\n## Unresolved by country\n\n${renderCountTable(stats.unresolvedByCountry)}\n\n## By verification status\n\n${renderCountTable(stats.byStatus)}\n\n## By ATS provider\n\n${renderCountTable(stats.byAtsProvider)}\n\n## By industry\n\n${renderCountTable(stats.byIndustry)}\n\n## By sponsorship evidence\n\n${renderCountTable(stats.bySponsorshipEvidence)}\n\n## By source\n\n${renderCountTable(stats.bySource)}\n`;
+  return `# Company registry summary\n\nGenerated: ${new Date().toISOString()}\n\nCounts describe the database used for this report. A company may appear in more than one country row; headline counts are unique companies. “Unresolved” means the candidate workflow state, not merely a missing domain.\n\n- Source records: ${stats.totalSourceRecords}\n- Unique companies: ${stats.totalCompanies}\n- Candidate companies: ${stats.candidateCompanies}\n- Domain resolved: ${stats.domainResolved}\n- Careers pages found: ${stats.careersPageFound}\n- Source verified: ${stats.sourceVerified}\n- Monitored: ${stats.monitored}\n- Temporarily failing: ${stats.temporarilyFailing}\n- Inactive: ${stats.inactive}\n- Unresolved: ${stats.unresolved}\n- Rejected: ${stats.rejected}\n- Duplicate candidates: ${stats.duplicates}\n\n## Companies by country\n\n${renderCountTable(stats.byCountry)}\n\n## Verified by country\n\n${renderCountTable(stats.verifiedByCountry)}\n\n## Monitored by country\n\n${renderCountTable(stats.monitoredByCountry)}\n\n## Unresolved by country\n\n${renderCountTable(stats.unresolvedByCountry)}\n\n## By verification status\n\n${renderCountTable(stats.byStatus)}\n\n## By ATS provider\n\n${renderCountTable(stats.byAtsProvider)}\n\n## By industry\n\n${renderCountTable(stats.byIndustry)}\n\n## By sponsorship evidence\n\n${renderCountTable(stats.bySponsorshipEvidence)}\n\n## By source\n\n${renderCountTable(stats.bySource)}\n`;
 }
 
 function renderCountTable(values: Record<string, number>): string {

@@ -210,6 +210,10 @@ async function route(
             | "unknown"
             | "unlikely"
             | null) ?? undefined,
+        engineeringRelevance: z
+          .enum(["high", "medium", "low", "unknown"])
+          .optional()
+          .parse(url.searchParams.get("engineeringRelevance") || undefined),
         enabled: url.searchParams.has("enabled")
           ? url.searchParams.get("enabled") === "true"
           : undefined,
@@ -443,9 +447,7 @@ async function route(
       return sendJson(response, 404, { error: "Company not found." });
     if (
       !company.enabled ||
-      !["source-verified", "monitored", "temporarily-failing"].includes(
-        company.verificationStatus,
-      )
+      !["source-verified", "monitored"].includes(company.verificationStatus)
     )
       return sendJson(response, 409, {
         error: "Only enabled, verified company sources can be synced.",

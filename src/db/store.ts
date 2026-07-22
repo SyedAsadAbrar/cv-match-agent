@@ -51,6 +51,7 @@ export type CompanyListOptions = {
   status?: TargetCompany["verificationStatus"];
   atsProvider?: TargetCompany["atsProvider"];
   sponsorshipEvidence?: TargetCompany["sponsorshipEvidence"];
+  engineeringRelevance?: TargetCompany["engineeringRelevance"];
   enabled?: boolean;
   search?: string;
 };
@@ -195,39 +196,71 @@ export class JobCopilotStore {
   } {
     const page = Math.max(1, options.page ?? 1);
     const pageSize = Math.min(100, Math.max(1, options.pageSize ?? 25));
-    const filtered = this.listCompanies().filter(
-      (company) =>
-        (!options.country ||
-          company.operatingCountries.includes(options.country) ||
-          company.hiringCountries.includes(options.country)) &&
-        (!options.status || company.verificationStatus === options.status) &&
-        (!options.atsProvider || company.atsProvider === options.atsProvider) &&
-        (!options.sponsorshipEvidence ||
-          company.sponsorshipEvidence === options.sponsorshipEvidence) &&
-        (options.enabled === undefined ||
-          company.enabled === options.enabled) &&
-        (!options.search ||
-          [company.legalName, company.displayName, ...company.aliases]
-            .join(" ")
-            .toLowerCase()
-            .includes(options.search.toLowerCase())),
-    );
+    const conditions: string[] = [];
+    const parameters: Array<string | number> = [];
+    if (options.country) {
+      conditions.push(
+        "EXISTS (SELECT 1 FROM company_countries cc WHERE cc.company_id = c.id AND cc.country = ?)",
+      );
+      parameters.push(options.country);
+    }
+    if (options.status) {
+      conditions.push("c.verification_status = ?");
+      parameters.push(options.status);
+    }
+    if (options.atsProvider) {
+      conditions.push("c.ats_provider = ?");
+      parameters.push(options.atsProvider);
+    }
+    if (options.sponsorshipEvidence) {
+      conditions.push("c.sponsorship_evidence = ?");
+      parameters.push(options.sponsorshipEvidence);
+    }
+    if (options.engineeringRelevance) {
+      conditions.push("c.engineering_relevance = ?");
+      parameters.push(options.engineeringRelevance);
+    }
+    if (options.enabled !== undefined) {
+      conditions.push("c.enabled = ?");
+      parameters.push(options.enabled ? 1 : 0);
+    }
+    if (options.search) {
+      const search = `%${options.search.toLowerCase()}%`;
+      conditions.push(
+        "(lower(c.legal_name) LIKE ? OR lower(c.name) LIKE ? OR lower(c.company_domain) LIKE ?)",
+      );
+      parameters.push(search, search, search);
+    }
+    const where = conditions.length ? ` WHERE ${conditions.join(" AND ")}` : "";
     const offset = (page - 1) * pageSize;
+    const total = this.database
+      .prepare(`SELECT COUNT(*) AS count FROM target_companies c${where}`)
+      .get(...parameters) as { count: number };
+    const rows = this.database
+      .prepare(
+        `SELECT c.payload FROM target_companies c${where} ORDER BY c.name LIMIT ? OFFSET ?`,
+      )
+      .all(...parameters, pageSize, offset) as Array<{ payload: string }>;
     return {
-      items: filtered.slice(offset, offset + pageSize),
-      total: filtered.length,
+      items: rows.map((row) =>
+        parseStored(row.payload, targetCompanySchema, "target company"),
+      ),
+      total: total.count,
       page,
       pageSize,
     };
   }
 
   saveCompany(input: TargetCompany): TargetCompany {
-    const company = targetCompanySchema.parse(input);
+    let company = targetCompanySchema.parse(input);
+    if (company.enabled && company.verificationStatus === "source-verified")
+      company = targetCompanySchema.parse({
+        ...company,
+        verificationStatus: "monitored",
+      });
     if (
       company.enabled &&
-      !["source-verified", "monitored", "temporarily-failing"].includes(
-        company.verificationStatus,
-      )
+      !["source-verified", "monitored"].includes(company.verificationStatus)
     )
       throw new Error("Only source-verified companies may be enabled.");
     const save = this.database.transaction(() => {
@@ -430,6 +463,7 @@ export class JobCopilotStore {
     id: string,
     company: TargetCompany,
     error?: string,
+    evidence: Record<string, unknown> = {},
   ): void {
     this.database
       .prepare(
@@ -445,6 +479,7 @@ export class JobCopilotStore {
         JSON.stringify({
           atsIdentifier: company.atsIdentifier,
           verificationStatus: company.verificationStatus,
+          ...evidence,
         }),
         id,
       );
@@ -528,11 +563,12 @@ export class JobCopilotStore {
       this.database
         .prepare(
           `UPDATE job_sources SET last_success_at = CASE WHEN ? IS NULL THEN ? ELSE last_success_at END,
-          last_error = ? WHERE company_id = ?`,
+          last_error = ?, enabled = ? WHERE company_id = ?`,
         )
-        .run(error ?? null, now, error ?? null, company.id);
+        .run(error ?? null, now, error ?? null, error ? 0 : 1, company.id);
       this.saveCompany({
         ...company,
+        enabled: error ? false : company.enabled,
         lastCheckedAt: now,
         lastSuccessfulSyncAt: error ? company.lastSuccessfulSyncAt : now,
         verificationStatus: error

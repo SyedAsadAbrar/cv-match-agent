@@ -1,19 +1,23 @@
 # Company registry summary
 
-Generated: 2026-07-22T22:08:02.601Z
+Generated: 2026-07-22T22:24:44.808Z
 
-- Source records: 12897
-- Candidate companies: 12860
-- Domain resolved: 1
-- Careers pages found: 15
+Counts describe the database used for this report. A company may appear in more than one country row; headline counts are unique companies. “Unresolved” means the candidate workflow state, not merely a missing domain.
+
+- Source records: 21
+- Unique companies: 21
+- Candidate companies: 0
+- Domain resolved: 21
+- Careers pages found: 20
 - Source verified: 0
-- Monitored: 1
-- Unresolved: 12839
+- Monitored: 0
+- Temporarily failing: 0
+- Inactive: 0
+- Unresolved: 0
 - Rejected: 0
 - Duplicate candidates: 0
-- Verification failures: 1
 
-## Candidates by country
+## Companies by country
 
 | Value | Count |
 | --- | ---: |
@@ -22,7 +26,7 @@ Generated: 2026-07-22T22:08:02.601Z
 | Germany | 3 |
 | Ireland | 3 |
 | Lithuania | 1 |
-| Netherlands | 12843 |
+| Netherlands | 4 |
 | Saudi Arabia | 3 |
 | Sweden | 2 |
 | United Arab Emirates | 3 |
@@ -31,36 +35,30 @@ Generated: 2026-07-22T22:08:02.601Z
 
 | Value | Count |
 | --- | ---: |
-| Netherlands | 1 |
 
 ## Monitored by country
 
 | Value | Count |
 | --- | ---: |
-| Netherlands | 1 |
 
 ## Unresolved by country
 
 | Value | Count |
 | --- | ---: |
-| Netherlands | 12839 |
 
 ## By verification status
 
 | Value | Count |
 | --- | ---: |
-| candidate | 12842 |
-| careers-page-found | 15 |
+| careers-page-found | 20 |
 | domain-resolved | 1 |
-| monitored | 1 |
-| temporarily-failing | 1 |
 
 ## By ATS provider
 
 | Value | Count |
 | --- | ---: |
 | custom | 20 |
-| unresolved | 12840 |
+| unresolved | 1 |
 
 ## By industry
 
@@ -93,7 +91,7 @@ Generated: 2026-07-22T22:08:02.601Z
 
 | Value | Count |
 | --- | ---: |
-| confirmed | 12843 |
+| confirmed | 4 |
 | historical | 3 |
 | unknown | 14 |
 
@@ -103,7 +101,7 @@ Generated: 2026-07-22T22:08:02.601Z
 | --- | ---: |
 | Hub71 Job Board Companies | 2 |
 | Hub71 Market Partners | 1 |
-| IND Public Register Work | 12880 |
+| IND Public Register Work | 4 |
 | Ireland Employment Permit Statistics 2025 | 3 |
 | Verified EU technology employer pages | 5 |
 | Verified German technology employer pages | 3 |

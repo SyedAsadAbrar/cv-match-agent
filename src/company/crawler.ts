@@ -244,6 +244,9 @@ function extractLocation(value: unknown): string | undefined {
 function canonicalUrl(input: string): string {
   const url = new URL(input);
   url.hash = "";
+  for (const key of [...url.searchParams.keys()])
+    if (/^(?:utm_[^=]+|gclid|fbclid|mc_[^=]+)$/i.test(key))
+      url.searchParams.delete(key);
   if (url.pathname !== "/") url.pathname = url.pathname.replace(/\/+$/, "");
   return url.toString();
 }

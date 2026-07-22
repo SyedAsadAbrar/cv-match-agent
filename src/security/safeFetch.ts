@@ -167,29 +167,26 @@ export async function assertSafePublicUrl(
   }
   if (url.username || url.password)
     throw new Error("URLs containing credentials are not allowed.");
-  if (isBlockedHostname(url.hostname))
-    throw new Error(
-      `Private or local target "${url.hostname}" is not allowed.`,
-    );
+  const hostname = url.hostname.replace(/^\[|\]$/g, "");
+  if (isBlockedHostname(hostname))
+    throw new Error(`Private or local target "${hostname}" is not allowed.`);
 
-  const addresses = isIP(url.hostname)
-    ? [{ address: url.hostname }]
+  const addresses = isIP(hostname)
+    ? [{ address: hostname }]
     : lookup
-      ? (await lookup(url.hostname)).map((address) => ({ address }))
-      : await dns
-          .lookup(url.hostname, { all: true })
-          .catch((error: unknown) => {
-            throw new Error(
-              `Could not resolve ${url.hostname}: ${formatError(error)}`,
-            );
-          });
+      ? (await lookup(hostname)).map((address) => ({ address }))
+      : await dns.lookup(hostname, { all: true }).catch((error: unknown) => {
+          throw new Error(
+            `Could not resolve ${hostname}: ${formatError(error)}`,
+          );
+        });
 
   if (
     addresses.length === 0 ||
     addresses.some(({ address }) => isPrivateAddress(address))
   ) {
     throw new Error(
-      `Private or unresolved target "${url.hostname}" is not allowed.`,
+      `Private or unresolved target "${hostname}" is not allowed.`,
     );
   }
   return url;
@@ -210,6 +207,18 @@ export function isBlockedHostname(hostname: string): boolean {
 
 export function isPrivateAddress(address: string): boolean {
   const normalized = address.toLowerCase();
+  const mappedIpv4 = normalized.match(/^::ffff:(\d+\.\d+\.\d+\.\d+)$/);
+  if (mappedIpv4) return isPrivateAddress(mappedIpv4[1]);
+  const mappedIpv4Hex = normalized.match(
+    /^::ffff:([0-9a-f]{1,4}):([0-9a-f]{1,4})$/,
+  );
+  if (mappedIpv4Hex) {
+    const high = Number.parseInt(mappedIpv4Hex[1], 16);
+    const low = Number.parseInt(mappedIpv4Hex[2], 16);
+    return isPrivateAddress(
+      `${high >> 8}.${high & 255}.${low >> 8}.${low & 255}`,
+    );
+  }
   if (
     normalized === "::1" ||
     normalized === "::" ||

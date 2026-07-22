@@ -179,6 +179,28 @@ test("generic crawler enforces depth and page-count limits", async () => {
   assert.equal(result.jobs.length, 1);
 });
 
+test("generic crawler canonicalises tracking parameters before crawling", async () => {
+  const pages: Record<string, string> = {
+    "https://example.com/careers":
+      '<a href="/careers/jobs/one?utm_source=newsletter">One</a><a href="/careers/jobs/one?fbclid=tracking">Duplicate</a>',
+    "https://example.com/careers/jobs/one":
+      "<h1>Engineer</h1><p>Build products with TypeScript and React for customers.</p>",
+  };
+  const result = await crawlOfficialCareersSite("https://example.com/careers", {
+    maxDepth: 1,
+    maxPages: 2,
+    lookup: publicLookup,
+    retries: 0,
+    fetchImpl: async (input) =>
+      new Response(pages[String(input)] ?? "not found", {
+        status: pages[String(input)] ? 200 : 404,
+        headers: { "Content-Type": "text/html" },
+      }),
+  });
+  assert.equal(result.pagesVisited, 2);
+  assert.equal(result.jobs[0]?.url, "https://example.com/careers/jobs/one");
+});
+
 test("IND register parser preserves legal name, KvK identity, and sponsor provenance", () => {
   const html = `<p>Last updated on 1 July 2026</p><table><tr><th>Organisation</th><th>KvK</th></tr><tr><th scope="row">Example Tech B.V.</th><td>12345678</td></tr></table>`;
   const records = parseIndSponsorRegisterHtml(html, "2026-07-23T00:00:00.000Z");
@@ -239,7 +261,16 @@ test("ATS verification promotes a disabled company to source-verified", async ()
   const connector: JobSourceConnector = {
     sourceType: "greenhouse",
     async discoverJobs() {
-      return [];
+      return [
+        {
+          sourceType: "greenhouse",
+          sourceName: "Greenhouse · Example Technology",
+          externalId: "job-1",
+          url: "https://boards.greenhouse.io/fixture/jobs/1",
+          company: "Example Technology",
+          title: "Engineer",
+        },
+      ];
     },
     async fetchJob() {
       throw new Error("unused");
@@ -250,6 +281,37 @@ test("ATS verification promotes a disabled company to source-verified", async ()
   });
   assert.equal(verified.verificationStatus, "source-verified");
   assert.equal(store.listCompanyVerificationRuns()[0].status, "completed");
+  assert.equal(store.listCompanyVerificationRuns()[0].payload.jobsParsed, 1);
+  store.close();
+});
+
+test("empty source responses are not promoted to source-verified", async () => {
+  const store = memoryStore();
+  const candidate = company({
+    atsProvider: "greenhouse",
+    atsIdentifier: "fixture",
+    verificationStatus: "careers-page-found",
+  });
+  store.saveCompany(candidate);
+  const connector: JobSourceConnector = {
+    sourceType: "greenhouse",
+    async discoverJobs() {
+      return [];
+    },
+    async fetchJob() {
+      throw new Error("unused");
+    },
+  };
+  await assert.rejects(
+    verifyCompanySource(store, candidate, { greenhouse: connector }),
+    /no current or valid historical job postings/,
+  );
+  assert.equal(
+    store.listCompanies()[0].verificationStatus,
+    "temporarily-failing",
+  );
+  assert.equal(store.listCompanies()[0].enabled, false);
+  assert.equal(store.listCompanyVerificationRuns()[0].status, "failed");
   store.close();
 });
 
@@ -325,6 +387,11 @@ test("company table pagination is server bounded", () => {
   const page = store.listCompaniesPage({ page: 2, pageSize: 25 });
   assert.equal(page.total, 31);
   assert.equal(page.items.length, 6);
+  assert.equal(store.listCompaniesPage({ search: "example.com" }).total, 31);
+  assert.equal(
+    store.listCompaniesPage({ engineeringRelevance: "unknown" }).total,
+    31,
+  );
   store.close();
 });
 
