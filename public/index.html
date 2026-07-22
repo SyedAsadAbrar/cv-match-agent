@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <meta name="color-scheme" content="dark" />
+    <title>Job Copilot · Local</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <aside class="sidebar">
+      <a class="brand" href="#dashboard"
+        ><span>JC</span><strong>Job Copilot</strong
+        ><small>Local & private</small></a
+      >
+      <nav id="nav">
+        <a href="#dashboard">Dashboard</a>
+        <a href="#discover">Discover Jobs</a>
+        <a href="#saved">Saved Jobs</a>
+        <a href="#applications">Applications</a>
+        <a href="#profile">Profile</a>
+        <a href="#sources">Sources</a>
+        <a href="#settings">Settings</a>
+      </nav>
+      <div class="privacy-note">
+        No automatic applications. You stay in control of every submission.
+      </div>
+    </aside>
+    <main>
+      <header>
+        <div>
+          <div class="eyebrow">AUTONOMOUS DISCOVERY</div>
+          <h1 id="page-title">Dashboard</h1>
+        </div>
+        <button class="primary" id="find-jobs">Find New Jobs</button>
+      </header>
+      <div id="notice" role="status"></div>
+      <section id="app">
+        <div class="loading">Loading local workspace…</div>
+      </section>
+    </main>
+    <script src="/app.js" defer></script>
+  </body>
+</html>

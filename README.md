@@ -1,8 +1,159 @@
 # cv-match-agent
 
-`cv-match-agent` is a production-oriented TypeScript CLI for matching a CV against a job description with an AI workflow. It extracts structured CV and job data, including location when available, scores the match, and generates practical application assets from the terminal.
+`cv-match-agent` is a local-first personal job copilot. It keeps the original CV-to-job analysis CLI and adds an autonomous discovery workflow: upload and review a CV, configure role/location preferences and official company sources, then press **Find New Jobs** without pasting job URLs. Jobs are verified, normalised, consolidated, filtered, deterministically ranked, analysed selectively with local AI, and shown in a responsive dashboard. Applications are always submitted manually on the official employer page.
 
-There is no frontend, database, authentication, or remote app server. The tool is local-first: files are read from your machine, outputs are written to `output/`, and you can use a local Ollama model when you do not want CV content sent to a cloud provider.
+The application is a strict TypeScript modular monolith. A native Node HTTP server hosts the local dashboard and API, `better-sqlite3` stores local state, Zod validates trust boundaries, and the existing Ollama/provider, CV extraction, evidence preservation, matching, and benchmark modules are reused. Greenhouse, Lever, and Ashby adapters use their public official job-posting endpoints. There is no authentication because the server binds to `127.0.0.1` by default; do not expose it directly to a network.
+
+## Quick Start
+
+Requires Node.js 20 or newer, npm, and (for AI extraction/analysis) a locally running [Ollama](https://ollama.com/).
+
+```bash
+npm install
+cp .env.example .env
+npm run db:migrate
+npm run web
+```
+
+Open `http://127.0.0.1:4310`. For a no-network fictional walkthrough:
+
+```bash
+npm run demo
+```
+
+Every demo company and job is labelled fictional. The fixture includes a strong React/TypeScript job, backend-heavy stretch, explicit no-sponsorship blocker, unknown sponsorship, disclosed and undisclosed salary, a cross-source duplicate, closed job, suspicious posting, and isolated connector failure.
+
+## Architecture
+
+- `src/ai`, `src/services`: existing provider abstractions, JSON repair/validation, CV parsing, matching, and generated application assets.
+- `src/domain`: validated discovery/profile/job/application schemas.
+- `src/db`: ordered SQLite migrations and transaction-oriented repository.
+- `src/discovery`: source contracts, ATS/search adapters, normalisation, deduplication, filters, scoring, trust, sponsorship, salary, and orchestration.
+- `src/security`: URL/SSRF controls, bounded fetches, upload validation, and HTML-to-text sanitisation.
+- `src/web` and `public`: local HTTP API and responsive dashboard.
+- `src/demo`: deterministic fictional product demonstration.
+
+The detailed inspection and implementation rationale is in [`docs/autonomous-job-discovery-plan.md`](docs/autonomous-job-discovery-plan.md).
+
+## Local Profile Workflow
+
+1. Open **Profile** and upload a text-based PDF, Markdown, or plain-text CV (maximum 5 MB).
+2. Ollama extracts a structured profile with one repair attempt and Zod validation. Uploaded CVs and the database stay in ignored `data/` paths.
+3. Review/edit the location, work-permit flag, role targets, countries, exclusions, maximum age, skills, and evidence. CV-derived claims are counted separately.
+4. The initial editable context is Dubai, United Arab Emirates; Pakistani citizenship; European work permit required; and AED 22,000 monthly gross/net unknown. It is a comparison baseline, never an automatic rejection threshold. No desired salary is required.
+
+## Discovery Sources
+
+Add a company on **Sources** with a verified public ATS identifier. Zero-key discovery supports:
+
+- Greenhouse Job Board API board tokens.
+- Lever Postings API site identifiers.
+- Ashby public Job Postings API board names.
+
+The registry starts without unverified real identifiers. A failed source is recorded without failing successful sources. Use **Sync** for one company or:
+
+```bash
+npm run jobs:discover
+```
+
+Broad internet discovery is optional. Set `WEB_SEARCH_PROVIDER=brave` and a server-side `WEB_SEARCH_API_KEY` to use Brave Search. API keys are never returned to or displayed by the browser. Search queries contain role, skill, location, seniority, recency, and public preference terms—not compensation, citizenship, or full CV text. Search plans and results are retained for debugging.
+
+> A local language model does not independently browse the internet.
+>
+> The application needs either configured company/ATS sources or an internet-search provider to discover new job URLs.
+
+## Ollama Models
+
+Install the configured models yourself; the application never downloads models:
+
+```bash
+ollama pull qwen3:8b
+ollama pull deepseek-r1:8b
+ollama pull qwen3-embedding:0.6b
+```
+
+- `OLLAMA_EXTRACTION_MODEL`: candidate/job extraction and structured classification.
+- `OLLAMA_REASONING_MODEL`: detailed analysis for the strongest configurable shortlist only.
+- `OLLAMA_EMBEDDING_MODEL`: similarity and duplicate-support embeddings.
+
+If Ollama is unavailable during discovery, official source collection and deterministic scoring still work; jobs remain flagged for detailed analysis. Existing `OLLAMA_MODEL` CLI behavior remains compatible.
+
+## Environment
+
+```env
+DATABASE_URL=file:./data/job-copilot.db
+AI_PROVIDER=ollama
+OLLAMA_BASE_URL=http://localhost:11434
+OLLAMA_EXTRACTION_MODEL=qwen3:8b
+OLLAMA_REASONING_MODEL=deepseek-r1:8b
+OLLAMA_EMBEDDING_MODEL=qwen3-embedding:0.6b
+WEB_SEARCH_PROVIDER=
+WEB_SEARCH_API_KEY=
+DETAILED_ANALYSIS_LIMIT=25
+MAX_JOB_AGE_DAYS=30
+JOB_DISCOVERY_CONCURRENCY=4
+JOB_FETCH_TIMEOUT_MS=15000
+HOST=127.0.0.1
+PORT=4310
+```
+
+## Database and Commands
+
+The default database is `data/job-copilot.db`. Migrations are idempotent and applied automatically when the store opens; they can also be run explicitly:
+
+```bash
+npm run db:migrate
+npm run web
+npm run jobs:discover
+npm run demo
+npm run typecheck
+npm run lint
+npm test
+npm run build
+```
+
+Scheduling is intentionally not required in this milestone. `npm run jobs:discover` is the manual worker entry point and can later be called by an OS-local scheduler.
+
+## Ranking, Salary, and Eligibility
+
+Hard filters and deterministic components run before any detailed reasoning. Scores cover required skills, relevant experience, seniority, role alignment, domain evidence, relocation feasibility, language, and preferences. Salary is not included when evidence is absent, and local-AI analysis never changes the score.
+
+Salary priority is: vacancy disclosure, same-company comparable, same-market comparable, official statistics, and reputable guides. Stored comparable jobs must share a usable currency/period group and similar role/location; obvious outliers are removed. Foreign gross annual pay is not presented as directly comparable with AED 22,000 monthly when gross/net, tax, benefits, exchange rate, and cost of living are unknown.
+
+Missing sponsorship text means **unknown**, not incompatible. Explicit no-sponsorship or unrestricted-work-right wording creates a blocker. Company sponsorship history is positive evidence, not proof for a specific vacancy. This is preliminary evidence, not legal advice.
+
+## Security and Privacy
+
+- CVs, fetched descriptions, and model inputs are untrusted data; extraction prompts reject embedded instructions.
+- Only HTTP(S) public URLs may be fetched. Local/private/link-local/metadata addresses, credentials in URLs, excessive redirects, unsupported content, oversized bodies, and timeouts are rejected.
+- Executable HTML is discarded and fetched HTML is never rendered.
+- CV upload extensions and size are validated; private uploads and SQLite/WAL files are gitignored.
+- The dashboard returns configuration status, never API-key values.
+- Full CV content is not logged. Remote AI is only used if explicitly selected through the preserved provider configuration.
+- The local server includes same-origin state-change checks and restrictive browser security headers.
+
+## Known Limitations and Troubleshooting
+
+- Only Greenhouse, Lever, and Ashby have structured source adapters. Custom careers pages need a future connector.
+- Web-search results discover URLs, but unsupported generic pages are not executed or scraped into trusted jobs.
+- No automatic applications, LinkedIn scraping, browser automation, CAPTCHA bypass, authentication bypass, or always-on scheduler is included.
+- CV PDFs must contain extractable text; scanned PDFs need OCR before upload.
+- Salary has no tax/cost-of-living model. Immigration rules are not a comprehensive legal rules engine.
+- If the feed is empty, add and successfully sync an ATS company or configure Brave Search. If extraction fails, confirm Ollama is running and the extraction model is installed. If a source fails, open **Sources** or the latest dashboard run to see the isolated error.
+- If SQLite cannot open, ensure the process can write `data/` and that `DATABASE_URL` points to a local writable file.
+
+## Roadmap
+
+1. More ATS connectors.
+2. Official sponsor-register imports.
+3. Versioned immigration rules.
+4. Tax and cost-of-living comparison.
+5. A small Chrome extension that never scrapes authenticated LinkedIn pages or auto-applies.
+6. Automated local scheduling.
+7. Email or desktop summaries.
+8. Multiple CV variants.
+9. Application-answer assistance.
+10. Optional cloud deployment.
 
 ## What It Does
 

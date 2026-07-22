@@ -4,6 +4,10 @@ import { Command } from "commander";
 import { createAnalyzeCommand } from "./commands/analyze";
 import { createModelsCommand } from "./commands/models";
 import { createProfileCommand } from "./commands/profile";
+import { createJobsCommand } from "./commands/jobs";
+import { createDatabaseCommand } from "./commands/database";
+import { createDemoCommand } from "./commands/demo";
+import { createServeCommand } from "./commands/serve";
 import { logger } from "./utils/logger";
 
 const program = new Command();
@@ -16,6 +20,10 @@ program
 program.addCommand(createAnalyzeCommand());
 program.addCommand(createModelsCommand());
 program.addCommand(createProfileCommand());
+program.addCommand(createJobsCommand());
+program.addCommand(createDatabaseCommand());
+program.addCommand(createDemoCommand());
+program.addCommand(createServeCommand());
 
 program.exitOverride();
 

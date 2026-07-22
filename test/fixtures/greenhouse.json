@@ -1,0 +1,13 @@
+{
+  "jobs": [
+    {
+      "id": 101,
+      "title": "Senior React Engineer",
+      "location": { "name": "Dubai, United Arab Emirates" },
+      "absolute_url": "https://boards.greenhouse.io/fixture/jobs/101",
+      "content": "<p>Build products with React and TypeScript.</p>",
+      "first_published": "2026-07-20T08:00:00Z"
+    }
+  ],
+  "meta": { "total": 1 }
+}

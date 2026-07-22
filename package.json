@@ -1,17 +1,25 @@
 {
   "name": "cv-match-agent",
-  "version": "0.1.0",
-  "description": "Local-first AI CV and job-description matching CLI.",
+  "version": "0.2.0",
+  "description": "Local-first autonomous personal job discovery and CV matching application.",
   "main": "dist/index.js",
   "type": "commonjs",
   "bin": {
     "cv-match-agent": "dist/index.js"
   },
   "scripts": {
-    "dev": "tsx src/index.ts",
+    "dev": "node --import tsx src/index.ts",
     "build": "tsc",
     "start": "node dist/index.js",
-    "test": "tsx --test"
+    "web": "node --import tsx src/index.ts serve",
+    "jobs:discover": "node --import tsx src/index.ts jobs discover",
+    "db:migrate": "node --import tsx src/index.ts db migrate",
+    "demo": "node --import tsx src/index.ts demo seed",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint \"src/**/*.ts\" \"test/**/*.ts\"",
+    "format": "prettier --write src/applications src/db src/demo src/discovery src/domain src/security src/web src/ai/localAIProvider.ts src/services/discoveryProfile.ts src/commands/jobs.ts src/commands/database.ts src/commands/demo.ts src/commands/serve.ts test/autonomousDiscovery.test.ts test/autonomousDiscovery.integration.test.ts public docs/autonomous-job-discovery-plan.md",
+    "format:check": "prettier --check src/applications src/db src/demo src/discovery src/domain src/security src/web src/ai/localAIProvider.ts src/services/discoveryProfile.ts src/commands/jobs.ts src/commands/database.ts src/commands/demo.ts src/commands/serve.ts test/autonomousDiscovery.test.ts test/autonomousDiscovery.integration.test.ts public docs/autonomous-job-discovery-plan.md",
+    "test": "node --import tsx --test test/*.test.ts"
   },
   "keywords": [
     "cv",
@@ -23,6 +31,7 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
+    "better-sqlite3": "^13.0.1",
     "commander": "^12.1.0",
     "dotenv": "^16.4.7",
     "openai": "^5.8.2",
@@ -30,9 +39,14 @@
     "zod": "^3.24.1"
   },
   "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@types/better-sqlite3": "^7.6.13",
     "@types/node": "^22.10.2",
+    "eslint": "^10.7.0",
+    "prettier": "^3.9.6",
     "tsx": "^4.19.2",
-    "typescript": "^5.7.2"
+    "typescript": "^5.7.2",
+    "typescript-eslint": "^8.65.0"
   },
   "engines": {
     "node": ">=20"

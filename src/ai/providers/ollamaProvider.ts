@@ -8,6 +8,7 @@ import type {
 export type OllamaProviderOptions = {
   model?: string;
   baseUrl?: string;
+  timeoutMs?: number;
 };
 
 type OllamaChatResponse = {
@@ -28,15 +29,19 @@ export class OllamaProvider implements LlmProvider {
   public readonly name = "ollama";
   private readonly baseUrl: string;
   public readonly model: string;
+  private readonly timeoutMs: number;
 
   constructor(options: OllamaProviderOptions = {}) {
     this.baseUrl = resolveOllamaBaseUrl(options.baseUrl);
     this.model = resolveOllamaModel(options.model);
+    this.timeoutMs = options.timeoutMs ?? 60_000;
   }
 
   async generate(messages: LlmMessage[], options: LlmGenerationOptions = {}): Promise<LlmGenerationResult> {
     let response: Response;
 
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), this.timeoutMs);
     try {
       response = await fetch(`${this.baseUrl}/api/chat`, {
         method: "POST",
@@ -53,12 +58,18 @@ export class OllamaProvider implements LlmProvider {
             num_predict: options.maxTokens
           },
           stream: false
-        })
+        }),
+        signal: controller.signal
       });
     } catch (error) {
+      if (error instanceof Error && error.name === "AbortError") {
+        throw new Error(`Ollama request timed out after ${this.timeoutMs}ms.`);
+      }
       throw new Error(
         `Could not reach Ollama at ${this.baseUrl}. Start Ollama or choose another provider. ${formatError(error)}`
       );
+    } finally {
+      clearTimeout(timeout);
     }
 
     if (!response.ok) {

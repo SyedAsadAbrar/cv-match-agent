@@ -7,3 +7,6 @@ context/preferences.json
 private/
 node_modules/
 dist/
+data/*.db
+data/*.db-*
+data/uploads/
