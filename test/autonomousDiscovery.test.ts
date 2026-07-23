@@ -25,14 +25,14 @@ import { GreenhouseConnector } from "../src/discovery/connectors/greenhouse";
 import { LeverConnector } from "../src/discovery/connectors/lever";
 import { areDuplicateJobs } from "../src/discovery/deduplicate";
 import { applyHardFilters } from "../src/discovery/filter";
-import { normalizeJob } from "../src/discovery/normalize";
+import { extractSkills, normalizeJob } from "../src/discovery/normalize";
 import { runDiscovery } from "../src/discovery/pipeline";
 import { analyseSalary, removeSalaryOutliers } from "../src/discovery/salary";
 import { generateSearchPlan } from "../src/discovery/searchPlan";
 import { recommendJob, scoreJob } from "../src/discovery/scoring";
 import type { JobSourceConnector } from "../src/discovery/types";
 import { assessWorkAuthorization } from "../src/discovery/workAuthorization";
-import { assertSafePublicUrl } from "../src/security/safeFetch";
+import { assertSafePublicUrl, safeFetch } from "../src/security/safeFetch";
 import Database from "better-sqlite3";
 
 const publicLookup = async () => ["203.0.113.10"];
@@ -53,6 +53,17 @@ test("job normalisation strips executable HTML and extracts structured signals",
   assert.equal(job.description.includes("attack"), false);
   assert.deepEqual(job.requiredSkills.slice(0, 2), ["React", "TypeScript"]);
   assert.equal(job.workAuthorization.sponsorshipAvailable, true);
+});
+
+test("skill extraction does not mistake ordinary prose for the Go language", () => {
+  assert.equal(
+    extractSkills("Let’s go beyond the usual approach.").includes("Go"),
+    false,
+  );
+  assert.equal(
+    extractSkills("Built services in Golang and Kubernetes.").includes("Go"),
+    true,
+  );
 });
 
 test("Greenhouse connector validates and maps the official fixture", async () => {
@@ -121,6 +132,104 @@ test("Ashby verification uses the current discovery payload without an N+1 reque
   assert.equal(requests, 1);
 });
 
+test("Ashby accepts null optional fields from the live posting schema", async () => {
+  const connector = new AshbyConnector({
+    fetchImpl: jsonFetch({
+      apiVersion: "1",
+      jobs: [
+        {
+          id: "nullable",
+          title: "Platform Engineer",
+          location: null,
+          workplaceType: null,
+          employmentType: null,
+          descriptionHtml: null,
+          publishedAt: null,
+          applyUrl: null,
+          jobUrl: "https://jobs.ashbyhq.com/example/nullable",
+          compensation: {
+            compensationTierSummary: null,
+            scrapeableCompensationSalarySummary: null,
+          },
+        },
+      ],
+    }),
+    lookup: publicLookup,
+    minRequestIntervalMs: 0,
+  });
+  const references = await connector.discoverJobs(context("ashby", "nullable"));
+  assert.equal(references.length, 1);
+  assert.equal(
+    (await connector.fetchJob(references[0])).locationText,
+    undefined,
+  );
+});
+
+test("Ashby accepts dotted public board names without allowing path traversal", async () => {
+  let requestedUrl = "";
+  const connector = new AshbyConnector({
+    fetchImpl: async (input) => {
+      requestedUrl = String(input);
+      return jsonResponse({ apiVersion: "1", jobs: [] });
+    },
+    lookup: publicLookup,
+    minRequestIntervalMs: 0,
+  });
+  await connector.discoverJobs(context("ashby", "mistral.ai"));
+  assert.match(requestedUrl, /mistral\.ai/);
+  await assert.rejects(
+    connector.discoverJobs(context("ashby", "../private")),
+    /unsupported characters/,
+  );
+});
+
+test("Greenhouse, Lever, and Ashby accept structurally valid empty boards", async () => {
+  const options = {
+    lookup: publicLookup,
+    minRequestIntervalMs: 0,
+  };
+  assert.deepEqual(
+    await new GreenhouseConnector({
+      ...options,
+      fetchImpl: jsonFetch({ jobs: [], meta: { total: 0 } }),
+    }).discoverJobs(context("greenhouse", "empty")),
+    [],
+  );
+  assert.deepEqual(
+    await new LeverConnector({
+      ...options,
+      fetchImpl: jsonFetch([]),
+    }).discoverJobs(context("lever", "empty")),
+    [],
+  );
+  assert.deepEqual(
+    await new AshbyConnector({
+      ...options,
+      fetchImpl: jsonFetch({ apiVersion: "1", jobs: [] }),
+    }).discoverJobs(context("ashby", "empty")),
+    [],
+  );
+});
+
+test("ATS connectors reject reachable responses with invalid schemas", async () => {
+  const options = {
+    fetchImpl: jsonFetch({ jobs: "not-an-array" }),
+    lookup: publicLookup,
+    minRequestIntervalMs: 0,
+  };
+  await assert.rejects(
+    new GreenhouseConnector(options).discoverJobs(
+      context("greenhouse", "invalid"),
+    ),
+  );
+  await assert.rejects(
+    new AshbyConnector(options).discoverJobs(context("ashby", "invalid")),
+  );
+  await assert.rejects(
+    new LeverConnector(options).discoverJobs(context("lever", "invalid")),
+  );
+});
+
 test("failed connector isolation produces a partial discovery run", async () => {
   const store = memoryStore();
   const good = fixtureConnector(false);
@@ -182,6 +291,55 @@ test("discovery honours the configured source concurrency", async () => {
   }
 });
 
+test("companies sharing one verified board are fetched once", async () => {
+  const store = memoryStore();
+  let requests = 0;
+  const connector = fixtureConnector(false);
+  const counted: JobSourceConnector = {
+    ...connector,
+    async discoverJobs(context) {
+      requests += 1;
+      return connector.discoverJobs(context);
+    },
+  };
+  const first = company("global", "greenhouse", "shared-board");
+  const second = company("regional", "greenhouse", "shared-board");
+  const run = await runDiscovery({
+    store,
+    companies: [first, second],
+    connectors: { greenhouse: counted },
+    verify: false,
+    analyse: false,
+  });
+  assert.equal(requests, 1);
+  assert.equal(run.sourcesChecked, 1);
+  assert.equal(run.jobsImported, 1);
+  store.close();
+});
+
+test("temporary source failures do not close previously seen jobs", async () => {
+  const store = memoryStore();
+  const source = company("stable", "greenhouse");
+  const first = await runDiscovery({
+    store,
+    companies: [source],
+    connectors: { greenhouse: fixtureConnector(false) },
+    verify: false,
+    analyse: false,
+  });
+  assert.equal(first.jobsImported, 1);
+  for (let attempt = 0; attempt < 3; attempt += 1)
+    await runDiscovery({
+      store,
+      companies: [source],
+      connectors: { greenhouse: fixtureConnector(true) },
+      verify: false,
+      analyse: false,
+    });
+  assert.equal(store.listRankedJobs()[0].job.status, "active");
+  store.close();
+});
+
 test("search-plan generation uses non-sensitive roles, skills, and locations", () => {
   const profile = withSkills();
   const plan = generateSearchPlan(profile);
@@ -237,6 +395,23 @@ test("hard filters reject excluded companies", () => {
   const job = sampleJob("Build React.");
   const authorization = assessWorkAuthorization(profile, job);
   assert.equal(applyHardFilters(profile, job, authorization).accepted, false);
+});
+
+test("role filtering rejects broad one-word overlaps", () => {
+  const profile = createInitialCandidateProfile();
+  profile.targetRoles = ["Product Engineer"];
+  const job = {
+    ...sampleJob("Build product experiences."),
+    title: "Product Manager",
+  };
+  const authorization = assessWorkAuthorization(profile, job);
+  const result = applyHardFilters(profile, job, authorization);
+  assert.equal(result.accepted, false);
+  assert.ok(
+    result.reasons.some((reason) =>
+      /outside the configured role/i.test(reason),
+    ),
+  );
 });
 
 test("embedding scores are bounded and blended into deterministic scoring", () => {
@@ -452,6 +627,57 @@ test("SSRF protection rejects local and cloud-metadata targets", async () => {
     /not allowed/,
   );
   await assert.rejects(assertSafePublicUrl("file:///etc/passwd"), /Only HTTP/);
+});
+
+test("safe fetch validates every redirect and preserves the final public URL", async () => {
+  const response = await safeFetch("https://example.com/careers", {
+    lookup: publicLookup,
+    retries: 0,
+    fetchImpl: async (input) => {
+      const url = String(input);
+      if (url.includes("example.com"))
+        return new Response(null, {
+          status: 302,
+          headers: { location: "https://jobs.lever.co/example" },
+        });
+      return new Response("<html>Careers</html>", {
+        status: 200,
+        headers: { "content-type": "text/html" },
+      });
+    },
+  });
+  assert.equal(
+    response.headers.get("x-cv-match-final-url"),
+    "https://jobs.lever.co/example",
+  );
+  await assert.rejects(
+    safeFetch("https://example.com/careers", {
+      lookup: publicLookup,
+      retries: 0,
+      fetchImpl: async () =>
+        new Response(null, {
+          status: 302,
+          headers: { location: "http://169.254.169.254/latest/meta-data" },
+        }),
+    }),
+    /not allowed/,
+  );
+});
+
+test("safe fetch enforces response-size limits", async () => {
+  await assert.rejects(
+    safeFetch("https://example.com/jobs", {
+      lookup: publicLookup,
+      retries: 0,
+      maxBytes: 8,
+      fetchImpl: async () =>
+        new Response("this body is longer than eight bytes", {
+          status: 200,
+          headers: { "content-type": "text/plain" },
+        }),
+    }),
+    /exceeded/,
+  );
 });
 
 test("discovery run records partial failure without losing successful jobs", async () => {

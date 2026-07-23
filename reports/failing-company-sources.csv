@@ -1,1 +1,4 @@
 id,company,careersUrl,error
+company-ec81434728e32a1e79f2c7cd,HungerStation,https://careers.hungerstation.com/,Could not resolve careers.hungerstation.com: getaddrinfo ENOTFOUND careers.hungerstation.com
+company-f2f972194f91a038b61c2585,NEOM,https://careers.neom.com/,Official page did not contain enough careers-purpose evidence.
+company-6c8637f70fd4eef2550bf988,noon,https://careers.noon.com/,"Unexpected content type ""unknown""."

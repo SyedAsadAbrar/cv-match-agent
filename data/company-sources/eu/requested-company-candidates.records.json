@@ -1,0 +1,655 @@
+{
+  "defaults": {
+    "sourceType": "official-company-page",
+    "sourceName": "Requested wider-Europe company official-domain candidates",
+    "sourceRetrievedAt": "2026-07-23T00:00:00.000Z",
+    "country": "Europe",
+    "cities": [],
+    "industries": ["technology"],
+    "aliases": [],
+    "hiringSourceClassification": "direct-employer"
+  },
+  "records": [
+    {
+      "sourceRecordId": "eu-pleo",
+      "legalName": "Pleo Technologies A/S",
+      "displayName": "Pleo",
+      "websiteUrl": "https://www.pleo.io/",
+      "careersUrl": "https://www.pleo.io/en/careers",
+      "cities": ["Copenhagen"]
+    },
+    {
+      "sourceRecordId": "eu-wolt",
+      "legalName": "Wolt Enterprises Oy",
+      "displayName": "Wolt",
+      "websiteUrl": "https://wolt.com/",
+      "careersUrl": "https://careers.wolt.com/",
+      "cities": ["Helsinki"]
+    },
+    {
+      "sourceRecordId": "eu-vinted",
+      "legalName": "Vinted UAB",
+      "displayName": "Vinted",
+      "websiteUrl": "https://www.vinted.com/",
+      "cities": ["Vilnius"]
+    },
+    {
+      "sourceRecordId": "eu-qonto",
+      "legalName": "Olinda SAS",
+      "displayName": "Qonto",
+      "websiteUrl": "https://qonto.com/",
+      "cities": ["Paris"],
+      "industries": ["fintech"]
+    },
+    {
+      "sourceRecordId": "eu-backmarket",
+      "legalName": "Jung SAS",
+      "displayName": "Back Market",
+      "websiteUrl": "https://www.backmarket.com/",
+      "cities": ["Paris"],
+      "industries": ["marketplace"]
+    },
+    {
+      "sourceRecordId": "eu-blablacar",
+      "legalName": "Comuto SA",
+      "displayName": "BlaBlaCar",
+      "websiteUrl": "https://www.blablacar.com/",
+      "cities": ["Paris"],
+      "industries": ["mobility"]
+    },
+    {
+      "sourceRecordId": "eu-wise",
+      "legalName": "Wise plc",
+      "displayName": "Wise",
+      "websiteUrl": "https://wise.com/",
+      "cities": ["London", "Tallinn"],
+      "industries": ["fintech"]
+    },
+    {
+      "sourceRecordId": "eu-checkout",
+      "legalName": "Checkout Ltd",
+      "displayName": "Checkout.com",
+      "aliases": ["Checkout.com Europe"],
+      "websiteUrl": "https://www.checkout.com/",
+      "cities": ["London"],
+      "industries": ["fintech"]
+    },
+    {
+      "sourceRecordId": "eu-mistral",
+      "legalName": "Mistral AI SAS",
+      "displayName": "Mistral AI",
+      "websiteUrl": "https://mistral.ai/",
+      "careersUrl": "https://mistral.ai/careers",
+      "cities": ["Paris"],
+      "industries": ["artificial intelligence"],
+      "notes": "Multiple ATS links were observed in live smoke testing; no identifier is seeded until identity verification selects the canonical board."
+    },
+    {
+      "sourceRecordId": "eu-alan",
+      "legalName": "Alan SA",
+      "displayName": "Alan",
+      "websiteUrl": "https://alan.com/",
+      "cities": ["Paris"],
+      "industries": ["health technology"]
+    },
+    {
+      "sourceRecordId": "eu-payfit",
+      "legalName": "PayFit SAS",
+      "displayName": "PayFit",
+      "websiteUrl": "https://payfit.com/",
+      "cities": ["Paris"],
+      "industries": ["hr technology"]
+    },
+    {
+      "sourceRecordId": "eu-contentsquare",
+      "legalName": "Content Square SAS",
+      "displayName": "Contentsquare",
+      "websiteUrl": "https://contentsquare.com/",
+      "cities": ["Paris"],
+      "industries": ["software"]
+    },
+    {
+      "sourceRecordId": "eu-criteo",
+      "legalName": "Criteo SA",
+      "displayName": "Criteo",
+      "websiteUrl": "https://www.criteo.com/",
+      "cities": ["Paris"],
+      "industries": ["advertising technology"]
+    },
+    {
+      "sourceRecordId": "eu-ovh",
+      "legalName": "OVH Groupe SA",
+      "displayName": "OVHcloud",
+      "websiteUrl": "https://www.ovhcloud.com/",
+      "cities": ["Roubaix"],
+      "industries": ["cloud"]
+    },
+    {
+      "sourceRecordId": "eu-ledger",
+      "legalName": "Ledger SAS",
+      "displayName": "Ledger",
+      "websiteUrl": "https://www.ledger.com/",
+      "cities": ["Paris"],
+      "industries": ["fintech"]
+    },
+    {
+      "sourceRecordId": "eu-mirakl",
+      "legalName": "Mirakl SAS",
+      "displayName": "Mirakl",
+      "websiteUrl": "https://www.mirakl.com/",
+      "cities": ["Paris"],
+      "industries": ["marketplace software"]
+    },
+    {
+      "sourceRecordId": "eu-dataiku",
+      "legalName": "Dataiku SAS",
+      "displayName": "Dataiku",
+      "websiteUrl": "https://www.dataiku.com/",
+      "cities": ["Paris"],
+      "industries": ["artificial intelligence"]
+    },
+    {
+      "sourceRecordId": "eu-manomano",
+      "legalName": "Colibri SAS",
+      "displayName": "ManoMano",
+      "websiteUrl": "https://www.manomano.com/",
+      "cities": ["Paris"],
+      "industries": ["marketplace"]
+    },
+    {
+      "sourceRecordId": "eu-vestiaire",
+      "legalName": "Vestiaire Collective SA",
+      "displayName": "Vestiaire Collective",
+      "websiteUrl": "https://www.vestiairecollective.com/",
+      "cities": ["Paris"],
+      "industries": ["marketplace"]
+    },
+    {
+      "sourceRecordId": "eu-scaleway",
+      "legalName": "Scaleway SAS",
+      "displayName": "Scaleway",
+      "websiteUrl": "https://www.scaleway.com/",
+      "cities": ["Paris"],
+      "industries": ["cloud"]
+    },
+    {
+      "sourceRecordId": "eu-pigment",
+      "legalName": "Pigment SAS",
+      "displayName": "Pigment",
+      "websiteUrl": "https://www.pigment.com/",
+      "cities": ["Paris"],
+      "industries": ["software"]
+    },
+    {
+      "sourceRecordId": "eu-pennylane",
+      "legalName": "Pennylane SAS",
+      "displayName": "Pennylane",
+      "websiteUrl": "https://www.pennylane.com/",
+      "cities": ["Paris"],
+      "industries": ["fintech"]
+    },
+    {
+      "sourceRecordId": "eu-malt",
+      "legalName": "Malt Community SAS",
+      "displayName": "Malt",
+      "websiteUrl": "https://www.malt.com/",
+      "cities": ["Paris"],
+      "industries": ["marketplace"]
+    },
+    {
+      "sourceRecordId": "eu-sorare",
+      "legalName": "Sorare SAS",
+      "displayName": "Sorare",
+      "websiteUrl": "https://sorare.com/",
+      "cities": ["Paris"],
+      "industries": ["gaming"]
+    },
+    {
+      "sourceRecordId": "eu-typeform",
+      "legalName": "Typeform SL",
+      "displayName": "Typeform",
+      "websiteUrl": "https://www.typeform.com/",
+      "cities": ["Barcelona"],
+      "industries": ["software"]
+    },
+    {
+      "sourceRecordId": "eu-travelperk",
+      "legalName": "TravelPerk SL",
+      "displayName": "TravelPerk",
+      "websiteUrl": "https://www.travelperk.com/",
+      "cities": ["Barcelona"],
+      "industries": ["travel technology"]
+    },
+    {
+      "sourceRecordId": "eu-wallapop",
+      "legalName": "Wallapop SL",
+      "displayName": "Wallapop",
+      "websiteUrl": "https://www.wallapop.com/",
+      "cities": ["Barcelona"],
+      "industries": ["marketplace"]
+    },
+    {
+      "sourceRecordId": "eu-glovo",
+      "legalName": "Glovoapp23 SA",
+      "displayName": "Glovo",
+      "websiteUrl": "https://glovoapp.com/",
+      "cities": ["Barcelona"],
+      "industries": ["delivery"]
+    },
+    {
+      "sourceRecordId": "eu-cabify",
+      "legalName": "Maxi Mobility Spain SL",
+      "displayName": "Cabify",
+      "websiteUrl": "https://cabify.com/",
+      "cities": ["Madrid"],
+      "industries": ["mobility"]
+    },
+    {
+      "sourceRecordId": "eu-factorial",
+      "legalName": "Everyday Software SL",
+      "displayName": "Factorial",
+      "websiteUrl": "https://factorialhr.com/",
+      "cities": ["Barcelona"],
+      "industries": ["hr technology"]
+    },
+    {
+      "sourceRecordId": "eu-jobandtalent",
+      "legalName": "Jobandtalent Works SL",
+      "displayName": "Jobandtalent",
+      "websiteUrl": "https://www.jobandtalent.com/",
+      "cities": ["Madrid"],
+      "industries": ["staffing technology"],
+      "hiringSourceClassification": "staffing-consultancy"
+    },
+    {
+      "sourceRecordId": "eu-fever",
+      "legalName": "Fever Labs, Inc.",
+      "displayName": "Fever",
+      "websiteUrl": "https://feverup.com/",
+      "cities": ["Madrid"],
+      "industries": ["marketplace"]
+    },
+    {
+      "sourceRecordId": "eu-aiven",
+      "legalName": "Aiven Oy",
+      "displayName": "Aiven",
+      "websiteUrl": "https://aiven.io/",
+      "cities": ["Helsinki"],
+      "industries": ["cloud"]
+    },
+    {
+      "sourceRecordId": "eu-supercell",
+      "legalName": "Supercell Oy",
+      "displayName": "Supercell",
+      "websiteUrl": "https://supercell.com/",
+      "cities": ["Helsinki"],
+      "industries": ["gaming"]
+    },
+    {
+      "sourceRecordId": "eu-nokia",
+      "legalName": "Nokia Oyj",
+      "displayName": "Nokia",
+      "websiteUrl": "https://www.nokia.com/",
+      "cities": ["Espoo"],
+      "industries": ["telecommunications"]
+    },
+    {
+      "sourceRecordId": "eu-ericsson",
+      "legalName": "Telefonaktiebolaget LM Ericsson",
+      "displayName": "Ericsson",
+      "websiteUrl": "https://www.ericsson.com/",
+      "cities": ["Stockholm"],
+      "industries": ["telecommunications"]
+    },
+    {
+      "sourceRecordId": "eu-unity",
+      "legalName": "Unity Software Inc.",
+      "displayName": "Unity",
+      "aliases": ["Unity Technologies"],
+      "websiteUrl": "https://unity.com/",
+      "cities": ["Copenhagen"],
+      "industries": ["gaming"]
+    },
+    {
+      "sourceRecordId": "eu-pipedrive",
+      "legalName": "Pipedrive OÜ",
+      "displayName": "Pipedrive",
+      "websiteUrl": "https://www.pipedrive.com/",
+      "cities": ["Tallinn"],
+      "industries": ["software"]
+    },
+    {
+      "sourceRecordId": "eu-veriff",
+      "legalName": "Veriff OÜ",
+      "displayName": "Veriff",
+      "aliases": ["Verciff"],
+      "websiteUrl": "https://www.veriff.com/",
+      "cities": ["Tallinn"],
+      "industries": ["identity technology"],
+      "notes": "The requested “Verciff” entry is preserved as a likely typo alias of Veriff, but not silently treated as a separately verified company."
+    },
+    {
+      "sourceRecordId": "eu-starship",
+      "legalName": "Starship Technologies OÜ",
+      "displayName": "Starship Technologies",
+      "websiteUrl": "https://www.starship.xyz/",
+      "cities": ["Tallinn"],
+      "industries": ["robotics"]
+    },
+    {
+      "sourceRecordId": "eu-skeleton",
+      "legalName": "Skeleton Technologies Group OÜ",
+      "displayName": "Skeleton Technologies",
+      "websiteUrl": "https://www.skeletontech.com/",
+      "cities": ["Tallinn"],
+      "industries": ["climate technology"]
+    },
+    {
+      "sourceRecordId": "eu-fortumo",
+      "legalName": "Fortumo OÜ",
+      "displayName": "Fortumo",
+      "websiteUrl": "https://fortumo.com/",
+      "cities": ["Tartu"],
+      "industries": ["payments"]
+    },
+    {
+      "sourceRecordId": "eu-toggl",
+      "legalName": "Toggl OÜ",
+      "displayName": "Toggl",
+      "websiteUrl": "https://toggl.com/",
+      "cities": ["Tallinn"],
+      "industries": ["software"]
+    },
+    {
+      "sourceRecordId": "eu-printful",
+      "legalName": "Printful Latvia AS",
+      "displayName": "Printful",
+      "websiteUrl": "https://www.printful.com/",
+      "cities": ["Riga"],
+      "industries": ["e-commerce"]
+    },
+    {
+      "sourceRecordId": "eu-printify",
+      "legalName": "Printify, Inc.",
+      "displayName": "Printify",
+      "websiteUrl": "https://printify.com/",
+      "cities": ["Riga"],
+      "industries": ["e-commerce"]
+    },
+    {
+      "sourceRecordId": "eu-nord",
+      "legalName": "Nord Security",
+      "websiteUrl": "https://nordsecurity.com/",
+      "cities": ["Vilnius"],
+      "industries": ["cybersecurity"]
+    },
+    {
+      "sourceRecordId": "eu-wix",
+      "legalName": "Wix.com Ltd.",
+      "displayName": "Wix",
+      "websiteUrl": "https://www.wix.com/",
+      "cities": ["Vilnius"],
+      "industries": ["software"]
+    },
+    {
+      "sourceRecordId": "eu-outsystems",
+      "legalName": "OutSystems Software em Rede SA",
+      "displayName": "OutSystems",
+      "websiteUrl": "https://www.outsystems.com/",
+      "cities": ["Lisbon"],
+      "industries": ["software"]
+    },
+    {
+      "sourceRecordId": "eu-talkdesk",
+      "legalName": "Talkdesk, Inc.",
+      "displayName": "Talkdesk",
+      "websiteUrl": "https://www.talkdesk.com/",
+      "cities": ["Lisbon"],
+      "industries": ["software"]
+    },
+    {
+      "sourceRecordId": "eu-feedzai",
+      "legalName": "Feedzai, Inc.",
+      "displayName": "Feedzai",
+      "websiteUrl": "https://feedzai.com/",
+      "cities": ["Coimbra"],
+      "industries": ["fintech"]
+    },
+    {
+      "sourceRecordId": "eu-farfetch",
+      "legalName": "Farfetch Limited",
+      "displayName": "Farfetch",
+      "websiteUrl": "https://www.farfetch.com/",
+      "cities": ["Porto"],
+      "industries": ["e-commerce"]
+    },
+    {
+      "sourceRecordId": "eu-gitlab",
+      "legalName": "GitLab Inc.",
+      "displayName": "GitLab",
+      "aliases": ["GitLab Europe"],
+      "websiteUrl": "https://about.gitlab.com/",
+      "cities": ["Remote"],
+      "industries": ["software"]
+    },
+    {
+      "sourceRecordId": "eu-canonical",
+      "legalName": "Canonical Group Limited",
+      "displayName": "Canonical",
+      "websiteUrl": "https://canonical.com/",
+      "cities": ["Remote"],
+      "industries": ["software"]
+    },
+    {
+      "sourceRecordId": "eu-automattic",
+      "legalName": "Automattic Inc.",
+      "displayName": "Automattic",
+      "websiteUrl": "https://automattic.com/",
+      "cities": ["Remote"],
+      "industries": ["software"]
+    },
+    {
+      "sourceRecordId": "eu-grafana",
+      "legalName": "Grafana Labs, Inc.",
+      "displayName": "Grafana Labs",
+      "websiteUrl": "https://grafana.com/",
+      "cities": ["Remote"],
+      "industries": ["software"]
+    },
+    {
+      "sourceRecordId": "eu-snyk",
+      "legalName": "Snyk Limited",
+      "displayName": "Snyk",
+      "websiteUrl": "https://snyk.io/",
+      "cities": ["London"],
+      "industries": ["cybersecurity"]
+    },
+    {
+      "sourceRecordId": "eu-jetbrains",
+      "legalName": "JetBrains s.r.o.",
+      "displayName": "JetBrains",
+      "websiteUrl": "https://www.jetbrains.com/",
+      "cities": ["Prague"],
+      "industries": ["software"]
+    },
+    {
+      "sourceRecordId": "eu-uipath",
+      "legalName": "UiPath, Inc.",
+      "displayName": "UiPath",
+      "websiteUrl": "https://www.uipath.com/",
+      "cities": ["Bucharest"],
+      "industries": ["automation"]
+    },
+    {
+      "sourceRecordId": "eu-prezi",
+      "legalName": "Prezi, Inc.",
+      "displayName": "Prezi",
+      "websiteUrl": "https://prezi.com/",
+      "cities": ["Budapest"],
+      "industries": ["software"]
+    },
+    {
+      "sourceRecordId": "eu-bitpanda",
+      "legalName": "Bitpanda GmbH",
+      "displayName": "Bitpanda",
+      "websiteUrl": "https://www.bitpanda.com/",
+      "cities": ["Vienna"],
+      "industries": ["fintech"]
+    },
+    {
+      "sourceRecordId": "eu-dynatrace",
+      "legalName": "Dynatrace, Inc.",
+      "displayName": "Dynatrace",
+      "websiteUrl": "https://www.dynatrace.com/",
+      "cities": ["Linz"],
+      "industries": ["software"]
+    },
+    {
+      "sourceRecordId": "eu-tricentis",
+      "legalName": "Tricentis GmbH",
+      "displayName": "Tricentis",
+      "websiteUrl": "https://www.tricentis.com/",
+      "cities": ["Vienna"],
+      "industries": ["software"]
+    },
+    {
+      "sourceRecordId": "eu-storyblok",
+      "legalName": "Storyblok GmbH",
+      "displayName": "Storyblok",
+      "websiteUrl": "https://www.storyblok.com/",
+      "cities": ["Linz"],
+      "industries": ["software"]
+    },
+    {
+      "sourceRecordId": "eu-runtastic",
+      "legalName": "Runtastic GmbH",
+      "displayName": "Runtastic",
+      "websiteUrl": "https://www.runtastic.com/",
+      "cities": ["Linz"],
+      "industries": ["health technology"]
+    },
+    {
+      "sourceRecordId": "eu-king",
+      "legalName": "King.com Limited",
+      "displayName": "King",
+      "websiteUrl": "https://www.king.com/",
+      "cities": ["Stockholm"],
+      "industries": ["gaming"]
+    },
+    {
+      "sourceRecordId": "eu-truecaller",
+      "legalName": "Truecaller AB",
+      "displayName": "Truecaller",
+      "websiteUrl": "https://www.truecaller.com/",
+      "cities": ["Stockholm"],
+      "industries": ["communications"]
+    },
+    {
+      "sourceRecordId": "eu-sinch",
+      "legalName": "Sinch AB",
+      "displayName": "Sinch",
+      "websiteUrl": "https://sinch.com/",
+      "cities": ["Stockholm"],
+      "industries": ["communications"]
+    },
+    {
+      "sourceRecordId": "eu-tink",
+      "legalName": "Tink AB",
+      "displayName": "Tink",
+      "websiteUrl": "https://tink.com/",
+      "cities": ["Stockholm"],
+      "industries": ["fintech"]
+    },
+    {
+      "sourceRecordId": "eu-izettle",
+      "legalName": "PayPal Holdings, Inc.",
+      "displayName": "PayPal",
+      "aliases": ["iZettle"],
+      "websiteUrl": "https://www.paypal.com/",
+      "cities": ["Stockholm"],
+      "industries": ["fintech"],
+      "notes": "iZettle is represented as a PayPal brand."
+    },
+    {
+      "sourceRecordId": "eu-trustly",
+      "legalName": "Trustly Group AB",
+      "displayName": "Trustly",
+      "websiteUrl": "https://www.trustly.com/",
+      "cities": ["Stockholm"],
+      "industries": ["fintech"]
+    },
+    {
+      "sourceRecordId": "eu-northvolt",
+      "legalName": "Northvolt AB",
+      "displayName": "Northvolt",
+      "websiteUrl": "https://northvolt.com/",
+      "cities": ["Stockholm"],
+      "industries": ["climate technology"],
+      "notes": "Candidate retained for source auditing; current corporate/employment status must be checked live before verification."
+    },
+    {
+      "sourceRecordId": "eu-too-good",
+      "legalName": "Too Good To Go ApS",
+      "displayName": "Too Good To Go",
+      "websiteUrl": "https://www.toogoodtogo.com/",
+      "cities": ["Copenhagen"],
+      "industries": ["climate technology"]
+    },
+    {
+      "sourceRecordId": "eu-siteimprove",
+      "legalName": "Siteimprove A/S",
+      "displayName": "Siteimprove",
+      "websiteUrl": "https://www.siteimprove.com/",
+      "cities": ["Copenhagen"],
+      "industries": ["software"]
+    },
+    {
+      "sourceRecordId": "eu-tradeshift",
+      "legalName": "Tradeshift Holdings, Inc.",
+      "displayName": "Tradeshift",
+      "websiteUrl": "https://tradeshift.com/",
+      "cities": ["Copenhagen"],
+      "industries": ["fintech"]
+    },
+    {
+      "sourceRecordId": "eu-lunar",
+      "legalName": "Lunar Group A/S",
+      "displayName": "Lunar",
+      "websiteUrl": "https://www.lunar.app/",
+      "cities": ["Aarhus"],
+      "industries": ["fintech"]
+    },
+    {
+      "sourceRecordId": "eu-podimo",
+      "legalName": "Podimo ApS",
+      "displayName": "Podimo",
+      "websiteUrl": "https://podimo.com/",
+      "cities": ["Copenhagen"],
+      "industries": ["media technology"]
+    },
+    {
+      "sourceRecordId": "eu-monta",
+      "legalName": "Monta ApS",
+      "displayName": "Monta",
+      "websiteUrl": "https://monta.com/",
+      "cities": ["Copenhagen"],
+      "industries": ["climate technology"]
+    },
+    {
+      "sourceRecordId": "eu-kahoot",
+      "legalName": "Kahoot! ASA",
+      "displayName": "Kahoot",
+      "websiteUrl": "https://kahoot.com/",
+      "cities": ["Oslo"],
+      "industries": ["education technology"]
+    },
+    {
+      "sourceRecordId": "eu-visma",
+      "legalName": "Visma AS",
+      "displayName": "Visma",
+      "websiteUrl": "https://www.visma.com/",
+      "cities": ["Oslo"],
+      "industries": ["software"]
+    }
+  ]
+}

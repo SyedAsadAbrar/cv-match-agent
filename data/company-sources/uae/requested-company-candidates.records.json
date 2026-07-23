@@ -1,0 +1,466 @@
+{
+  "defaults": {
+    "sourceType": "official-company-page",
+    "sourceName": "Requested UAE company official-domain candidates",
+    "sourceRetrievedAt": "2026-07-23T00:00:00.000Z",
+    "country": "United Arab Emirates",
+    "cities": [],
+    "industries": ["technology"],
+    "aliases": [],
+    "hiringSourceClassification": "direct-employer"
+  },
+  "records": [
+    {
+      "sourceRecordId": "uae-aiq",
+      "legalName": "AIQ",
+      "websiteUrl": "https://aiqintelligence.ae/",
+      "cities": ["Abu Dhabi"],
+      "industries": ["artificial intelligence", "energy technology"],
+      "parentCompanyName": "Presight AI Holding PLC",
+      "relationship": "subsidiary"
+    },
+    {
+      "sourceRecordId": "uae-inception",
+      "legalName": "Inception",
+      "websiteUrl": "https://inceptionai.ai/",
+      "cities": ["Abu Dhabi"],
+      "industries": ["artificial intelligence"],
+      "parentCompanyName": "Group 42 Holding Ltd",
+      "relationship": "subsidiary"
+    },
+    {
+      "sourceRecordId": "uae-khazna",
+      "legalName": "Khazna Data Centers",
+      "websiteUrl": "https://khazna.ae/",
+      "cities": ["Abu Dhabi"],
+      "industries": ["data centres", "cloud"]
+    },
+    {
+      "sourceRecordId": "uae-analog",
+      "legalName": "Analog",
+      "websiteUrl": "https://analog.io/",
+      "cities": ["Abu Dhabi"],
+      "industries": ["artificial intelligence"],
+      "notes": "Candidate only; the similarly named companies make manual identity review necessary before source verification."
+    },
+    {
+      "sourceRecordId": "uae-huspy",
+      "legalName": "Huspy",
+      "websiteUrl": "https://www.huspy.com/",
+      "cities": ["Dubai"],
+      "industries": ["property technology", "fintech"]
+    },
+    {
+      "sourceRecordId": "uae-talabat",
+      "legalName": "Talabat",
+      "aliases": ["Delivery Hero UAE"],
+      "websiteUrl": "https://www.talabat.com/",
+      "careersUrl": "https://careers.deliveryhero.com/talabat",
+      "cities": ["Dubai"],
+      "industries": ["food delivery", "marketplace"],
+      "parentCompanyName": "Delivery Hero SE",
+      "relationship": "subsidiary",
+      "notes": "Talabat uses Delivery Hero group career infrastructure; monitor the shared board once."
+    },
+    {
+      "sourceRecordId": "uae-mashreq",
+      "legalName": "Mashreqbank PSC",
+      "displayName": "Mashreq",
+      "websiteUrl": "https://www.mashreq.com/",
+      "cities": ["Dubai"],
+      "industries": ["banking", "fintech"]
+    },
+    {
+      "sourceRecordId": "uae-enbd",
+      "legalName": "Emirates NBD Bank PJSC",
+      "displayName": "Emirates NBD",
+      "aliases": ["Liv"],
+      "websiteUrl": "https://www.emiratesnbd.com/",
+      "careersUrl": "https://www.emiratesnbd.com/en/careers",
+      "cities": ["Dubai"],
+      "industries": ["banking", "fintech"],
+      "notes": "Liv is a digital-banking brand of Emirates NBD and must not create a duplicate source."
+    },
+    {
+      "sourceRecordId": "uae-fab",
+      "legalName": "First Abu Dhabi Bank PJSC",
+      "displayName": "First Abu Dhabi Bank",
+      "aliases": ["FAB"],
+      "websiteUrl": "https://www.bankfab.com/",
+      "cities": ["Abu Dhabi"],
+      "industries": ["banking"]
+    },
+    {
+      "sourceRecordId": "uae-adcb",
+      "legalName": "Abu Dhabi Commercial Bank PJSC",
+      "displayName": "Abu Dhabi Commercial Bank",
+      "aliases": ["ADCB"],
+      "websiteUrl": "https://www.adcb.com/",
+      "cities": ["Abu Dhabi"],
+      "industries": ["banking"]
+    },
+    {
+      "sourceRecordId": "uae-cbd",
+      "legalName": "Commercial Bank of Dubai PSC",
+      "displayName": "Commercial Bank of Dubai",
+      "aliases": ["CBD"],
+      "websiteUrl": "https://www.cbd.ae/",
+      "cities": ["Dubai"],
+      "industries": ["banking"]
+    },
+    {
+      "sourceRecordId": "uae-yap",
+      "legalName": "YAP",
+      "websiteUrl": "https://www.yap.com/",
+      "cities": ["Dubai"],
+      "industries": ["fintech"]
+    },
+    {
+      "sourceRecordId": "uae-pemo",
+      "legalName": "Pemo",
+      "websiteUrl": "https://www.pemo.io/",
+      "cities": ["Dubai"],
+      "industries": ["fintech", "payments"]
+    },
+    {
+      "sourceRecordId": "uae-nymcard",
+      "legalName": "NymCard",
+      "websiteUrl": "https://nymcard.com/",
+      "cities": ["Abu Dhabi"],
+      "industries": ["fintech", "payments"]
+    },
+    {
+      "sourceRecordId": "uae-baraka",
+      "legalName": "baraka",
+      "websiteUrl": "https://www.getbaraka.com/",
+      "cities": ["Dubai"],
+      "industries": ["fintech", "wealth technology"]
+    },
+    {
+      "sourceRecordId": "uae-stake",
+      "legalName": "Stake",
+      "websiteUrl": "https://getstake.com/",
+      "cities": ["Dubai"],
+      "industries": ["property technology", "fintech"]
+    },
+    {
+      "sourceRecordId": "uae-rain",
+      "legalName": "Rain Management W.L.L.",
+      "displayName": "Rain",
+      "websiteUrl": "https://www.rain.com/",
+      "cities": ["Abu Dhabi"],
+      "industries": ["fintech", "cryptocurrency"]
+    },
+    {
+      "sourceRecordId": "uae-network-international",
+      "legalName": "Network International Holdings plc",
+      "displayName": "Network International",
+      "websiteUrl": "https://www.network.ae/",
+      "cities": ["Dubai"],
+      "industries": ["payments", "fintech"]
+    },
+    {
+      "sourceRecordId": "uae-checkout",
+      "legalName": "Checkout Ltd",
+      "displayName": "Checkout.com",
+      "aliases": ["Checkout.com UAE"],
+      "websiteUrl": "https://www.checkout.com/",
+      "careersUrl": "https://www.checkout.com/careers",
+      "cities": ["Dubai"],
+      "industries": ["payments", "fintech"],
+      "notes": "Global shared careers source; filter UAE roles after fetching."
+    },
+    {
+      "sourceRecordId": "uae-amazon",
+      "legalName": "Amazon.com, Inc.",
+      "displayName": "Amazon",
+      "aliases": ["Amazon UAE", "AWS UAE"],
+      "websiteUrl": "https://www.amazon.jobs/",
+      "careersUrl": "https://www.amazon.jobs/",
+      "cities": ["Dubai"],
+      "industries": ["cloud", "e-commerce"],
+      "notes": "Global shared careers source; regional labels are aliases, not separate monitored boards."
+    },
+    {
+      "sourceRecordId": "uae-microsoft",
+      "legalName": "Microsoft Corporation",
+      "displayName": "Microsoft",
+      "aliases": ["Microsoft UAE"],
+      "websiteUrl": "https://www.microsoft.com/",
+      "careersUrl": "https://jobs.careers.microsoft.com/",
+      "cities": ["Dubai"],
+      "industries": ["cloud", "software"],
+      "notes": "Global shared careers source."
+    },
+    {
+      "sourceRecordId": "uae-google",
+      "legalName": "Google LLC",
+      "displayName": "Google",
+      "aliases": ["Google UAE"],
+      "websiteUrl": "https://about.google/",
+      "careersUrl": "https://www.google.com/about/careers/applications/jobs/results/",
+      "cities": ["Dubai"],
+      "industries": ["cloud", "software"],
+      "notes": "Global shared careers source."
+    },
+    {
+      "sourceRecordId": "uae-oracle",
+      "legalName": "Oracle Corporation",
+      "displayName": "Oracle",
+      "aliases": ["Oracle UAE"],
+      "websiteUrl": "https://www.oracle.com/",
+      "careersUrl": "https://careers.oracle.com/",
+      "cities": ["Dubai"],
+      "industries": ["cloud", "software"]
+    },
+    {
+      "sourceRecordId": "uae-sap",
+      "legalName": "SAP SE",
+      "displayName": "SAP",
+      "aliases": ["SAP UAE"],
+      "websiteUrl": "https://www.sap.com/",
+      "careersUrl": "https://jobs.sap.com/",
+      "cities": ["Dubai"],
+      "industries": ["enterprise software"]
+    },
+    {
+      "sourceRecordId": "uae-ibm",
+      "legalName": "International Business Machines Corporation",
+      "displayName": "IBM",
+      "aliases": ["IBM UAE"],
+      "websiteUrl": "https://www.ibm.com/",
+      "careersUrl": "https://www.ibm.com/careers",
+      "cities": ["Dubai"],
+      "industries": ["cloud", "consulting"]
+    },
+    {
+      "sourceRecordId": "uae-salesforce",
+      "legalName": "Salesforce, Inc.",
+      "displayName": "Salesforce",
+      "aliases": ["Salesforce UAE"],
+      "websiteUrl": "https://www.salesforce.com/",
+      "careersUrl": "https://careers.salesforce.com/",
+      "cities": ["Dubai"],
+      "industries": ["cloud", "software"]
+    },
+    {
+      "sourceRecordId": "uae-eand",
+      "legalName": "Emirates Telecommunications Group Company PJSC",
+      "displayName": "e&",
+      "aliases": ["Etisalat"],
+      "websiteUrl": "https://www.eand.com/",
+      "cities": ["Abu Dhabi"],
+      "industries": ["telecommunications", "technology"]
+    },
+    {
+      "sourceRecordId": "uae-du",
+      "legalName": "Emirates Integrated Telecommunications Company PJSC",
+      "displayName": "du",
+      "websiteUrl": "https://www.du.ae/",
+      "cities": ["Dubai"],
+      "industries": ["telecommunications", "technology"]
+    },
+    {
+      "sourceRecordId": "uae-bayzat",
+      "legalName": "Bayzat",
+      "websiteUrl": "https://www.bayzat.com/",
+      "cities": ["Dubai"],
+      "industries": ["hr technology", "fintech"]
+    },
+    {
+      "sourceRecordId": "uae-purehealth",
+      "legalName": "PureHealth Holding PJSC",
+      "displayName": "PureHealth",
+      "websiteUrl": "https://purehealth.ae/",
+      "cities": ["Abu Dhabi"],
+      "industries": ["healthcare", "health technology"]
+    },
+    {
+      "sourceRecordId": "uae-daman",
+      "legalName": "The National Health Insurance Company – Daman",
+      "displayName": "Daman",
+      "websiteUrl": "https://www.damanhealth.ae/",
+      "cities": ["Abu Dhabi"],
+      "industries": ["health insurance", "health technology"]
+    },
+    {
+      "sourceRecordId": "uae-nmc",
+      "legalName": "NMC Healthcare",
+      "displayName": "NMC",
+      "websiteUrl": "https://nmc.ae/",
+      "cities": ["Abu Dhabi", "Dubai"],
+      "industries": ["healthcare"]
+    },
+    {
+      "sourceRecordId": "uae-mubadala",
+      "legalName": "Mubadala Investment Company PJSC",
+      "displayName": "Mubadala",
+      "websiteUrl": "https://www.mubadala.com/",
+      "cities": ["Abu Dhabi"],
+      "industries": ["investment", "technology"]
+    },
+    {
+      "sourceRecordId": "uae-adq",
+      "legalName": "Abu Dhabi Developmental Holding Company PJSC",
+      "displayName": "ADQ",
+      "websiteUrl": "https://www.adq.ae/",
+      "cities": ["Abu Dhabi"],
+      "industries": ["investment"]
+    },
+    {
+      "sourceRecordId": "uae-hub71-employer",
+      "legalName": "Hub71",
+      "websiteUrl": "https://www.hub71.com/",
+      "cities": ["Abu Dhabi"],
+      "industries": ["startup ecosystem"],
+      "notes": "Hub71 itself is an employer candidate; its ecosystem directory remains separately classified and never proves member career sources."
+    },
+    {
+      "sourceRecordId": "uae-dubai-holding",
+      "legalName": "Dubai Holding LLC",
+      "displayName": "Dubai Holding",
+      "websiteUrl": "https://www.dubaiholding.com/",
+      "cities": ["Dubai"],
+      "industries": ["investment", "hospitality"]
+    },
+    {
+      "sourceRecordId": "uae-chalhoub",
+      "legalName": "Chalhoub Group",
+      "websiteUrl": "https://www.chalhoubgroup.com/",
+      "cities": ["Dubai"],
+      "industries": ["retail", "technology"]
+    },
+    {
+      "sourceRecordId": "uae-maf",
+      "legalName": "Majid Al Futtaim Holding LLC",
+      "displayName": "Majid Al Futtaim",
+      "websiteUrl": "https://www.majidalfuttaim.com/",
+      "cities": ["Dubai"],
+      "industries": ["retail", "technology"]
+    },
+    {
+      "sourceRecordId": "uae-al-futtaim",
+      "legalName": "Al-Futtaim Group",
+      "displayName": "Al-Futtaim",
+      "websiteUrl": "https://www.alfuttaim.com/",
+      "cities": ["Dubai"],
+      "industries": ["retail", "technology"]
+    },
+    {
+      "sourceRecordId": "uae-landmark",
+      "legalName": "Landmark Group",
+      "websiteUrl": "https://www.landmarkgroup.com/",
+      "cities": ["Dubai"],
+      "industries": ["retail", "e-commerce"]
+    },
+    {
+      "sourceRecordId": "uae-gmg",
+      "legalName": "GMG",
+      "websiteUrl": "https://www.gmg.com/",
+      "cities": ["Dubai"],
+      "industries": ["retail", "technology"]
+    },
+    {
+      "sourceRecordId": "uae-aramex",
+      "legalName": "Aramex PJSC",
+      "displayName": "Aramex",
+      "websiteUrl": "https://www.aramex.com/",
+      "cities": ["Dubai"],
+      "industries": ["logistics", "technology"]
+    },
+    {
+      "sourceRecordId": "uae-shipa",
+      "legalName": "Shipa",
+      "websiteUrl": "https://shipa.com/",
+      "cities": ["Dubai"],
+      "industries": ["logistics", "technology"]
+    },
+    {
+      "sourceRecordId": "uae-trukker",
+      "legalName": "TruKKer",
+      "websiteUrl": "https://trukker.com/",
+      "cities": ["Dubai"],
+      "industries": ["logistics technology"]
+    },
+    {
+      "sourceRecordId": "uae-quiqup",
+      "legalName": "Quiqup",
+      "websiteUrl": "https://www.quiqup.com/",
+      "cities": ["Dubai"],
+      "industries": ["logistics technology"]
+    },
+    {
+      "sourceRecordId": "uae-cafu",
+      "legalName": "CAFÜ",
+      "displayName": "CAFU",
+      "websiteUrl": "https://www.cafu.com/",
+      "cities": ["Dubai"],
+      "industries": ["mobility", "technology"]
+    },
+    {
+      "sourceRecordId": "uae-ekar",
+      "legalName": "ekar",
+      "websiteUrl": "https://www.ekar.me/",
+      "cities": ["Dubai"],
+      "industries": ["mobility"]
+    },
+    {
+      "sourceRecordId": "uae-udrive",
+      "legalName": "Udrive",
+      "websiteUrl": "https://udrive.ae/",
+      "cities": ["Dubai"],
+      "industries": ["mobility"]
+    },
+    {
+      "sourceRecordId": "uae-indrive",
+      "legalName": "inDrive",
+      "aliases": ["inDrive UAE"],
+      "websiteUrl": "https://indrive.com/",
+      "careersUrl": "https://careers.indrive.com/vacancies/",
+      "atsBoardUrl": "https://indrive.pinpointhq.com/en/postings/",
+      "cities": ["Dubai"],
+      "industries": ["mobility"],
+      "notes": "Official inDrive vacancies page links to the public Pinpoint postings board, which provides the individual job records."
+    },
+    {
+      "sourceRecordId": "uae-deriv",
+      "legalName": "Deriv Group",
+      "displayName": "Deriv",
+      "websiteUrl": "https://deriv.com/",
+      "cities": ["Dubai"],
+      "industries": ["fintech"]
+    },
+    {
+      "sourceRecordId": "uae-property-monitor",
+      "legalName": "Property Monitor",
+      "websiteUrl": "https://propertymonitor.com/",
+      "cities": ["Dubai"],
+      "industries": ["property technology"]
+    },
+    {
+      "sourceRecordId": "uae-remotepass",
+      "legalName": "RemotePass",
+      "websiteUrl": "https://www.remotepass.com/",
+      "cities": ["Dubai"],
+      "industries": ["hr technology", "fintech"]
+    },
+    {
+      "sourceRecordId": "uae-foodics",
+      "legalName": "Foodics",
+      "aliases": ["Foodics UAE"],
+      "websiteUrl": "https://www.foodics.com/",
+      "cities": ["Dubai"],
+      "industries": ["restaurant technology", "fintech"],
+      "notes": "One company record covers UAE and Saudi hiring; do not duplicate its board."
+    },
+    {
+      "sourceRecordId": "uae-unifonic",
+      "legalName": "Unifonic",
+      "aliases": ["Unifonic UAE"],
+      "websiteUrl": "https://www.unifonic.com/",
+      "cities": ["Dubai"],
+      "industries": ["communications platform"],
+      "notes": "One company record covers UAE and Saudi hiring; do not duplicate its board."
+    }
+  ]
+}

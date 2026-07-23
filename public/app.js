@@ -2,6 +2,7 @@ const app = document.querySelector("#app");
 const title = document.querySelector("#page-title");
 const notice = document.querySelector("#notice");
 const findButton = document.querySelector("#find-jobs");
+const resetJobsButton = document.querySelector("#reset-jobs");
 let state = {
   jobs: [],
   profile: null,
@@ -9,6 +10,7 @@ let state = {
   dashboard: null,
   sources: null,
   companyPage: null,
+  jobFilters: {},
   companyFilters: {
     country: "",
     status: "",
@@ -16,6 +18,8 @@ let state = {
     atsProvider: "",
     sponsorshipEvidence: "",
     engineeringRelevance: "",
+    boardState: "",
+    hiringSourceClassification: "",
   },
   settings: null,
 };
@@ -44,7 +48,9 @@ async function api(url, options = {}) {
 async function refresh() {
   const [jobs, profile, dashboard, sources, settings, companyPage] =
     await Promise.all([
-      api("/api/jobs?includeDismissed=true&includeClosed=true"),
+      api(
+        "/api/jobs?includeDismissed=true&includeClosed=true&includeSkipped=true",
+      ),
       api("/api/profile"),
       api("/api/dashboard"),
       api("/api/sources"),
@@ -59,31 +65,90 @@ async function refresh() {
     sources,
     settings,
     companyPage,
+    jobFilters: state.jobFilters,
     companyFilters: state.companyFilters,
   };
-  findButton.disabled = dashboard.discoveryRunning;
-  findButton.textContent = dashboard.discoveryRunning
-    ? "Discovery running…"
-    : "Find New Jobs";
+  updateDiscoveryControls(dashboard);
   render();
 }
 
+function updateDiscoveryControls(dashboard) {
+  findButton.disabled = dashboard.discoveryRunning;
+  resetJobsButton.disabled = dashboard.discoveryRunning;
+  findButton.textContent = dashboard.discoveryRunning
+    ? "Discovery running…"
+    : "Find New Jobs";
+}
+
+async function refreshDashboard() {
+  const dashboard = await api("/api/dashboard");
+  const wasRunning = state.dashboard?.discoveryRunning;
+  state = { ...state, dashboard };
+  updateDiscoveryControls(dashboard);
+  if (wasRunning && !dashboard.discoveryRunning) return refresh();
+  if (currentRoute() === "dashboard") render();
+}
+
 function currentRoute() {
-  return (location.hash.slice(1) || "dashboard").split(":")[0];
+  const pathname = location.pathname.replace(/\/+$/, "") || "/";
+  if (pathname === "/" || pathname === "/dashboard") return "dashboard";
+  if (pathname.startsWith("/jobs/")) return "job";
+  return pathname.slice(1);
+}
+
+function currentJobId() {
+  try {
+    return decodeURIComponent(location.pathname.slice("/jobs/".length));
+  } catch {
+    return "";
+  }
+}
+
+function routePath(route) {
+  return route === "dashboard" ? "/" : `/${route}`;
+}
+
+function migrateLegacyHashRoute() {
+  const legacyRoute = location.hash.slice(1);
+  if (!legacyRoute) return;
+  const route = legacyRoute.startsWith("job:")
+    ? `/jobs/${legacyRoute.slice("job:".length)}`
+    : routePath(legacyRoute);
+  if (
+    [
+      "dashboard",
+      "discover",
+      "saved",
+      "applications",
+      "profile",
+      "sources",
+      "settings",
+    ].includes(legacyRoute) ||
+    legacyRoute.startsWith("job:")
+  )
+    history.replaceState(null, "", route);
 }
 function render() {
   const route = currentRoute();
-  title.textContent = pageNames[route] || "Job Analysis";
+  title.textContent =
+    pageNames[route] || (route === "job" ? "Job Analysis" : "Dashboard");
   document
     .querySelectorAll("nav a")
-    .forEach((a) => a.classList.toggle("active", a.hash === `#${route}`));
-  if (location.hash.startsWith("#job:"))
-    return renderJobDetail(location.hash.slice(5));
+    .forEach((a) =>
+      a.classList.toggle("active", a.pathname === routePath(route)),
+    );
+  if (route === "job") return renderJobDetail(currentJobId());
   (
     ({
       dashboard: renderDashboard,
       discover: () => renderJobs(activeJobs(state.jobs)),
-      saved: () => renderJobs(activeJobs(state.jobs).filter((x) => x.saved)),
+      saved: () =>
+        renderJobs(
+          activeJobs(state.jobs).filter((x) => x.saved),
+          {
+            defaultMinimumScore: 0,
+          },
+        ),
       applications: renderApplications,
       profile: renderProfile,
       sources: renderSources,
@@ -96,27 +161,34 @@ function renderDashboard() {
   const d = state.dashboard,
     c = d.recommendationCounts || {};
   app.innerHTML = `<div class="grid stats">${stat("Jobs found today", d.jobsFoundToday)}${stat("Strong Apply", c["strong-apply"] || 0)}${stat("Apply", c.apply || 0)}${stat("Stretch", c.stretch || 0)}${stat("Eligibility unclear", c["eligibility-unclear"] || 0)}${stat("Needs AI analysis", d.jobsNeedingAnalysis)}${stat("Source failures", d.sourceFailures)}${stat("Total ranked", state.jobs.length)}</div>
-  <div class="panel"><div class="panel-head"><div><div class="eyebrow">LATEST RUN</div><h2>${e(d.lastRun?.status || "No discovery run yet")}</h2></div><button class="secondary" data-demo>Load fictional demo</button></div>
-  ${d.lastRun ? `<div class="job-meta"><span>${d.lastRun.jobsDiscovered} discovered</span><span>${d.lastRun.jobsImported} imported</span><span>${d.lastRun.duplicatesFound} duplicates</span><span>${d.lastRun.jobsAnalysed} AI-analysed</span></div>${d.lastRun.errors.length ? `<ul class="evidence-list">${d.lastRun.errors.map((x) => `<li>${e(x.source)}: ${e(x.message)}</li>`).join("")}</ul>` : ""}` : `<p class="muted">Configure a company source or load the fictional demo, then press Find New Jobs.</p>`}</div>
-  <div class="panel"><div class="panel-head"><h2>Top opportunities</h2><a class="muted small" href="#discover">View all</a></div>${jobCards(activeJobs(state.jobs).slice(0, 5))}</div>`;
+  <div class="panel"><div class="panel-head"><div><div class="eyebrow">LATEST RUN</div><h2>${e(d.lastRun?.status || "No discovery run yet")}</h2></div></div>
+  ${d.lastRun ? `<div class="job-meta"><span>${d.lastRun.jobsDiscovered} discovered</span><span>${d.lastRun.jobsImported} imported</span><span>${d.lastRun.duplicatesFound} duplicates</span><span>${d.lastRun.jobsAnalysed} AI-analysed</span></div>${d.lastRun.errors.length ? `<ul class="evidence-list">${d.lastRun.errors.map((x) => `<li>${e(x.source)}: ${e(x.message)}</li>`).join("")}</ul>` : ""}` : `<p class="muted">Configure and enable a verified company source, then press Find New Jobs.</p>`}</div>
+  <div class="panel"><div class="panel-head"><h2>Top opportunities</h2><a class="muted small" href="/discover">View all</a></div>${jobCards(sortJobs(relevantJobs(activeJobs(state.jobs)), "confidence-desc").slice(0, 5))}</div>`;
   bindCommon();
-  document.querySelector("[data-demo]")?.addEventListener("click", seedDemo);
 }
 
 function renderJobs(items, options = {}) {
   const dismissedCount = state.jobs.filter((x) => x.dismissed).length;
-  app.innerHTML = `<div class="panel"><div class="panel-head"><div><h2>${options.showDismissed ? "Dismissed jobs" : "Job opportunities"}</h2><p class="muted small">${options.showDismissed ? "Restore a role to return it to discovery." : "Dismissed and closed roles are hidden from this view."}</p></div>${!options.showDismissed && dismissedCount ? `<button class="secondary" data-show-dismissed>Show dismissed (${dismissedCount})</button>` : ""}</div><div class="filters"><label>Recommendation<select id="f-rec"><option value="">All</option>${["strong-apply", "apply", "stretch", "eligibility-unclear", "low-priority", "skip"].map((x) => `<option>${x}</option>`).join("")}</select></label><label>Minimum score<input id="f-score" type="number" min="0" max="100" value="0"></label><label>Country<select id="f-country"><option value="">All</option>${uniq(
+  const defaultMinimumScore =
+    options.defaultMinimumScore ?? (options.showDismissed ? 0 : 68);
+  const filterKey = options.showDismissed ? "dismissed" : currentRoute();
+  const filters = getJobFilters(filterKey, defaultMinimumScore);
+  const defaultItems = filterJobItems(items, filters);
+  const itemLabel = options.showDismissed ? "dismissed job" : "job";
+  app.innerHTML = `<div class="panel"><div class="panel-head"><div><h2>${options.showDismissed ? "Dismissed jobs" : "Job opportunities"}</h2><p class="muted small">${options.showDismissed ? "Restore a role to return it to discovery." : "The 68% default shows Apply and Strong Apply matches; lower it to review all discovered jobs, including roles marked not recommended."}</p></div>${!options.showDismissed && dismissedCount ? `<button class="secondary" data-show-dismissed>Show dismissed (${dismissedCount})</button>` : ""}</div><form id="job-filters" class="filters"><label>Sort by<select id="f-sort"><option value="confidence-desc">Match confidence: high to low</option><option value="confidence-asc">Match confidence: low to high</option><option value="newest">Newest first</option><option value="trust">Trust: highest first</option></select></label><label>Match category<select id="f-rec"><option value="">Any category</option>${["strong-apply", "apply", "stretch", "eligibility-unclear", "low-priority"].map((x) => `<option>${x}</option>`).join("")}<option value="skip">not recommended</option></select></label><label>Match confidence (%)<input id="f-score" type="number" min="0" max="100" value="${defaultMinimumScore}"></label><label>Country<select id="f-country"><option value="">All</option>${uniq(
     items.map((x) => x.job.country).filter(Boolean),
   )
     .map((x) => `<option>${e(x)}</option>`)
     .join(
       "",
-    )}</select></label><label>Workplace<select id="f-work"><option value="">All</option><option>remote</option><option>hybrid</option><option>onsite</option><option>unknown</option></select></label><label>Trust<select id="f-trust"><option value="">All</option><option>verified</option><option>likely-legitimate</option><option>unverified</option><option>suspicious</option></select></label></div><div id="filtered">${jobCards(items)}</div></div>`;
-  ["f-rec", "f-score", "f-country", "f-work", "f-trust"].forEach((id) =>
-    document
-      .querySelector(`#${id}`)
-      .addEventListener("input", () => filterJobs(items)),
-  );
+    )}</select></label><label>Workplace<select id="f-work"><option value="">All</option><option>remote</option><option>hybrid</option><option>onsite</option><option>unknown</option></select></label><label>Trust<select id="f-trust"><option value="">All</option><option>verified</option><option>likely-legitimate</option><option>unverified</option><option>suspicious</option></select></label><div class="filter-actions"><button class="primary" type="submit">Apply filters</button></div></form><p id="filter-summary" class="muted small">Showing ${defaultItems.length} of ${items.length} ${itemLabel}${items.length === 1 ? "" : "s"}.</p><div id="filtered">${jobCards(
+    sortJobs(defaultItems, filters.sort),
+  )}</div></div>`;
+  setJobFilterInputs(filters);
+  document.querySelector("#job-filters").addEventListener("submit", (event) => {
+    event.preventDefault();
+    filterJobs(items, itemLabel, filterKey);
+  });
   bindCommon();
 }
 
@@ -127,24 +199,64 @@ function renderDismissedJobs() {
   );
 }
 
-function filterJobs(items) {
-  const v = (id) => document.querySelector(`#${id}`).value;
-  const filtered = items.filter(
+function getJobFilters(key, defaultMinimumScore) {
+  if (!state.jobFilters[key])
+    state.jobFilters[key] = {
+      sort: "confidence-desc",
+      recommendation: "",
+      minimumScore: defaultMinimumScore,
+      country: "",
+      workplace: "",
+      trust: "",
+    };
+  return state.jobFilters[key];
+}
+
+function setJobFilterInputs(filters) {
+  document.querySelector("#f-sort").value = filters.sort;
+  document.querySelector("#f-rec").value = filters.recommendation;
+  document.querySelector("#f-score").value = String(filters.minimumScore);
+  document.querySelector("#f-country").value = filters.country;
+  document.querySelector("#f-work").value = filters.workplace;
+  document.querySelector("#f-trust").value = filters.trust;
+}
+
+function filterJobItems(items, filters) {
+  return items.filter(
     (x) =>
-      (!v("f-rec") || x.match?.recommendation === v("f-rec")) &&
-      (!v("f-country") || x.job.country === v("f-country")) &&
-      (!v("f-work") || x.job.workplaceType === v("f-work")) &&
-      (!v("f-trust") || x.trust?.level === v("f-trust")) &&
-      (x.match?.score || 0) >= Number(v("f-score")),
+      (!filters.recommendation ||
+        x.match?.recommendation === filters.recommendation) &&
+      (!filters.country || x.job.country === filters.country) &&
+      (!filters.workplace || x.job.workplaceType === filters.workplace) &&
+      (!filters.trust || x.trust?.level === filters.trust) &&
+      (x.match?.score || 0) >= filters.minimumScore,
   );
-  document.querySelector("#filtered").innerHTML = jobCards(filtered);
+}
+
+function filterJobs(items, itemLabel = "job", filterKey = currentRoute()) {
+  const v = (id) => document.querySelector(`#${id}`).value;
+  const filters = {
+    sort: v("f-sort"),
+    recommendation: v("f-rec"),
+    minimumScore: Number(v("f-score")) || 0,
+    country: v("f-country"),
+    workplace: v("f-work"),
+    trust: v("f-trust"),
+  };
+  state.jobFilters[filterKey] = filters;
+  const filtered = filterJobItems(items, filters);
+  document.querySelector("#filtered").innerHTML = jobCards(
+    sortJobs(filtered, filters.sort),
+  );
+  document.querySelector("#filter-summary").textContent =
+    `Showing ${filtered.length} of ${items.length} ${itemLabel}${items.length === 1 ? "" : "s"}.`;
   bindCommon();
 }
 
 function jobCards(items) {
   if (!items.length)
     return `<div class="empty">No jobs match this view yet.</div>`;
-  return `<div class="job-list">${items.map((x) => `<article class="job-card"><div><h3><a href="#job:${encodeURIComponent(x.job.id)}">${e(x.job.title)}</a></h3><div class="company">${e(x.job.company)}${x.job.company.includes("Fictional") ? ` · <span class="fictional">FICTIONAL DEMO</span>` : ""}</div><div class="job-meta"><span>${e(x.job.locationText || "Location not stated")}</span><span>${e(x.job.workplaceType)}</span><span>${e(x.job.sourceType)}</span><span>${date(x.job.publishedAt || x.job.firstSeenAt)}</span></div><div class="badges"><span class="badge ${x.match?.recommendation || ""}">${e(x.match?.recommendation || "unanalysed")}</span><span class="badge ${x.trust?.level || ""}">${e(x.trust?.level || "unverified")}</span><span class="badge ${x.workAuthorization?.status || ""}">${e(x.workAuthorization?.status || "unknown eligibility")}</span><span class="badge">${x.salary?.advertisedSalary ? money(x.salary.advertisedSalary) : x.salary?.estimatedMarketRange ? `estimate ${money(x.salary.estimatedMarketRange)}` : "salary evidence unavailable"}</span></div><div class="actions"><button class="ghost" data-save="${e(x.job.id)}">${x.saved ? "Unsave" : "Save"}</button><button class="ghost" data-apply="${e(x.job.id)}">Mark applied</button><button class="ghost" data-dismiss="${e(x.job.id)}">${x.dismissed ? "Restore" : "Dismiss"}</button><a class="secondary" target="_blank" rel="noopener noreferrer" href="${e(x.job.canonicalUrl)}">Open official application</a></div></div><div class="score">${Math.round(x.match?.score || 0)}</div></article>`).join("")}</div>`;
+  return `<div class="job-list">${items.map((x) => `<article class="job-card"><div><h3><a data-job-link href="/jobs/${encodeURIComponent(x.job.id)}">${e(x.job.title)}</a></h3><div class="company">${e(x.job.company)}</div><div class="job-meta"><span>${e(x.job.locationText || "Location not stated")}</span><span>${e(x.job.workplaceType)}</span><span>${e(x.job.sourceType)}</span><span>${date(x.job.publishedAt || x.job.firstSeenAt)}</span></div><div class="badges"><span class="badge ${x.match?.recommendation || ""}">${e(x.match?.recommendation || "unanalysed")}</span><span class="badge ${x.trust?.level || ""}">${e(x.trust?.level || "unverified")}</span><span class="badge ${x.workAuthorization?.status || ""}">${e(x.workAuthorization?.status || "unknown eligibility")}</span><span class="badge">${x.salary?.advertisedSalary ? money(x.salary.advertisedSalary) : x.salary?.estimatedMarketRange ? `estimate ${money(x.salary.estimatedMarketRange)}` : "salary evidence unavailable"}</span></div><div class="actions"><button class="ghost" data-save="${e(x.job.id)}">${x.saved ? "Unsave" : "Save"}</button><button class="ghost" data-apply="${e(x.job.id)}">Mark applied</button><button class="ghost" data-dismiss="${e(x.job.id)}">${x.dismissed ? "Restore" : "Dismiss"}</button><a class="secondary" target="_blank" rel="noopener noreferrer" href="${e(x.job.canonicalUrl)}">Open official application</a></div></div><div class="score" title="Match confidence">${Math.round(x.match?.score || 0)}%</div></article>`).join("")}</div>`;
 }
 
 function renderJobDetail(id) {
@@ -159,7 +271,7 @@ function renderJobDetail(id) {
         `<div class="bar"><span>${e(name)}</span><i><span style="width:${Math.max(0, Math.min(100, c.score))}%"></span></i><b>${Math.round(c.score)}</b></div>`,
     )
     .join("");
-  app.innerHTML = `<div class="panel"><div class="panel-head"><div><div class="eyebrow">${e(x.job.sourceType)} · ${e(x.job.status)}</div><h2>${e(x.job.title)}</h2><p class="muted">${e(x.job.company)} · ${e(x.job.locationText || "Location not stated")}</p></div><div class="score">${Math.round(x.match?.score || 0)}</div></div><div class="actions"><a class="primary" target="_blank" rel="noopener noreferrer" href="${e(x.job.canonicalUrl)}">Open official application</a><button class="secondary" data-save="${e(x.job.id)}">${x.saved ? "Unsave" : "Save"}</button><button class="secondary" data-apply="${e(x.job.id)}">Mark applied</button></div></div>
+  app.innerHTML = `<div class="panel"><div class="panel-head"><div><div class="eyebrow">${e(x.job.sourceType)} · ${e(x.job.status)}</div><h2>${e(x.job.title)}</h2><p class="muted">${e(x.job.company)} · ${e(x.job.locationText || "Location not stated")}</p></div><div class="score">${Math.round(x.match?.score || 0)}</div></div><div class="actions"><button class="secondary" data-back-discover>Back to Discover Jobs</button><a class="primary" target="_blank" rel="noopener noreferrer" href="${e(x.job.canonicalUrl)}">Open official application</a><button class="secondary" data-save="${e(x.job.id)}">${x.saved ? "Unsave" : "Save"}</button><button class="secondary" data-apply="${e(x.job.id)}">Mark applied</button></div></div>
   <div class="detail-grid"><div><div class="panel"><h2>Match breakdown</h2><div class="breakdown">${breakdown}</div></div><div class="panel"><h2>Original job information</h2><p class="muted">${e(x.job.description)}</p></div><div class="panel"><h2>Gaps and candidate evidence</h2>${list(x.match?.gaps.map((g) => `${g.severity}: ${g.requirement} — ${g.explanation}`) || [])}</div><div class="panel"><h2>Detailed local-AI analysis</h2>${x.match?.detailedAnalysis ? `<pre class="code">${e(JSON.stringify(x.match.detailedAnalysis, null, 2))}</pre>` : `<p class="muted">Pending or unavailable. The deterministic score remains usable.</p>`}</div></div>
   <div><div class="panel"><h2>Trust assessment</h2><p><span class="badge ${x.trust?.level || ""}">${e(x.trust?.level || "unverified")}</span></p>${list([...(x.trust?.evidence || []), ...(x.trust?.suspiciousSignals || [])])}</div><div class="panel"><h2>Work authorisation</h2><p><span class="badge ${x.workAuthorization?.status || ""}">${e(x.workAuthorization?.status || "unknown")}</span></p><p class="muted">${e(x.workAuthorization?.explanation || "")}</p><p class="small muted">${e(x.workAuthorization?.disclaimer || "")}</p></div><div class="panel"><h2>Salary evidence</h2><p>${x.salary?.advertisedSalary ? money(x.salary.advertisedSalary) : x.salary?.estimatedMarketRange ? money(x.salary.estimatedMarketRange) : "Insufficient evidence"}</p><p class="muted">${e(x.salary?.explanation || "")}</p><p class="small muted">${x.salary?.evidenceCount || 0} evidence item(s). Current baseline: AED 22,000 monthly. ${e(x.salary?.comparisonStatus || "")}</p>${list((x.salary?.evidence || []).map((item) => `${item.sourceName} · ${money(item)} · collected ${date(item.collectedAt)}`))}</div><div class="panel"><h2>Source history</h2><p class="small muted">${e(x.job.sourceName || x.job.sourceType)}<br>Last verified: ${date(x.job.lastVerifiedAt)}</p></div></div></div>`;
   bindCommon();
@@ -235,9 +347,9 @@ function renderSources() {
     pageSize: 25,
     total: 0,
   };
-  app.innerHTML = `<div class="grid stats">${stat("Unique companies", stats.totalCompanies)}${stat("Candidates", stats.candidateCompanies || 0)}${stat("Source verified", stats.sourceVerified || 0)}${stat("Monitored", stats.monitored || 0)}${stat("Unresolved", stats.unresolved)}${stat("Source records", stats.totalSourceRecords)}</div>
-  <div class="panel"><div class="panel-head"><div><h2>Free company-registry discovery</h2><p class="muted">Version 1 monitors maintained official career pages and public ATS feeds. It does not search the entire internet.</p></div><div class="actions"><a class="secondary" href="/api/companies/unresolved.csv">Export unresolved CSV</a><label class="secondary">Import reviewed CSV<input id="resolution-csv" type="file" accept=".csv,text/csv" hidden></label></div></div><p class="small muted">Sponsor-register or permit history is positive company evidence, not a guarantee for a specific vacancy.</p></div>
-  <div class="panel"><div class="panel-head"><h2>Companies</h2><span class="muted small">${page.total} total · page ${page.page}</span></div><div class="filters"><label>Search<input id="company-search" value="${e(state.companyFilters.search)}" placeholder="Company or domain"></label><label>Country<input id="company-country" value="${e(state.companyFilters.country)}" placeholder="Germany"></label><label>Status<select id="company-status"><option value="">All</option>${["candidate", "domain-resolved", "careers-page-found", "source-verified", "monitored", "temporarily-failing", "inactive", "rejected"].map((status) => `<option value="${status}" ${state.companyFilters.status === status ? "selected" : ""}>${status}</option>`).join("")}</select></label><label>ATS<select id="company-ats"><option value="">All</option>${["greenhouse", "lever", "ashby", "workable", "smartrecruiters", "workday", "personio", "recruitee", "successfactors", "oracle", "custom"].map((value) => `<option value="${value}" ${state.companyFilters.atsProvider === value ? "selected" : ""}>${value}</option>`).join("")}</select></label><label>Sponsorship<select id="company-sponsorship"><option value="">All</option>${["confirmed", "historical", "possible", "unknown", "unlikely"].map((value) => `<option value="${value}" ${state.companyFilters.sponsorshipEvidence === value ? "selected" : ""}>${value}</option>`).join("")}</select></label><label>Engineering<select id="company-engineering"><option value="">All</option>${["high", "medium", "low", "unknown"].map((value) => `<option value="${value}" ${state.companyFilters.engineeringRelevance === value ? "selected" : ""}>${value}</option>`).join("")}</select></label><button class="secondary" data-company-filter>Filter</button></div>${companyTable(page.items)}<div class="actions"><button class="ghost" data-company-page="${Math.max(1, page.page - 1)}" ${page.page <= 1 ? "disabled" : ""}>Previous</button><button class="ghost" data-company-page="${page.page + 1}" ${page.page * page.pageSize >= page.total ? "disabled" : ""}>Next</button></div></div>
+  app.innerHTML = `<div class="grid stats">${stat("Unique companies", stats.totalCompanies)}${stat("Candidates", stats.candidateCompanies || 0)}${stat("Domain resolved", stats.domainResolved || 0)}${stat("Careers page found", stats.careersPageFound || 0)}${stat("Verified with jobs", stats.sourceVerifiedWithJobs || 0)}${stat("Verified empty", stats.sourceVerifiedEmpty || 0)}${stat("Monitored", stats.monitored || 0)}${stat("Temporarily unavailable", stats.temporarilyUnavailable || 0)}${stat("Blocked / unsupported", stats.blockedOrUnsupported || 0)}${stat("Invalid", stats.invalidSources || 0)}${stat("Unresolved", stats.unresolved)}${stat("Rejected", stats.rejected || 0)}${stat("Source records", stats.totalSourceRecords)}</div>
+  <div class="panel"><div class="panel-head"><div><h2>Free company-registry discovery</h2><p class="muted">Verified public career pages and ATS feeds can be monitored even when they currently have no jobs.</p></div><div class="actions"><button class="primary" data-enable-verified>Enable verified</button><a class="secondary" href="/api/companies/unresolved.csv">Export unresolved CSV</a><label class="secondary">Import reviewed CSV<input id="resolution-csv" type="file" accept=".csv,text/csv" hidden></label></div></div><p class="small muted">Sponsor-register or permit history is positive company evidence, not a guarantee for a specific vacancy.</p></div>
+  <div class="panel"><div class="panel-head"><h2>Companies</h2><span class="muted small">${page.total} total · page ${page.page}</span></div><div class="filters"><label>Search<input id="company-search" value="${e(state.companyFilters.search)}" placeholder="Company or domain"></label><label>Country<input id="company-country" value="${e(state.companyFilters.country)}" placeholder="Germany"></label><label>Status<select id="company-status"><option value="">All</option>${["candidate", "domain-resolved", "careers-page-found", "source-verified", "monitored", "temporarily-failing", "inactive", "rejected"].map((status) => `<option value="${status}" ${state.companyFilters.status === status ? "selected" : ""}>${status}</option>`).join("")}</select></label><label>Board state<select id="company-board-state"><option value="">All</option>${["active-with-jobs", "active-empty", "temporarily-unavailable", "blocked", "unsupported", "invalid", "wrong-company"].map((value) => `<option value="${value}" ${state.companyFilters.boardState === value ? "selected" : ""}>${value}</option>`).join("")}</select></label><label>ATS<select id="company-ats"><option value="">All</option>${["greenhouse", "lever", "ashby", "workable", "smartrecruiters", "workday", "personio", "recruitee", "successfactors", "oracle", "custom"].map((value) => `<option value="${value}" ${state.companyFilters.atsProvider === value ? "selected" : ""}>${value}</option>`).join("")}</select></label><label>Source type<select id="company-classification"><option value="">All</option>${["direct-employer", "recruitment-agency", "staffing-consultancy", "job-platform", "government-portal", "ecosystem-directory", "unknown"].map((value) => `<option value="${value}" ${state.companyFilters.hiringSourceClassification === value ? "selected" : ""}>${value}</option>`).join("")}</select></label><label>Sponsorship<select id="company-sponsorship"><option value="">All</option>${["confirmed", "historical", "possible", "unknown", "unlikely"].map((value) => `<option value="${value}" ${state.companyFilters.sponsorshipEvidence === value ? "selected" : ""}>${value}</option>`).join("")}</select></label><label>Engineering<select id="company-engineering"><option value="">All</option>${["high", "medium", "low", "unknown"].map((value) => `<option value="${value}" ${state.companyFilters.engineeringRelevance === value ? "selected" : ""}>${value}</option>`).join("")}</select></label><button class="secondary" data-company-filter>Filter</button></div><div class="actions"><button class="ghost" data-bulk-verify>Verify selected</button><button class="ghost" data-bulk-retry>Retry temporarily unavailable</button><button class="ghost" data-bulk-enable>Enable selected verified</button><button class="ghost" data-bulk-disable>Disable selected</button></div>${companyTable(page.items)}<div class="actions"><button class="ghost" data-company-page="${Math.max(1, page.page - 1)}" ${page.page <= 1 ? "disabled" : ""}>Previous</button><button class="ghost" data-company-page="${page.page + 1}" ${page.page * page.pageSize >= page.total ? "disabled" : ""}>Next</button></div></div>
   <div class="two-col"><div class="panel"><h2>Recent imports</h2>${runList(s.importRuns, (run) => `${run.sourceName}: ${run.recordsCreated} created, ${run.recordsUpdated} updated`)}</div><div class="panel"><h2>Recent verifications</h2>${runList(s.verificationRuns, (run) => `${run.detectedProvider || "custom"}: ${run.companyId}`)}</div></div>
   <form id="company-form" class="panel"><h2>Add candidate company</h2><div class="form-grid"><label>Name<input name="name" required></label><label>Official domain<input name="domain" placeholder="example.com"></label><label>Careers URL<input name="careersUrl" type="url"></label><label>ATS<select name="ats"><option value="">Detect from careers URL</option>${["greenhouse", "lever", "ashby", "workable", "smartrecruiters", "workday", "personio", "recruitee", "successfactors", "oracle", "custom"].map((value) => `<option>${value}</option>`).join("")}</select></label><label>ATS identifier<input name="identifier"></label><label>Country<input name="countries"></label><label>Industries<input name="industries" placeholder="fintech, product"></label><label class="wide">Evidence URL<input name="evidenceUrl" type="url" required></label><label class="wide">Notes<textarea name="notes"></textarea></label></div><div class="actions"><button class="primary">Add candidate</button></div><p class="small muted">New records remain disabled until their official source verifies successfully.</p></form>`;
   document
@@ -258,6 +370,26 @@ function renderSources() {
     .forEach((b) =>
       b.addEventListener("click", () => verifySource(b.dataset.sourceVerify)),
     );
+  document
+    .querySelectorAll("[data-source-detect]")
+    .forEach((b) =>
+      b.addEventListener("click", () => detectSource(b.dataset.sourceDetect)),
+    );
+  document
+    .querySelector("[data-enable-verified]")
+    .addEventListener("click", enableVerifiedSources);
+  document
+    .querySelector("[data-bulk-verify]")
+    .addEventListener("click", () => bulkVerifySources(false));
+  document
+    .querySelector("[data-bulk-retry]")
+    .addEventListener("click", () => bulkVerifySources(true));
+  document
+    .querySelector("[data-bulk-enable]")
+    .addEventListener("click", enableSelectedVerifiedSources);
+  document
+    .querySelector("[data-bulk-disable]")
+    .addEventListener("click", disableSelectedSources);
   document
     .querySelectorAll("[data-source-reject]")
     .forEach((b) =>
@@ -297,10 +429,23 @@ function runList(runs, summary) {
     .join("")}</ul>`;
 }
 
+function companyCareersLinks(company) {
+  const urls = [
+    company.corporateCareersUrl || company.careersUrl,
+    ...(company.additionalCareersUrls || []),
+  ].filter((url, index, all) => url && all.indexOf(url) === index);
+  return urls
+    .map(
+      (url, index) =>
+        `<a target="_blank" rel="noopener noreferrer" href="${e(url)}">${index ? "Additional careers" : "Corporate careers"}</a>`,
+    )
+    .join("<br>");
+}
+
 function companyTable(companies) {
   if (!companies.length)
     return `<div class="empty">No companies match these filters.</div>`;
-  return `<div class="table-wrap"><table><thead><tr><th>Company</th><th>Country / cities</th><th>Industry</th><th>Official source</th><th>ATS</th><th>Evidence</th><th>Status</th><th>Last sync</th><th>Actions</th></tr></thead><tbody>${companies.map((c) => `<tr><td><strong>${e(c.displayName)}</strong><br><span class="small muted">${e(c.legalName)}</span></td><td>${e(c.headquartersCountry || c.operatingCountries.join(", "))}<br><span class="small muted">${e(c.knownCities.join(", "))}</span></td><td>${e(c.industries.join(", ") || "unknown")}<br><span class="small muted">engineering ${e(c.engineeringRelevance)}</span></td><td>${c.companyDomain ? `<a target="_blank" rel="noopener noreferrer" href="https://${e(c.companyDomain)}">${e(c.companyDomain)}</a>` : "unresolved"}<br>${c.careersUrl ? `<a target="_blank" rel="noopener noreferrer" href="${e(c.careersUrl)}">Careers</a>` : ""}<br><span class="small muted">${e(c.sourceRecords?.map((s) => s.sourceName).join(", ") || "No provenance")}</span></td><td>${e(c.atsProvider || "unresolved")}<br><span class="small muted">${e(c.atsIdentifier || "")}</span></td><td>sponsor ${e(c.sponsorshipEvidence)}<br>relocation ${e(c.relocationEvidence)}</td><td><span class="badge ${e(c.verificationStatus)}">${e(c.verificationStatus)}</span><br><span class="small muted">${c.enabled ? "enabled" : "disabled"}</span></td><td>${date(c.lastSuccessfulSyncAt)}</td><td><div class="actions"><button class="ghost" data-source-verify="${e(c.id)}">Verify</button><button class="ghost" data-source-sync="${e(c.id)}">Sync</button><button class="ghost" data-source-toggle="${e(c.id)}">${c.enabled ? "Disable" : "Enable"}</button><button class="ghost" data-source-merge="${e(c.id)}">Merge</button><button class="ghost" data-source-reject="${e(c.id)}">Reject</button></div><details><summary class="small">Resolve / edit</summary><form data-resolve-form="${e(c.id)}"><label>Official domain<input name="officialDomain" value="${e(c.companyDomain || "")}"></label><label>Careers URL<input name="careersUrl" value="${e(c.careersUrl || "")}"></label><label>ATS provider<input name="atsProvider" value="${e(c.atsProvider || "")}"></label><label>ATS identifier<input name="atsIdentifier" value="${e(c.atsIdentifier || "")}"></label><label>Evidence URL<input name="evidenceUrl" type="url" required></label><label>Notes<textarea name="notes">${e(c.notes || "")}</textarea></label><button class="secondary">Save resolution</button></form></details></td></tr>`).join("")}</tbody></table></div>`;
+  return `<div class="table-wrap"><table><thead><tr><th>Select</th><th>Company</th><th>Country / cities</th><th>Industry</th><th>Official source</th><th>ATS</th><th>Evidence</th><th>Status</th><th>Last sync</th><th>Actions</th></tr></thead><tbody>${companies.map((c) => `<tr><td><input type="checkbox" data-company-select value="${e(c.id)}" aria-label="Select ${e(c.displayName)}"></td><td><strong>${e(c.displayName)}</strong><br><span class="small muted">${e(c.legalName)}</span><br><span class="small muted">${e(c.hiringSourceClassification)}</span></td><td>${e(c.headquartersCountry || c.operatingCountries.join(", "))}<br><span class="small muted">${e(c.knownCities.join(", "))}</span></td><td>${e(c.industries.join(", ") || "unknown")}<br><span class="small muted">engineering ${e(c.engineeringRelevance)}</span></td><td>${c.companyDomain ? `<a target="_blank" rel="noopener noreferrer" href="https://${e(c.companyDomain)}">${e(c.companyDomain)}</a>` : "unresolved"}<br>${companyCareersLinks(c)}<br>${c.atsBoardUrl ? `<a target="_blank" rel="noopener noreferrer" href="${e(c.atsBoardUrl)}">ATS board</a>` : ""}<br><span class="small muted">${e(c.sourceRecords?.map((s) => s.sourceName).join(", ") || "No provenance")}</span></td><td>${e(c.atsProvider || "unresolved")}<br><span class="small muted">${e(c.atsIdentifier || "")}</span></td><td>sponsor ${e(c.sponsorshipEvidence)}<br>relocation ${e(c.relocationEvidence)}${c.lastVerification?.evidence?.length ? `<details><summary class="small">View evidence</summary>${list(c.lastVerification.evidence)}</details>` : ""}</td><td><span class="badge ${e(c.verificationStatus)}">${e(c.verificationStatus)}</span><br><span class="small muted">${e(c.boardState || "not checked")} · ${c.enabled ? "enabled" : "disabled"}</span>${c.verificationError ? `<br><span class="small muted">${e(c.verificationError)}</span>` : ""}</td><td>${date(c.lastSuccessfulSyncAt)}<br><span class="small muted">checked ${date(c.lastCheckedAt)}</span></td><td><div class="actions"><button class="ghost" data-source-detect="${e(c.id)}">Detect source</button><button class="ghost" data-source-verify="${e(c.id)}">${c.boardState === "temporarily-unavailable" ? "Retry" : "Verify"}</button><button class="ghost" data-source-sync="${e(c.id)}">Sync now</button><button class="ghost" data-source-toggle="${e(c.id)}">${c.enabled ? "Disable" : "Enable"}</button><button class="ghost" data-source-merge="${e(c.id)}">Merge duplicate</button><button class="ghost" data-source-reject="${e(c.id)}">Reject</button></div><details><summary class="small">Edit source</summary><form data-resolve-form="${e(c.id)}"><label>Official domain<input name="officialDomain" value="${e(c.companyDomain || "")}"></label><label>Careers URL<input name="careersUrl" value="${e(c.corporateCareersUrl || c.careersUrl || "")}"></label><label>ATS provider<input name="atsProvider" value="${e(c.atsProvider || "")}"></label><label>ATS identifier<input name="atsIdentifier" value="${e(c.atsIdentifier || "")}"></label><label>Evidence URL<input name="evidenceUrl" type="url" required></label><label>Notes<textarea name="notes">${e(c.notes || "")}</textarea></label><button class="secondary">Save resolution</button></form></details></td></tr>`).join("")}</tbody></table></div>`;
 }
 async function addCompany(event) {
   event.preventDefault();
@@ -349,6 +494,87 @@ async function verifySource(id) {
         body: "{}",
       }),
     "Company source verified.",
+  );
+}
+async function detectSource(id) {
+  await action(async () => {
+    const result = await api(
+      `/api/companies/${encodeURIComponent(id)}/detect`,
+      {
+        method: "POST",
+        body: "{}",
+      },
+    );
+    const message = result.detection
+      ? `${result.detection.provider} · ${result.detection.identifier || "manual review"} · ${result.detection.confidence} confidence`
+      : "No recognised ATS handoff found.";
+    window.alert(message);
+    return result;
+  }, "Source detection completed.");
+}
+async function enableVerifiedSources() {
+  await action(
+    () =>
+      api("/api/companies/enable-verified", {
+        method: "POST",
+        body: JSON.stringify({
+          country: state.companyFilters.country || undefined,
+          provider: state.companyFilters.atsProvider || undefined,
+        }),
+      }),
+    "Verified sources enabled.",
+  );
+}
+function selectedCompanyIds() {
+  return [...document.querySelectorAll("[data-company-select]:checked")].map(
+    (input) => input.value,
+  );
+}
+async function bulkVerifySources(temporaryOnly) {
+  const selected = selectedCompanyIds().filter((id) => {
+    const company = state.companyPage.items.find((item) => item.id === id);
+    return !temporaryOnly || company?.boardState === "temporarily-unavailable";
+  });
+  await action(
+    () =>
+      Promise.all(
+        selected.map((id) =>
+          api(`/api/companies/${encodeURIComponent(id)}/verify`, {
+            method: "POST",
+            body: "{}",
+          }),
+        ),
+      ),
+    `${selected.length} source(s) verified.`,
+  );
+}
+async function enableSelectedVerifiedSources() {
+  const companyIds = selectedCompanyIds();
+  await action(
+    () =>
+      api("/api/companies/enable-verified", {
+        method: "POST",
+        body: JSON.stringify({ companyIds }),
+      }),
+    `${companyIds.length} selected source(s) reviewed for enablement.`,
+  );
+}
+async function disableSelectedSources() {
+  const selected = selectedCompanyIds();
+  await action(
+    () =>
+      Promise.all(
+        selected.map((id) => {
+          const company = state.companyPage.items.find(
+            (item) => item.id === id,
+          );
+          return api(`/api/companies/${encodeURIComponent(id)}`, {
+            method: "PUT",
+            body: JSON.stringify({ ...company, enabled: false }),
+          });
+        }),
+      ),
+    `${selected.length} source(s) disabled.`,
   );
 }
 async function rejectSource(id) {
@@ -407,6 +633,9 @@ async function loadCompanyPage(page) {
       document.querySelector("#company-sponsorship")?.value || "",
     engineeringRelevance:
       document.querySelector("#company-engineering")?.value || "",
+    boardState: document.querySelector("#company-board-state")?.value || "",
+    hiringSourceClassification:
+      document.querySelector("#company-classification")?.value || "",
   };
   const query = new URLSearchParams({ page: String(page), pageSize: "25" });
   for (const [key, value] of Object.entries(state.companyFilters))
@@ -451,7 +680,7 @@ function renderApplications() {
     "rejected",
     "withdrawn",
   ];
-  app.innerHTML = `<div class="panel"><div class="panel-head"><h2>Application tracking</h2><span class="muted small">Manual submission only</span></div>${apps.length ? `<div class="job-list">${apps.map((x) => `<form class="source-card" data-application-form="${e(x.job.id)}"><div class="wide"><strong>${e(x.job.title)}</strong><p class="muted small">${e(x.job.company)} · updated ${date(x.application.updatedAt)}</p><div class="form-grid"><label>Status<select name="status">${statuses.map((status) => `<option value="${status}" ${x.application.status === status ? "selected" : ""}>${status}</option>`).join("")}</select></label><label>CV version<input name="cvVersion" value="${e(x.application.cvVersion || "")}"></label><label>Follow up<input name="followUpAt" type="date" value="${e(x.application.followUpAt || "")}"></label><label>Next action<input name="nextAction" value="${e(x.application.nextAction || "")}"></label><label class="wide">Recruiter details<textarea name="recruiterDetails">${e(x.application.recruiterDetails || "")}</textarea></label><label class="wide">Notes<textarea name="notes">${e(x.application.notes || "")}</textarea></label><label class="wide">Interview dates (one per line)<textarea name="interviewDates">${e(x.application.interviewDates.join("\n"))}</textarea></label></div></div><div class="actions"><a class="secondary" href="#job:${encodeURIComponent(x.job.id)}">Open</a><button class="primary" type="submit">Save tracking</button></div></form>`).join("")}</div>` : `<div class="empty">Mark a job as applied to start tracking it.</div>`}</div>`;
+  app.innerHTML = `<div class="panel"><div class="panel-head"><h2>Application tracking</h2><span class="muted small">Manual submission only</span></div>${apps.length ? `<div class="job-list">${apps.map((x) => `<form class="source-card" data-application-form="${e(x.job.id)}"><div class="wide"><strong>${e(x.job.title)}</strong><p class="muted small">${e(x.job.company)} · updated ${date(x.application.updatedAt)}</p><div class="form-grid"><label>Status<select name="status">${statuses.map((status) => `<option value="${status}" ${x.application.status === status ? "selected" : ""}>${status}</option>`).join("")}</select></label><label>CV version<input name="cvVersion" value="${e(x.application.cvVersion || "")}"></label><label>Follow up<input name="followUpAt" type="date" value="${e(x.application.followUpAt || "")}"></label><label>Next action<input name="nextAction" value="${e(x.application.nextAction || "")}"></label><label class="wide">Recruiter details<textarea name="recruiterDetails">${e(x.application.recruiterDetails || "")}</textarea></label><label class="wide">Notes<textarea name="notes">${e(x.application.notes || "")}</textarea></label><label class="wide">Interview dates (one per line)<textarea name="interviewDates">${e(x.application.interviewDates.join("\n"))}</textarea></label></div></div><div class="actions"><a class="secondary" href="/jobs/${encodeURIComponent(x.job.id)}">Open</a><button class="primary" type="submit">Save tracking</button></div></form>`).join("")}</div>` : `<div class="empty">Mark a job as applied to start tracking it.</div>`}</div>`;
   document
     .querySelectorAll("[data-application-form]")
     .forEach((form) => form.addEventListener("submit", saveApplicationDetails));
@@ -530,6 +759,19 @@ function bindCommon() {
   document
     .querySelector("[data-show-dismissed]")
     ?.addEventListener("click", renderDismissedJobs);
+  document.querySelectorAll("[data-job-link]").forEach((link) =>
+    link.addEventListener("click", (event) => {
+      event.preventDefault();
+      history.pushState(null, "", link.href);
+      render();
+    }),
+  );
+  document
+    .querySelector("[data-back-discover]")
+    ?.addEventListener("click", () => {
+      history.pushState(null, "", "/discover");
+      render();
+    });
 }
 async function jobAction(id, kind, body) {
   await action(
@@ -541,16 +783,22 @@ async function jobAction(id, kind, body) {
     kind === "application" ? "Application marked as applied." : "Job updated.",
   );
 }
-async function seedDemo() {
-  await action(
-    () => api("/api/demo", { method: "POST", body: "{}" }),
-    "Fictional demo discovery started.",
-  );
-}
 async function runDiscovery() {
   await action(
     () => api("/api/discovery", { method: "POST", body: "{}" }),
     "Discovery started. Progress will refresh automatically.",
+  );
+}
+async function resetJobs() {
+  if (
+    !window.confirm(
+      "Reset all discovered jobs, saved jobs, applications, and discovery history? Your profile and company sources will be kept.",
+    )
+  )
+    return;
+  await action(
+    () => api("/api/jobs/reset", { method: "POST", body: "{}" }),
+    "Jobs and discovery history reset. Your profile and sources were kept.",
   );
 }
 async function action(work, message) {
@@ -604,6 +852,33 @@ function uniq(a) {
 function activeJobs(items) {
   return items.filter((x) => !x.dismissed && x.job.status !== "closed");
 }
+function relevantJobs(items) {
+  return items.filter((x) => (x.match?.score || 0) >= 68);
+}
+function sortJobs(items, sort) {
+  const trustRank = {
+    verified: 3,
+    "likely-legitimate": 2,
+    unverified: 1,
+    suspicious: 0,
+  };
+  return [...items].sort((left, right) => {
+    if (sort === "confidence-asc")
+      return (left.match?.score || 0) - (right.match?.score || 0);
+    if (sort === "newest")
+      return (
+        new Date(right.job.firstSeenAt).getTime() -
+        new Date(left.job.firstSeenAt).getTime()
+      );
+    if (sort === "trust")
+      return (
+        (trustRank[right.trust?.level] ?? -1) -
+          (trustRank[left.trust?.level] ?? -1) ||
+        (right.match?.score || 0) - (left.match?.score || 0)
+      );
+    return (right.match?.score || 0) - (left.match?.score || 0);
+  });
+}
 function e(v) {
   return String(v ?? "").replace(
     /[&<>"']/g,
@@ -615,10 +890,12 @@ function e(v) {
 }
 
 findButton.addEventListener("click", runDiscovery);
-window.addEventListener("hashchange", render);
+resetJobsButton.addEventListener("click", resetJobs);
+migrateLegacyHashRoute();
+window.addEventListener("popstate", render);
 refresh().catch((error) => {
   app.innerHTML = `<div class="empty">${e(error.message)}</div>`;
 });
 setInterval(() => {
-  if (state.dashboard?.discoveryRunning) refresh().catch(() => {});
+  if (state.dashboard?.discoveryRunning) refreshDashboard().catch(() => {});
 }, 3000);

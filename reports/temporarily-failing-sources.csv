@@ -1,0 +1,4 @@
+id,company,country,classification,provider,identifier,corporateCareersUrl,additionalCareersUrls,atsBoardUrl,boardState,status,enabled,lastCheckedAt,error
+company-ec81434728e32a1e79f2c7cd,HungerStation,Saudi Arabia,direct-employer,custom,,https://careers.hungerstation.com/,,,temporarily-unavailable,temporarily-failing,false,2026-07-23T12:44:47.883Z,Could not resolve careers.hungerstation.com: getaddrinfo ENOTFOUND careers.hungerstation.com
+company-f2f972194f91a038b61c2585,NEOM,Saudi Arabia,direct-employer,custom,,https://careers.neom.com/,,,temporarily-unavailable,temporarily-failing,false,2026-07-23T12:47:18.815Z,Official page did not contain enough careers-purpose evidence.
+company-6c8637f70fd4eef2550bf988,noon,Saudi Arabia; United Arab Emirates,direct-employer,custom,,https://careers.noon.com/,,,temporarily-unavailable,temporarily-failing,false,2026-07-23T12:44:17.834Z,"Unexpected content type ""unknown""."

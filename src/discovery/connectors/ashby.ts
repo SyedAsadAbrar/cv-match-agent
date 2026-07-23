@@ -6,32 +6,42 @@ import type {
   JobSourceConnector,
   RawJobPosting,
 } from "../types";
-import {
-  assertIdentifier,
-  ConnectorHttpClient,
-  type ConnectorOptions,
-} from "./common";
+import { ConnectorHttpClient, type ConnectorOptions } from "./common";
 
+const optionalString = z
+  .string()
+  .nullish()
+  .transform((value) => value ?? undefined);
+const optionalUrl = z
+  .string()
+  .url()
+  .nullish()
+  .transform((value) => value ?? undefined);
 const ashbyCompensationSchema = z
   .object({
-    compensationTierSummary: z.string().optional(),
-    scrapeableCompensationSalarySummary: z.string().optional(),
+    compensationTierSummary: optionalString,
+    scrapeableCompensationSalarySummary: optionalString,
   })
   .passthrough();
 const ashbyJobSchema = z
   .object({
-    id: z.string().optional(),
+    id: optionalString,
     title: z.string().min(1),
-    location: z.string().optional(),
-    workplaceType: z.string().optional(),
-    employmentType: z.string().optional(),
-    descriptionHtml: z.string().optional(),
-    descriptionPlain: z.string().optional(),
-    publishedAt: z.string().optional(),
+    location: optionalString,
+    workplaceType: optionalString,
+    employmentType: optionalString,
+    descriptionHtml: optionalString,
+    descriptionPlain: optionalString,
+    publishedAt: optionalString,
     jobUrl: z.string().url(),
-    applyUrl: z.string().url().optional(),
-    isListed: z.boolean().optional(),
-    compensation: ashbyCompensationSchema.optional(),
+    applyUrl: optionalUrl,
+    isListed: z
+      .boolean()
+      .nullish()
+      .transform((value) => value ?? undefined),
+    compensation: ashbyCompensationSchema
+      .nullish()
+      .transform((value) => value ?? undefined),
   })
   .passthrough();
 const ashbyListSchema = z.object({
@@ -49,10 +59,7 @@ export class AshbyConnector implements JobSourceConnector {
   async discoverJobs(
     context: JobDiscoveryContext,
   ): Promise<DiscoveredJobReference[]> {
-    const board = assertIdentifier(
-      context.company.atsIdentifier ?? "",
-      "Ashby job-board name",
-    );
+    const board = assertAshbyIdentifier(context.company.atsIdentifier ?? "");
     const payload = ashbyListSchema.parse(
       await this.http.json(
         `https://api.ashbyhq.com/posting-api/job-board/${encodeURIComponent(board)}?includeCompensation=true`,
@@ -112,6 +119,13 @@ export class AshbyConnector implements JobSourceConnector {
 
 function extractAshbyId(url: string): string {
   return new URL(url).pathname.split("/").filter(Boolean).at(-1) ?? url;
+}
+
+function assertAshbyIdentifier(identifier: string): string {
+  const value = identifier.trim();
+  if (!/^[a-zA-Z0-9_-]+(?:\.[a-zA-Z0-9_-]+)*$/.test(value))
+    throw new Error("Ashby job-board name contains unsupported characters.");
+  return value;
 }
 
 function parseCompensation(sourceText: string): RawJobPosting["compensation"] {

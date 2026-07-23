@@ -4,11 +4,14 @@ import test from "node:test";
 import Database from "better-sqlite3";
 import {
   auditCompanyRegistry,
+  enableVerifiedCompanies,
   exportUnresolvedCompanies,
   generateCompanyRegistryStats,
   importCompanyResolutions,
   importCompanySourceRecords,
   parseIndSponsorRegisterHtml,
+  recordCompanySourceDetection,
+  selectSupportedCareerHandoff,
   verifyCompanySource,
 } from "../src/company/registry";
 import {
@@ -17,8 +20,13 @@ import {
   extractSitemapUrls,
   parseRobotsPolicy,
 } from "../src/company/crawler";
+import { crawlPinpointBoard } from "../src/discovery/connectors/pinpoint";
 import { compareCompanies } from "../src/company/deduplicate";
-import { detectCareerSource, findCareerLink } from "../src/company/detection";
+import {
+  detectCareerSource,
+  detectCareerSourcesFromPage,
+  findCareerLink,
+} from "../src/company/detection";
 import {
   normaliseCompanyName,
   normaliseDomain,
@@ -116,7 +124,9 @@ test("careers links and supported ATS identifiers are detected from official URL
   assert.deepEqual(detectCareerSource("https://jobs.lever.co/example"), {
     provider: "lever",
     identifier: "example",
-    url: "https://jobs.lever.co/example",
+    sourceUrl: "https://jobs.lever.co/example",
+    confidence: "medium",
+    evidence: ["Recognised lever hostname."],
     ingestible: true,
   });
   assert.equal(
@@ -124,6 +134,73 @@ test("careers links and supported ATS identifiers are detected from official URL
       ?.ingestible,
     false,
   );
+});
+
+test("official careers pages detect supported and detection-only ATS handoffs", () => {
+  const page = [
+    '<a href="https://boards.eu.greenhouse.io/example">Greenhouse roles</a>',
+    '<a href="https://jobs.eu.lever.co/example-emea">Lever EMEA</a>',
+    '<a href="https://jobs.ashbyhq.com/example">Ashby jobs</a>',
+    '<a href="https://example.wd3.myworkdayjobs.com/jobs">Workday careers</a>',
+    '<a href="https://unrelated.example/jobs">Unrelated board</a>',
+  ].join("");
+  const detected = detectCareerSourcesFromPage(
+    "https://example.com/careers",
+    page,
+  );
+  assert.deepEqual(
+    detected.map((item) => item.provider),
+    ["greenhouse", "lever", "ashby", "workday"],
+  );
+  assert.ok(detected.every((item) => item.confidence === "high"));
+  assert.equal(
+    detected.find((item) => item.provider === "workday")?.ingestible,
+    false,
+  );
+  assert.ok(
+    detected.every((item) =>
+      item.evidence.some((entry) => entry.includes("Link text")),
+    ),
+  );
+});
+
+test("lookalike and unrelated external links are not accepted as ATS sources", () => {
+  const detected = detectCareerSourcesFromPage(
+    "https://example.com/careers",
+    [
+      '<a href="https://boards.greenhouse.io.example.net/example">Lookalike</a>',
+      '<a href="https://careers.unrelated.example/jobs">Unrelated</a>',
+    ].join(""),
+  );
+  assert.deepEqual(detected, []);
+});
+
+test("multiple supported ATS handoffs are retained but never auto-selected", () => {
+  const detections = detectCareerSourcesFromPage(
+    "https://example.com/careers",
+    [
+      '<a href="https://jobs.ashbyhq.com/example">Primary jobs</a>',
+      '<a href="https://jobs.lever.co/example-emea">EMEA jobs</a>',
+    ].join(""),
+  );
+  const selection = selectSupportedCareerHandoff(detections);
+  assert.equal(selection.handoff, undefined);
+  assert.equal(selection.ambiguous?.length, 2);
+
+  const persisted = recordCompanySourceDetection(company(), {
+    detection: detections[0],
+    detections,
+    evidence: detections.flatMap((item) => item.evidence),
+    checkedAt: "2026-07-23T00:00:00.000Z",
+  });
+  assert.equal(persisted.sourceDetections.length, 2);
+  assert.equal(
+    persisted.sourceDetections[0]?.evidence.some((entry) =>
+      entry.startsWith("Link text:"),
+    ),
+    true,
+  );
+  assert.equal(persisted.sourceDetectionCheckedAt, "2026-07-23T00:00:00.000Z");
 });
 
 test("JSON-LD and sitemap extraction preserve official job URLs", () => {
@@ -199,6 +276,94 @@ test("generic crawler canonicalises tracking parameters before crawling", async 
   });
   assert.equal(result.pagesVisited, 2);
   assert.equal(result.jobs[0]?.url, "https://example.com/careers/jobs/one");
+});
+
+test("generic crawler rejects careers listing metadata as a job", async () => {
+  const result = await crawlOfficialCareersSite("https://example.com/careers", {
+    maxPages: 1,
+    lookup: publicLookup,
+    retries: 0,
+    fetchImpl: async () =>
+      new Response(
+        `<script type="application/ld+json">${JSON.stringify({
+          "@type": "JobPosting",
+          title: "Open positions at Example",
+          description: "Browse the current jobs at Example.",
+          url: "https://example.com/careers",
+        })}</script>`,
+        { headers: { "Content-Type": "text/html" } },
+      ),
+  });
+  assert.deepEqual(result.jobs, []);
+});
+
+test("Pinpoint board crawler maps individual public job records", async () => {
+  const jobs = await crawlPinpointBoard(
+    "https://indrive.pinpointhq.com/en/postings/",
+    {
+      lookup: publicLookup,
+      retries: 0,
+      fetchImpl: async () =>
+        new Response(
+          JSON.stringify({
+            data: [
+              {
+                id: "42",
+                title: "Platform Engineer",
+                url: "https://indrive.pinpointhq.com/en/postings/42",
+                description: "Build reliable systems.",
+                key_responsibilities: "Own production services.",
+                skills_knowledge_expertise: "TypeScript and Kubernetes.",
+                employment_type_text: "Full Time",
+                workplace_type_text: "Hybrid",
+                location: { city: "Dubai", name: "United Arab Emirates" },
+              },
+            ],
+          }),
+          { headers: { "Content-Type": "application/json" } },
+        ),
+    },
+  );
+  assert.deepEqual(jobs, [
+    {
+      title: "Platform Engineer",
+      url: "https://indrive.pinpointhq.com/en/postings/42",
+      description:
+        "Build reliable systems. Own production services. TypeScript and Kubernetes. Full Time Hybrid",
+      locationText: "Dubai, United Arab Emirates",
+    },
+  ]);
+});
+
+test("generic crawler detects a validated redirect from an official page to an ATS", async () => {
+  const result = await crawlOfficialCareersSite("https://example.com/careers", {
+    maxPages: 1,
+    retries: 0,
+    lookup: publicLookup,
+    fetchImpl: async (input) => {
+      const url = String(input);
+      if (url.endsWith("/robots.txt"))
+        return new Response("", {
+          status: 404,
+          headers: { "content-type": "text/plain" },
+        });
+      if (url.includes("example.com"))
+        return new Response(null, {
+          status: 302,
+          headers: { location: "https://jobs.lever.co/example" },
+        });
+      return new Response("<html><title>Example careers</title></html>", {
+        status: 200,
+        headers: { "content-type": "text/html" },
+      });
+    },
+  });
+  assert.equal(result.detectedSources[0]?.provider, "lever");
+  assert.equal(result.detectedSources[0]?.confidence, "high");
+  assert.match(
+    result.detectedSources[0]?.evidence.join(" ") ?? "",
+    /redirect/i,
+  );
 });
 
 test("IND register parser preserves legal name, KvK identity, and sponsor provenance", () => {
@@ -285,7 +450,7 @@ test("ATS verification promotes a disabled company to source-verified", async ()
   store.close();
 });
 
-test("empty source responses are not promoted to source-verified", async () => {
+test("valid empty ATS sources are promoted to source-verified", async () => {
   const store = memoryStore();
   const candidate = company({
     atsProvider: "greenhouse",
@@ -302,16 +467,13 @@ test("empty source responses are not promoted to source-verified", async () => {
       throw new Error("unused");
     },
   };
-  await assert.rejects(
-    verifyCompanySource(store, candidate, { greenhouse: connector }),
-    /no current or valid historical job postings/,
-  );
-  assert.equal(
-    store.listCompanies()[0].verificationStatus,
-    "temporarily-failing",
-  );
+  const verified = await verifyCompanySource(store, candidate, {
+    greenhouse: connector,
+  });
+  assert.equal(verified.verificationStatus, "source-verified");
+  assert.equal(verified.boardState, "active-empty");
   assert.equal(store.listCompanies()[0].enabled, false);
-  assert.equal(store.listCompanyVerificationRuns()[0].status, "failed");
+  assert.equal(store.listCompanyVerificationRuns()[0].status, "completed");
   store.close();
 });
 
@@ -323,15 +485,141 @@ test("invalid ATS identifiers fail verification without enabling the source", as
     verificationStatus: "careers-page-found",
   });
   store.saveCompany(candidate);
-  await assert.rejects(
-    verifyCompanySource(store, candidate),
-    /unsupported characters/,
-  );
-  assert.equal(
-    store.listCompanies()[0].verificationStatus,
-    "temporarily-failing",
-  );
+  const invalid = await verifyCompanySource(store, candidate);
+  assert.equal(invalid.boardState, "invalid");
+  assert.equal(invalid.verificationStatus, "careers-page-found");
+  assert.equal(invalid.enabled, false);
   assert.equal(store.listCompanyVerificationRuns()[0].status, "failed");
+  store.close();
+});
+
+test("wrong-company ATS boards are rejected with explicit evidence", async () => {
+  const store = memoryStore();
+  const candidate = company({
+    atsProvider: "greenhouse",
+    atsIdentifier: "other",
+    verificationStatus: "careers-page-found",
+  });
+  store.saveCompany(candidate);
+  const connector: JobSourceConnector = {
+    sourceType: "greenhouse",
+    async discoverJobs() {
+      return [
+        {
+          sourceType: "greenhouse",
+          sourceName: "Greenhouse · Other Company",
+          externalId: "job-1",
+          url: "https://boards.greenhouse.io/other/jobs/1",
+          company: "Other Company",
+          raw: { company_name: "Other Company" },
+        },
+      ];
+    },
+    async fetchJob() {
+      throw new Error("unused");
+    },
+  };
+  const result = await verifyCompanySource(store, candidate, {
+    greenhouse: connector,
+  });
+  assert.equal(result.boardState, "wrong-company");
+  assert.equal(result.enabled, false);
+  assert.match(result.verificationError ?? "", /another company/);
+  store.close();
+});
+
+test("temporary and blocked failures are not treated as invalid identifiers", async () => {
+  for (const [message, expected] of [
+    ["Request timed out after 15000ms.", "temporarily-unavailable"],
+    ["HTTP 429 from boards-api.greenhouse.io.", "temporarily-unavailable"],
+    ["CAPTCHA: verify you are human.", "blocked"],
+  ] as const) {
+    const store = memoryStore();
+    const candidate = company({
+      atsProvider: "greenhouse",
+      atsIdentifier: "fixture",
+      verificationStatus: "careers-page-found",
+    });
+    store.saveCompany(candidate);
+    const connector: JobSourceConnector = {
+      sourceType: "greenhouse",
+      async discoverJobs() {
+        throw new Error(message);
+      },
+      async fetchJob() {
+        throw new Error("unused");
+      },
+    };
+    const result = await verifyCompanySource(store, candidate, {
+      greenhouse: connector,
+    });
+    assert.equal(result.boardState, expected);
+    assert.equal(result.enabled, false);
+    if (expected === "temporarily-unavailable")
+      assert.ok(result.nextVerificationAt);
+    store.close();
+  }
+});
+
+test("detection-only ATS providers are reported as unsupported", async () => {
+  const store = memoryStore();
+  const candidate = company({
+    atsProvider: "workday",
+    atsIdentifier: "example",
+    careersUrl: "https://example.wd3.myworkdayjobs.com/jobs",
+  });
+  store.saveCompany(candidate);
+  const result = await verifyCompanySource(store, candidate);
+  assert.equal(result.boardState, "unsupported");
+  assert.equal(result.enabled, false);
+  store.close();
+});
+
+test("active-empty verified sources can be bulk enabled and disabled safely", async () => {
+  const store = memoryStore();
+  const candidate = company({
+    atsProvider: "greenhouse",
+    atsIdentifier: "fixture",
+  });
+  store.saveCompany(candidate);
+  const connector: JobSourceConnector = {
+    sourceType: "greenhouse",
+    async discoverJobs() {
+      return [];
+    },
+    async fetchJob() {
+      throw new Error("unused");
+    },
+  };
+  await verifyCompanySource(store, candidate, { greenhouse: connector });
+  const dryRun = enableVerifiedCompanies(store, { dryRun: true });
+  assert.equal(dryRun.planned.length, 1);
+  assert.equal(store.listCompanies()[0].enabled, false);
+  const enabled = enableVerifiedCompanies(store);
+  assert.equal(enabled.changed.length, 1);
+  const monitored = store.listCompanies()[0];
+  assert.equal(monitored.verificationStatus, "monitored");
+  assert.equal(monitored.enabled, true);
+  const disabled = store.saveCompany({ ...monitored, enabled: false });
+  assert.equal(disabled.verificationStatus, "source-verified");
+  store.close();
+});
+
+test("bulk enable never affects unverified or invalid sources", () => {
+  const store = memoryStore();
+  store.saveCompany(
+    company({ id: "candidate", verificationStatus: "candidate" }),
+  );
+  store.saveCompany(
+    company({
+      id: "invalid",
+      verificationStatus: "careers-page-found",
+      boardState: "invalid",
+    }),
+  );
+  const result = enableVerifiedCompanies(store);
+  assert.equal(result.changed.length, 0);
+  assert.ok(store.listCompanies().every((item) => !item.enabled));
   store.close();
 });
 

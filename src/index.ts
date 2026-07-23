@@ -6,7 +6,6 @@ import { createModelsCommand } from "./commands/models";
 import { createProfileCommand } from "./commands/profile";
 import { createJobsCommand } from "./commands/jobs";
 import { createDatabaseCommand } from "./commands/database";
-import { createDemoCommand } from "./commands/demo";
 import { createServeCommand } from "./commands/serve";
 import { createCompaniesCommand } from "./commands/companies";
 import { logger } from "./utils/logger";
@@ -23,7 +22,6 @@ program.addCommand(createModelsCommand());
 program.addCommand(createProfileCommand());
 program.addCommand(createJobsCommand());
 program.addCommand(createDatabaseCommand());
-program.addCommand(createDemoCommand());
 program.addCommand(createServeCommand());
 program.addCommand(createCompaniesCommand());
 

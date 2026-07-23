@@ -236,4 +236,25 @@ export const migrations: Migration[] = [
       ON company_job_observations(company_id, consecutive_misses);
   `,
   },
+  {
+    version: 5,
+    name: "operational-company-source-verification",
+    sql: `
+    ALTER TABLE target_companies ADD COLUMN board_state TEXT;
+    ALTER TABLE target_companies ADD COLUMN hiring_source_classification TEXT NOT NULL DEFAULT 'unknown';
+    ALTER TABLE target_companies ADD COLUMN ats_board_url TEXT;
+    ALTER TABLE target_companies ADD COLUMN shared_career_board_key TEXT;
+    ALTER TABLE target_companies ADD COLUMN verification_failure_count INTEGER NOT NULL DEFAULT 0;
+    ALTER TABLE target_companies ADD COLUMN next_verification_at TEXT;
+
+    CREATE INDEX IF NOT EXISTS idx_companies_board_state
+      ON target_companies(board_state);
+    CREATE INDEX IF NOT EXISTS idx_companies_hiring_source_classification
+      ON target_companies(hiring_source_classification);
+    CREATE INDEX IF NOT EXISTS idx_companies_shared_career_board
+      ON target_companies(shared_career_board_key);
+    CREATE INDEX IF NOT EXISTS idx_companies_next_verification
+      ON target_companies(next_verification_at);
+  `,
+  },
 ];

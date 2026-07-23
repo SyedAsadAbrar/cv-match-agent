@@ -1,0 +1,609 @@
+{
+  "defaults": {
+    "sourceType": "official-company-page",
+    "sourceName": "Requested Saudi company official-domain candidates",
+    "sourceRetrievedAt": "2026-07-23T00:00:00.000Z",
+    "country": "Saudi Arabia",
+    "cities": ["Riyadh"],
+    "industries": ["technology"],
+    "aliases": [],
+    "hiringSourceClassification": "direct-employer"
+  },
+  "records": [
+    {
+      "sourceRecordId": "sa-stc",
+      "legalName": "Saudi Telecom Company",
+      "displayName": "stc",
+      "aliases": ["STC", "Saudi Telecom Company"],
+      "websiteUrl": "https://www.stc.com.sa/",
+      "industries": ["telecommunications", "technology"]
+    },
+    {
+      "sourceRecordId": "sa-solutions-stc",
+      "legalName": "solutions by stc",
+      "websiteUrl": "https://solutions.com.sa/",
+      "industries": ["it services", "cloud"],
+      "parentCompanyName": "Saudi Telecom Company",
+      "relationship": "subsidiary"
+    },
+    {
+      "sourceRecordId": "sa-stc-pay",
+      "legalName": "Saudi Digital Payments Company",
+      "displayName": "stc bank",
+      "aliases": ["stc pay"],
+      "websiteUrl": "https://stcbank.com.sa/",
+      "industries": ["fintech", "digital banking"],
+      "parentCompanyName": "Saudi Telecom Company",
+      "relationship": "subsidiary"
+    },
+    {
+      "sourceRecordId": "sa-urpay",
+      "legalName": "urpay",
+      "websiteUrl": "https://www.urpay.com.sa/",
+      "industries": ["fintech", "payments"]
+    },
+    {
+      "sourceRecordId": "sa-mobily",
+      "legalName": "Etihad Etisalat Company",
+      "displayName": "Mobily",
+      "websiteUrl": "https://www.mobily.com.sa/",
+      "industries": ["telecommunications"]
+    },
+    {
+      "sourceRecordId": "sa-zain",
+      "legalName": "Mobile Telecommunication Company Saudi Arabia",
+      "displayName": "Zain KSA",
+      "websiteUrl": "https://sa.zain.com/",
+      "industries": ["telecommunications"]
+    },
+    {
+      "sourceRecordId": "sa-tamara",
+      "legalName": "Tamara Finance Company",
+      "displayName": "Tamara",
+      "websiteUrl": "https://tamara.co/",
+      "careersUrl": "https://tamara.co/en-sa/careers",
+      "industries": ["fintech", "payments"]
+    },
+    {
+      "sourceRecordId": "sa-tabby",
+      "legalName": "Tabby FZ-LLC",
+      "displayName": "Tabby",
+      "aliases": ["Tabby Saudi Arabia"],
+      "websiteUrl": "https://tabby.ai/",
+      "industries": ["fintech", "payments"],
+      "notes": "Regional alias merges into the global Tabby record."
+    },
+    {
+      "sourceRecordId": "sa-foodics",
+      "legalName": "Foodics",
+      "aliases": ["Foodics Saudi Arabia"],
+      "websiteUrl": "https://www.foodics.com/",
+      "industries": ["restaurant technology", "fintech"]
+    },
+    {
+      "sourceRecordId": "sa-mozn",
+      "legalName": "Mozn",
+      "websiteUrl": "https://www.mozn.sa/",
+      "industries": ["artificial intelligence", "fintech"]
+    },
+    {
+      "sourceRecordId": "sa-lean",
+      "legalName": "Lean Technologies Ltd",
+      "displayName": "Lean Technologies",
+      "aliases": ["Lean Technologies Saudi Arabia"],
+      "websiteUrl": "https://www.leantech.me/",
+      "industries": ["fintech", "open banking"]
+    },
+    {
+      "sourceRecordId": "sa-unifonic",
+      "legalName": "Unifonic",
+      "aliases": ["Unifonic Saudi Arabia"],
+      "websiteUrl": "https://www.unifonic.com/",
+      "industries": ["communications platform"]
+    },
+    {
+      "sourceRecordId": "sa-lucidya",
+      "legalName": "Lucidya",
+      "websiteUrl": "https://lucidya.com/",
+      "industries": ["artificial intelligence", "customer experience"]
+    },
+    {
+      "sourceRecordId": "sa-rasan",
+      "legalName": "Rasan Information Technology",
+      "displayName": "Rasan",
+      "websiteUrl": "https://www.rasan.co/",
+      "industries": ["insurtech", "fintech"]
+    },
+    {
+      "sourceRecordId": "sa-salla",
+      "legalName": "Salla",
+      "websiteUrl": "https://salla.com/",
+      "industries": ["e-commerce", "software"]
+    },
+    {
+      "sourceRecordId": "sa-zid",
+      "legalName": "Zid",
+      "websiteUrl": "https://zid.sa/",
+      "industries": ["e-commerce", "software"]
+    },
+    {
+      "sourceRecordId": "sa-jahez",
+      "legalName": "Jahez International Company",
+      "displayName": "Jahez",
+      "websiteUrl": "https://jahezgroup.com/",
+      "industries": ["food delivery", "marketplace"]
+    },
+    {
+      "sourceRecordId": "sa-hungerstation",
+      "legalName": "HungerStation",
+      "websiteUrl": "https://hungerstation.com/",
+      "industries": ["food delivery", "marketplace"],
+      "parentCompanyName": "Delivery Hero SE",
+      "relationship": "subsidiary"
+    },
+    {
+      "sourceRecordId": "sa-nana",
+      "legalName": "Nana",
+      "websiteUrl": "https://nana.sa/",
+      "industries": ["grocery delivery", "marketplace"]
+    },
+    {
+      "sourceRecordId": "sa-mrsool",
+      "legalName": "Mrsool",
+      "websiteUrl": "https://mrsool.co/",
+      "industries": ["delivery", "marketplace"]
+    },
+    {
+      "sourceRecordId": "sa-toyou",
+      "legalName": "ToYou",
+      "websiteUrl": "https://toyou.io/",
+      "industries": ["delivery", "marketplace"]
+    },
+    {
+      "sourceRecordId": "sa-ninja",
+      "legalName": "Ninja",
+      "websiteUrl": "https://ananinja.com/",
+      "industries": ["grocery delivery", "marketplace"],
+      "notes": "Candidate only; verify corporate identity before monitoring because the name is non-unique."
+    },
+    {
+      "sourceRecordId": "sa-rewaa",
+      "legalName": "Rewaa",
+      "websiteUrl": "https://rewaatech.com/",
+      "industries": ["retail technology", "software"]
+    },
+    {
+      "sourceRecordId": "sa-moyasar",
+      "legalName": "Moyasar",
+      "websiteUrl": "https://moyasar.com/",
+      "industries": ["fintech", "payments"]
+    },
+    {
+      "sourceRecordId": "sa-geidea",
+      "legalName": "Geidea",
+      "websiteUrl": "https://geidea.net/",
+      "industries": ["fintech", "payments"]
+    },
+    {
+      "sourceRecordId": "sa-hyperpay",
+      "legalName": "HyperPay",
+      "websiteUrl": "https://www.hyperpay.com/",
+      "industries": ["fintech", "payments"]
+    },
+    {
+      "sourceRecordId": "sa-paytabs",
+      "legalName": "PayTabs",
+      "websiteUrl": "https://paytabs.com/",
+      "industries": ["fintech", "payments"]
+    },
+    {
+      "sourceRecordId": "sa-tweeq",
+      "legalName": "Tweeq",
+      "websiteUrl": "https://tweeq.sa/",
+      "industries": ["fintech"]
+    },
+    {
+      "sourceRecordId": "sa-d360",
+      "legalName": "D360 Bank",
+      "websiteUrl": "https://d360.com/",
+      "industries": ["digital banking", "fintech"]
+    },
+    {
+      "sourceRecordId": "sa-snb",
+      "legalName": "The Saudi National Bank",
+      "displayName": "Saudi National Bank",
+      "aliases": ["SNB"],
+      "websiteUrl": "https://www.alahli.com/",
+      "industries": ["banking"]
+    },
+    {
+      "sourceRecordId": "sa-alrajhi",
+      "legalName": "Al Rajhi Banking and Investment Corporation",
+      "displayName": "Al Rajhi Bank",
+      "websiteUrl": "https://www.alrajhibank.com.sa/",
+      "industries": ["banking"]
+    },
+    {
+      "sourceRecordId": "sa-riyad-bank",
+      "legalName": "Riyad Bank",
+      "websiteUrl": "https://www.riyadbank.com/",
+      "industries": ["banking"]
+    },
+    {
+      "sourceRecordId": "sa-sab",
+      "legalName": "Saudi Awwal Bank",
+      "aliases": ["SAB"],
+      "websiteUrl": "https://www.sab.com/",
+      "industries": ["banking"]
+    },
+    {
+      "sourceRecordId": "sa-bank-aljazira",
+      "legalName": "Bank AlJazira",
+      "websiteUrl": "https://www.baj.com.sa/",
+      "industries": ["banking"]
+    },
+    {
+      "sourceRecordId": "sa-alinma",
+      "legalName": "Alinma Bank",
+      "websiteUrl": "https://www.alinma.com/",
+      "industries": ["banking"]
+    },
+    {
+      "sourceRecordId": "sa-anb",
+      "legalName": "Arab National Bank",
+      "aliases": ["ANB"],
+      "websiteUrl": "https://anb.com.sa/",
+      "industries": ["banking"]
+    },
+    {
+      "sourceRecordId": "sa-neom",
+      "legalName": "NEOM Company",
+      "displayName": "NEOM",
+      "websiteUrl": "https://www.neom.com/",
+      "careersUrl": "https://careers.neom.com/",
+      "industries": ["technology", "infrastructure"]
+    },
+    {
+      "sourceRecordId": "sa-tonomus",
+      "legalName": "Tonomus",
+      "websiteUrl": "https://www.tonomus.com/",
+      "industries": ["technology", "digital infrastructure"],
+      "parentCompanyName": "NEOM Company",
+      "relationship": "subsidiary"
+    },
+    {
+      "sourceRecordId": "sa-red-sea-global",
+      "legalName": "Red Sea Global",
+      "websiteUrl": "https://www.redseaglobal.com/",
+      "industries": ["tourism", "technology"]
+    },
+    {
+      "sourceRecordId": "sa-qiddiya",
+      "legalName": "Qiddiya Investment Company",
+      "displayName": "Qiddiya",
+      "websiteUrl": "https://qiddiya.com/",
+      "industries": ["entertainment", "technology"]
+    },
+    {
+      "sourceRecordId": "sa-roshn",
+      "legalName": "ROSHN Group",
+      "displayName": "ROSHN",
+      "websiteUrl": "https://www.roshn.sa/",
+      "industries": ["property", "technology"]
+    },
+    {
+      "sourceRecordId": "sa-diriyah",
+      "legalName": "Diriyah Company",
+      "websiteUrl": "https://www.diriyah.sa/",
+      "industries": ["property", "tourism"]
+    },
+    {
+      "sourceRecordId": "sa-new-murabba",
+      "legalName": "New Murabba Development Company",
+      "displayName": "New Murabba",
+      "websiteUrl": "https://newmurabba.com/",
+      "industries": ["property", "technology"]
+    },
+    {
+      "sourceRecordId": "sa-aramco",
+      "legalName": "Saudi Arabian Oil Company",
+      "displayName": "Saudi Aramco",
+      "aliases": ["Aramco"],
+      "websiteUrl": "https://www.aramco.com/",
+      "careersUrl": "https://www.aramco.com/en/careers",
+      "industries": ["energy", "technology"]
+    },
+    {
+      "sourceRecordId": "sa-sabic",
+      "legalName": "Saudi Basic Industries Corporation",
+      "displayName": "SABIC",
+      "websiteUrl": "https://www.sabic.com/",
+      "industries": ["chemicals", "technology"]
+    },
+    {
+      "sourceRecordId": "sa-maaden",
+      "legalName": "Saudi Arabian Mining Company",
+      "displayName": "Maaden",
+      "aliases": ["Ma'aden"],
+      "websiteUrl": "https://www.maaden.com.sa/",
+      "industries": ["mining", "technology"]
+    },
+    {
+      "sourceRecordId": "sa-elm",
+      "legalName": "Elm Company",
+      "displayName": "Elm",
+      "websiteUrl": "https://www.elm.sa/",
+      "industries": ["digital services", "technology"]
+    },
+    {
+      "sourceRecordId": "sa-thiqah",
+      "legalName": "Thiqah Business Services",
+      "displayName": "Thiqah",
+      "websiteUrl": "https://www.thiqah.sa/",
+      "industries": ["digital services", "technology"]
+    },
+    {
+      "sourceRecordId": "sa-site",
+      "legalName": "Saudi Information Technology Company",
+      "displayName": "SITE",
+      "websiteUrl": "https://site.sa/",
+      "industries": ["cybersecurity", "technology"]
+    },
+    {
+      "sourceRecordId": "sa-saudi-payments",
+      "legalName": "Saudi Payments",
+      "websiteUrl": "https://www.saudipayments.com/",
+      "industries": ["payments", "fintech"]
+    },
+    {
+      "sourceRecordId": "sa-sdaia",
+      "legalName": "Saudi Data and AI Authority",
+      "displayName": "SDAIA",
+      "websiteUrl": "https://sdaia.gov.sa/",
+      "industries": ["artificial intelligence", "government technology"]
+    },
+    {
+      "sourceRecordId": "sa-dga",
+      "legalName": "Digital Government Authority",
+      "websiteUrl": "https://dga.gov.sa/",
+      "industries": ["government technology"]
+    },
+    {
+      "sourceRecordId": "sa-nic",
+      "legalName": "National Information Center",
+      "websiteUrl": "https://nic.gov.sa/",
+      "industries": ["government technology"]
+    },
+    {
+      "sourceRecordId": "sa-misk",
+      "legalName": "Mohammed bin Salman Foundation",
+      "displayName": "Misk Foundation",
+      "aliases": ["Misk", "Misk Hub"],
+      "websiteUrl": "https://misk.org.sa/",
+      "industries": ["non-profit", "technology"],
+      "notes": "Misk Hub is represented as an initiative/alias, not an independent employer board."
+    },
+    {
+      "sourceRecordId": "sa-monshaat",
+      "legalName": "Small and Medium Enterprises General Authority",
+      "displayName": "Monsha'at",
+      "websiteUrl": "https://www.monshaat.gov.sa/",
+      "industries": ["government", "startup ecosystem"]
+    },
+    {
+      "sourceRecordId": "sa-fintech-saudi",
+      "legalName": "Fintech Saudi",
+      "websiteUrl": "https://fintechsaudi.com/",
+      "industries": ["fintech", "ecosystem"],
+      "notes": "Employer candidate only; ecosystem directory imports must remain separate candidate evidence."
+    },
+    {
+      "sourceRecordId": "sa-misa",
+      "legalName": "Ministry of Investment of Saudi Arabia",
+      "displayName": "MISA",
+      "websiteUrl": "https://misa.gov.sa/",
+      "industries": ["government"]
+    },
+    {
+      "sourceRecordId": "sa-pif",
+      "legalName": "Public Investment Fund",
+      "displayName": "PIF",
+      "websiteUrl": "https://www.pif.gov.sa/",
+      "industries": ["investment"]
+    },
+    {
+      "sourceRecordId": "sa-sanabil",
+      "legalName": "Sanabil Investments",
+      "websiteUrl": "https://sanabil.com/",
+      "industries": ["investment"]
+    },
+    {
+      "sourceRecordId": "sa-jada",
+      "legalName": "Jada Fund of Funds Company",
+      "displayName": "Jada Fund of Funds",
+      "websiteUrl": "https://jada.com.sa/",
+      "industries": ["investment"]
+    },
+    {
+      "sourceRecordId": "sa-aramco-digital",
+      "legalName": "Aramco Digital",
+      "websiteUrl": "https://aramcodigital.com/",
+      "industries": ["technology"],
+      "parentCompanyName": "Saudi Arabian Oil Company",
+      "relationship": "subsidiary"
+    },
+    {
+      "sourceRecordId": "sa-cntxt",
+      "legalName": "CNTXT",
+      "websiteUrl": "https://www.cntxt.com/",
+      "industries": ["cloud", "digital services"]
+    },
+    {
+      "sourceRecordId": "sa-alibaba-cloud",
+      "legalName": "Alibaba Cloud",
+      "aliases": ["Alibaba Cloud Saudi Arabia"],
+      "websiteUrl": "https://www.alibabacloud.com/",
+      "industries": ["cloud"],
+      "notes": "Global shared careers source."
+    },
+    {
+      "sourceRecordId": "sa-google",
+      "legalName": "Google LLC",
+      "displayName": "Google",
+      "aliases": ["Google Cloud Saudi Arabia"],
+      "websiteUrl": "https://about.google/",
+      "careersUrl": "https://www.google.com/about/careers/applications/jobs/results/",
+      "industries": ["cloud", "software"]
+    },
+    {
+      "sourceRecordId": "sa-oracle",
+      "legalName": "Oracle Corporation",
+      "displayName": "Oracle",
+      "aliases": ["Oracle Saudi Arabia"],
+      "websiteUrl": "https://www.oracle.com/",
+      "careersUrl": "https://careers.oracle.com/",
+      "industries": ["cloud", "software"]
+    },
+    {
+      "sourceRecordId": "sa-microsoft",
+      "legalName": "Microsoft Corporation",
+      "displayName": "Microsoft",
+      "aliases": ["Microsoft Saudi Arabia"],
+      "websiteUrl": "https://www.microsoft.com/",
+      "careersUrl": "https://jobs.careers.microsoft.com/",
+      "industries": ["cloud", "software"]
+    },
+    {
+      "sourceRecordId": "sa-aws",
+      "legalName": "Amazon.com, Inc.",
+      "displayName": "Amazon",
+      "aliases": ["AWS Saudi Arabia", "Amazon Saudi Arabia"],
+      "websiteUrl": "https://www.amazon.jobs/",
+      "careersUrl": "https://www.amazon.jobs/",
+      "industries": ["cloud", "e-commerce"]
+    },
+    {
+      "sourceRecordId": "sa-sap",
+      "legalName": "SAP SE",
+      "displayName": "SAP",
+      "aliases": ["SAP Saudi Arabia"],
+      "websiteUrl": "https://www.sap.com/",
+      "careersUrl": "https://jobs.sap.com/",
+      "industries": ["enterprise software"]
+    },
+    {
+      "sourceRecordId": "sa-ibm",
+      "legalName": "International Business Machines Corporation",
+      "displayName": "IBM",
+      "aliases": ["IBM Saudi Arabia"],
+      "websiteUrl": "https://www.ibm.com/",
+      "careersUrl": "https://www.ibm.com/careers",
+      "industries": ["cloud", "consulting"]
+    },
+    {
+      "sourceRecordId": "sa-accenture",
+      "legalName": "Accenture plc",
+      "displayName": "Accenture",
+      "aliases": ["Accenture Saudi Arabia"],
+      "websiteUrl": "https://www.accenture.com/",
+      "careersUrl": "https://www.accenture.com/us-en/careers",
+      "industries": ["consulting"],
+      "hiringSourceClassification": "staffing-consultancy"
+    },
+    {
+      "sourceRecordId": "sa-deloitte",
+      "legalName": "Deloitte Touche Tohmatsu Limited",
+      "displayName": "Deloitte",
+      "aliases": ["Deloitte Saudi Arabia"],
+      "websiteUrl": "https://www.deloitte.com/",
+      "industries": ["consulting"],
+      "hiringSourceClassification": "staffing-consultancy"
+    },
+    {
+      "sourceRecordId": "sa-pwc",
+      "legalName": "PricewaterhouseCoopers International Limited",
+      "displayName": "PwC",
+      "aliases": ["PwC Saudi Arabia"],
+      "websiteUrl": "https://www.pwc.com/",
+      "industries": ["consulting"],
+      "hiringSourceClassification": "staffing-consultancy"
+    },
+    {
+      "sourceRecordId": "sa-ey",
+      "legalName": "Ernst & Young Global Limited",
+      "displayName": "EY",
+      "aliases": ["EY Saudi Arabia"],
+      "websiteUrl": "https://www.ey.com/",
+      "industries": ["consulting"],
+      "hiringSourceClassification": "staffing-consultancy"
+    },
+    {
+      "sourceRecordId": "sa-kpmg",
+      "legalName": "KPMG International Limited",
+      "displayName": "KPMG",
+      "aliases": ["KPMG Saudi Arabia"],
+      "websiteUrl": "https://kpmg.com/",
+      "industries": ["consulting"],
+      "hiringSourceClassification": "staffing-consultancy"
+    },
+    {
+      "sourceRecordId": "sa-bain",
+      "legalName": "Bain & Company",
+      "aliases": ["Bain Saudi Arabia"],
+      "websiteUrl": "https://www.bain.com/",
+      "industries": ["consulting"],
+      "hiringSourceClassification": "staffing-consultancy"
+    },
+    {
+      "sourceRecordId": "sa-bcg",
+      "legalName": "Boston Consulting Group",
+      "displayName": "BCG",
+      "aliases": ["BCG Saudi Arabia"],
+      "websiteUrl": "https://www.bcg.com/",
+      "industries": ["consulting"],
+      "hiringSourceClassification": "staffing-consultancy"
+    },
+    {
+      "sourceRecordId": "sa-mckinsey",
+      "legalName": "McKinsey & Company",
+      "aliases": ["McKinsey Saudi Arabia"],
+      "websiteUrl": "https://www.mckinsey.com/",
+      "industries": ["consulting"],
+      "hiringSourceClassification": "staffing-consultancy"
+    },
+    {
+      "sourceRecordId": "sa-careem",
+      "legalName": "Careem Networks FZ LLC",
+      "displayName": "Careem",
+      "aliases": ["Careem Saudi Arabia"],
+      "websiteUrl": "https://www.careem.com/",
+      "careersUrl": "https://www.careem.com/en-AE/careers/",
+      "industries": ["mobility", "marketplace"]
+    },
+    {
+      "sourceRecordId": "sa-noon",
+      "legalName": "Noon AD Holdings Ltd",
+      "displayName": "noon",
+      "aliases": ["Noon Saudi Arabia"],
+      "websiteUrl": "https://www.noon.com/",
+      "careersUrl": "https://careers.noon.com/",
+      "industries": ["e-commerce"]
+    },
+    {
+      "sourceRecordId": "sa-kitopi",
+      "legalName": "Kitopi",
+      "aliases": ["Kitopi Saudi Arabia"],
+      "websiteUrl": "https://www.kitopi.com/",
+      "industries": ["food technology"]
+    },
+    {
+      "sourceRecordId": "sa-delivery-hero",
+      "legalName": "Delivery Hero SE",
+      "displayName": "Delivery Hero",
+      "aliases": ["Delivery Hero Saudi Arabia"],
+      "websiteUrl": "https://www.deliveryhero.com/",
+      "careersUrl": "https://careers.deliveryhero.com/",
+      "industries": ["food delivery", "marketplace"]
+    }
+  ]
+}

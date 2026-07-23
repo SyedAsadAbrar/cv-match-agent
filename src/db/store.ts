@@ -16,7 +16,9 @@ import {
   type Application,
   type CandidateProfile,
   type CompanyImportRun,
+  type CompanyBoardState,
   type CompanySourceRecord,
+  type HiringSourceClassification,
   type DiscoveryRun,
   type JobPosting,
   type JobTrustAssessment,
@@ -42,6 +44,7 @@ export type RankedJob = {
 export type RankedJobListOptions = {
   includeDismissed?: boolean;
   includeClosed?: boolean;
+  includeSkipped?: boolean;
 };
 
 export type CompanyListOptions = {
@@ -53,6 +56,8 @@ export type CompanyListOptions = {
   sponsorshipEvidence?: TargetCompany["sponsorshipEvidence"];
   engineeringRelevance?: TargetCompany["engineeringRelevance"];
   enabled?: boolean;
+  boardState?: CompanyBoardState;
+  hiringSourceClassification?: HiringSourceClassification;
   search?: string;
 };
 
@@ -224,6 +229,14 @@ export class JobCopilotStore {
       conditions.push("c.enabled = ?");
       parameters.push(options.enabled ? 1 : 0);
     }
+    if (options.boardState) {
+      conditions.push("c.board_state = ?");
+      parameters.push(options.boardState);
+    }
+    if (options.hiringSourceClassification) {
+      conditions.push("c.hiring_source_classification = ?");
+      parameters.push(options.hiringSourceClassification);
+    }
     if (options.search) {
       const search = `%${options.search.toLowerCase()}%`;
       conditions.push(
@@ -258,6 +271,11 @@ export class JobCopilotStore {
         ...company,
         verificationStatus: "monitored",
       });
+    if (!company.enabled && company.verificationStatus === "monitored")
+      company = targetCompanySchema.parse({
+        ...company,
+        verificationStatus: "source-verified",
+      });
     if (
       company.enabled &&
       !["source-verified", "monitored"].includes(company.verificationStatus)
@@ -269,14 +287,22 @@ export class JobCopilotStore {
           `
       INSERT INTO target_companies(id, name, company_domain, ats_provider, ats_identifier, enabled, last_checked_at,
         payload, legal_name, normalized_name, headquarters_country, verification_status,
-        engineering_relevance, sponsorship_evidence, last_successful_sync_at)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        engineering_relevance, sponsorship_evidence, last_successful_sync_at, board_state,
+        hiring_source_classification, ats_board_url, shared_career_board_key,
+        verification_failure_count, next_verification_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       ON CONFLICT(id) DO UPDATE SET name=excluded.name, company_domain=excluded.company_domain,
         ats_provider=excluded.ats_provider, ats_identifier=excluded.ats_identifier, enabled=excluded.enabled,
         last_checked_at=excluded.last_checked_at, payload=excluded.payload, legal_name=excluded.legal_name,
         normalized_name=excluded.normalized_name, headquarters_country=excluded.headquarters_country,
         verification_status=excluded.verification_status, engineering_relevance=excluded.engineering_relevance,
-        sponsorship_evidence=excluded.sponsorship_evidence, last_successful_sync_at=excluded.last_successful_sync_at
+        sponsorship_evidence=excluded.sponsorship_evidence, last_successful_sync_at=excluded.last_successful_sync_at,
+        board_state=excluded.board_state,
+        hiring_source_classification=excluded.hiring_source_classification,
+        ats_board_url=excluded.ats_board_url,
+        shared_career_board_key=excluded.shared_career_board_key,
+        verification_failure_count=excluded.verification_failure_count,
+        next_verification_at=excluded.next_verification_at
     `,
         )
         .run(
@@ -295,6 +321,12 @@ export class JobCopilotStore {
           company.engineeringRelevance,
           company.sponsorshipEvidence,
           company.lastSuccessfulSyncAt ?? null,
+          company.boardState ?? null,
+          company.hiringSourceClassification,
+          company.atsBoardUrl ?? null,
+          company.sharedCareerBoardKey ?? null,
+          company.verificationFailureCount,
+          company.nextVerificationAt ?? null,
         );
       for (const table of [
         "company_countries",
@@ -565,19 +597,39 @@ export class JobCopilotStore {
           `UPDATE job_sources SET last_success_at = CASE WHEN ? IS NULL THEN ? ELSE last_success_at END,
           last_error = ?, enabled = ? WHERE company_id = ?`,
         )
-        .run(error ?? null, now, error ?? null, error ? 0 : 1, company.id);
+        .run(
+          error ?? null,
+          now,
+          error ?? null,
+          company.enabled ? 1 : 0,
+          company.id,
+        );
       this.saveCompany({
         ...company,
-        enabled: error ? false : company.enabled,
+        enabled: company.enabled,
         lastCheckedAt: now,
         lastSuccessfulSyncAt: error ? company.lastSuccessfulSyncAt : now,
         verificationStatus: error
-          ? company.verificationStatus === "candidate"
-            ? "candidate"
+          ? company.enabled &&
+            ["source-verified", "monitored"].includes(
+              company.verificationStatus,
+            )
+            ? "monitored"
             : "temporarily-failing"
           : company.enabled
             ? "monitored"
             : "source-verified",
+        boardState: error
+          ? "temporarily-unavailable"
+          : jobsFound > 0
+            ? "active-with-jobs"
+            : "active-empty",
+        verificationFailureCount: error
+          ? company.verificationFailureCount + 1
+          : 0,
+        nextVerificationAt: error
+          ? calculateRetryAt(company.verificationFailureCount + 1, now)
+          : undefined,
         verificationError: error,
       });
     });
@@ -708,6 +760,26 @@ export class JobCopilotStore {
     return run;
   }
 
+  resetJobData(): {
+    jobsRemoved: number;
+    discoveryRunsRemoved: number;
+    modelRunsRemoved: number;
+  } {
+    const reset = this.database.transaction(() => {
+      const jobsRemoved = this.database
+        .prepare("DELETE FROM jobs")
+        .run().changes;
+      const discoveryRunsRemoved = this.database
+        .prepare("DELETE FROM discovery_runs")
+        .run().changes;
+      const modelRunsRemoved = this.database
+        .prepare("DELETE FROM ai_model_runs")
+        .run().changes;
+      return { jobsRemoved, discoveryRunsRemoved, modelRunsRemoved };
+    });
+    return reset();
+  }
+
   getLatestDiscoveryRun(): DiscoveryRun | undefined {
     const row = this.database
       .prepare(
@@ -757,12 +829,16 @@ export class JobCopilotStore {
     save();
   }
 
-  importJob(input: JobPosting): { jobId: string; duplicate: boolean } {
+  importJob(input: JobPosting): {
+    jobId: string;
+    duplicate: boolean;
+    contentChanged: boolean;
+  } {
     const job = jobPostingSchema.parse(input);
     const existing = this.database
       .prepare(
         `
-      SELECT id FROM jobs WHERE canonical_url = ?
+      SELECT id, raw_content_hash FROM jobs WHERE canonical_url = ?
       OR (external_id IS NOT NULL AND external_id = ? AND source_type = ?)
       OR (normalized_company = ? AND normalized_title = ? AND COALESCE(location_text, '') = ? AND raw_content_hash = ?)
       LIMIT 1
@@ -776,8 +852,10 @@ export class JobCopilotStore {
         normalize(job.title),
         job.locationText ?? "",
         job.rawContentHash,
-      ) as { id: string } | undefined;
+      ) as { id: string; raw_content_hash: string } | undefined;
     const jobId = existing?.id ?? job.id;
+    const contentChanged =
+      !existing || existing.raw_content_hash !== job.rawContentHash;
     const storedJob = { ...job, id: jobId };
     const save = this.database.transaction(() => {
       if (existing) {
@@ -844,7 +922,7 @@ export class JobCopilotStore {
       }
     });
     save();
-    return { jobId, duplicate: existing !== undefined };
+    return { jobId, duplicate: existing !== undefined, contentChanged };
   }
 
   saveEvaluation(
@@ -969,12 +1047,22 @@ export class JobCopilotStore {
       LEFT JOIN applications a ON a.job_id = j.id
       WHERE (? = 1 OR dj.job_id IS NULL)
         AND (? = 1 OR j.status <> 'closed')
-      ORDER BY COALESCE(m.score, 0) DESC, j.first_seen_at DESC
+        AND (? = 1 OR COALESCE(m.recommendation, 'unanalysed') <> 'skip')
+      ORDER BY COALESCE(m.score, 0) DESC,
+        CASE json_extract(j.payload, '$.hiringSourceClassification')
+          WHEN 'direct-employer' THEN 0
+          WHEN 'staffing-consultancy' THEN 1
+          WHEN 'recruitment-agency' THEN 2
+          WHEN 'job-platform' THEN 3
+          ELSE 4
+        END,
+        j.first_seen_at DESC
     `,
       )
       .all(
         options.includeDismissed ? 1 : 0,
         options.includeClosed ? 1 : 0,
+        options.includeSkipped ? 1 : 0,
       ) as RankedJobRow[];
     return rows.map(mapRankedJob);
   }
@@ -983,6 +1071,7 @@ export class JobCopilotStore {
     return this.listRankedJobs({
       includeDismissed: true,
       includeClosed: true,
+      includeSkipped: true,
     }).find(({ job }) => job.id === jobId);
   }
 
@@ -1201,4 +1290,12 @@ function normalize(value: string): string {
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, " ")
     .trim();
+}
+
+function calculateRetryAt(failureCount: number, from: string): string {
+  const boundedFailures = Math.min(8, Math.max(1, failureCount));
+  const delayMinutes = Math.min(24 * 60, 5 * 2 ** (boundedFailures - 1));
+  return new Date(
+    new Date(from).getTime() + delayMinutes * 60_000,
+  ).toISOString();
 }

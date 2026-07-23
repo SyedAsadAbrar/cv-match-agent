@@ -62,6 +62,7 @@ export function normalizeJob(
     discoveredUrl: raw.discoveredUrl,
     sourceType: raw.sourceType,
     sourceName: raw.sourceName,
+    hiringSourceClassification: raw.hiringSourceClassification,
     title: raw.title,
     company: raw.company,
     locationText: raw.locationText,
@@ -103,8 +104,13 @@ export function extractSkills(text: string): string[] {
             ? ["ci/cd", "continuous integration"]
             : skill === "LLM"
               ? ["llm", "large language model"]
-              : [skill.toLowerCase()];
-    return aliases.some((alias) => text.toLowerCase().includes(alias));
+              : skill === "Go"
+                ? ["golang", "go programming language"]
+                : [skill.toLowerCase()];
+    return aliases.some((alias) => {
+      const escaped = alias.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+      return new RegExp(`\\b${escaped}\\b`, "i").test(text);
+    });
   });
 }
 

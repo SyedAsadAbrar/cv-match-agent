@@ -1,7 +1,12 @@
 import { z } from "zod";
 import { htmlToSafeText } from "../security/content";
 import { safeFetch, type SafeFetchOptions } from "../security/safeFetch";
-import { extractHtmlLinks } from "./detection";
+import {
+  detectCareerSource,
+  detectCareerSourcesFromPage,
+  extractHtmlLinks,
+  type DetectedCareerSource,
+} from "./detection";
 
 const jsonLdJobSchema = z
   .object({
@@ -39,6 +44,9 @@ export async function crawlOfficialCareersSite(
   jobs: CrawledJob[];
   pagesVisited: number;
   discoveredUrls: string[];
+  detectedSources: DetectedCareerSource[];
+  careersPurposeConfirmed: boolean;
+  blocked: boolean;
 }> {
   const origin = new URL(careersUrl);
   const maximumDepth =
@@ -46,7 +54,7 @@ export async function crawlOfficialCareersSite(
     readPositiveInteger(process.env.CAREERS_CRAWLER_MAX_DEPTH, 2);
   const maximumPages =
     options.maxPages ??
-    readPositiveInteger(process.env.CAREERS_CRAWLER_MAX_PAGES_PER_COMPANY, 100);
+    readPositiveInteger(process.env.CAREERS_CRAWLER_MAX_PAGES_PER_COMPANY, 25);
   const robots = await loadRobotsPolicy(origin, options);
   const queue = [
     { url: origin.toString(), depth: 0 },
@@ -55,6 +63,9 @@ export async function crawlOfficialCareersSite(
   const visited = new Set<string>();
   const jobs = new Map<string, CrawledJob>();
   const discoveredUrls = new Set<string>();
+  const detectedSources = new Map<string, DetectedCareerSource>();
+  let careersPurposeConfirmed = false;
+  let blocked = false;
 
   while (queue.length > 0 && visited.size < maximumPages) {
     const current = queue.shift()!;
@@ -71,26 +82,39 @@ export async function crawlOfficialCareersSite(
       readNonNegativeInteger(process.env.CAREERS_CRAWLER_DELAY_MS, 0);
     if (delayMs > 0 && visited.size > 1)
       await new Promise((resolve) => setTimeout(resolve, delayMs));
-    const response = await safeFetch(canonical, {
-      ...options,
-      timeoutMs:
-        options.timeoutMs ??
-        readPositiveInteger(process.env.CAREERS_CRAWLER_TIMEOUT_MS, 15_000),
-      maxBytes:
-        options.maxBytes ??
-        readPositiveInteger(
-          process.env.CAREERS_CRAWLER_MAX_RESPONSE_BYTES,
-          5_000_000,
-        ),
-      maxRedirects: options.maxRedirects ?? 3,
-      retries: options.retries ?? 1,
-      allowedContentTypes: [
-        "text/html",
-        "application/xhtml+xml",
-        "application/xml",
-        "text/xml",
-      ],
-    });
+    let response: Response;
+    try {
+      response = await safeFetch(canonical, {
+        ...options,
+        headers: {
+          Accept:
+            "text/html,application/xhtml+xml,application/xml;q=0.9,text/xml;q=0.8,*/*;q=0.1",
+          ...options.headers,
+        },
+        timeoutMs:
+          options.timeoutMs ??
+          readPositiveInteger(process.env.CAREERS_CRAWLER_TIMEOUT_MS, 15_000),
+        maxBytes:
+          options.maxBytes ??
+          readPositiveInteger(
+            process.env.CAREERS_CRAWLER_MAX_RESPONSE_BYTES,
+            5_000_000,
+          ),
+        maxRedirects: options.maxRedirects ?? 3,
+        retries: options.retries ?? 1,
+        allowedContentTypes: [
+          "text/html",
+          "application/xhtml+xml",
+          "application/xml",
+          "application/rss+xml",
+          "application/atom+xml",
+          "text/xml",
+        ],
+      });
+    } catch (error) {
+      if (visited.size === 1) throw error;
+      continue;
+    }
     if (!response.ok) {
       if (visited.size === 1)
         throw new Error(
@@ -98,8 +122,39 @@ export async function crawlOfficialCareersSite(
         );
       continue;
     }
+    const finalUrl = response.headers.get("x-cv-match-final-url") ?? canonical;
+    if (finalUrl !== canonical) {
+      const redirectedSource = detectCareerSource(finalUrl, {
+        confidence: "high",
+        evidence: [
+          `Official careers URL ${canonical} redirected to a recognised ATS.`,
+          `Validated redirect destination: ${finalUrl}`,
+        ],
+      });
+      if (redirectedSource) {
+        const key = `${redirectedSource.provider}:${redirectedSource.identifier ?? redirectedSource.sourceUrl}`;
+        detectedSources.set(key, redirectedSource);
+      }
+    }
     const body = await response.text();
-    const structuredJobs = extractJsonLdJobs(canonical, body);
+    if (visited.size === 1) {
+      const safeText = htmlToSafeText(body).slice(0, 20_000);
+      blocked =
+        /(?:captcha|verify you are human|access denied|bot detection|cloudflare ray id)/i.test(
+          safeText,
+        );
+      careersPurposeConfirmed =
+        /(?:career|jobs?|vacanc|open positions?|join (?:our|the) team|opportunit)/i.test(
+          `${canonical} ${finalUrl} ${safeText}`,
+        );
+    }
+    for (const detected of detectCareerSourcesFromPage(finalUrl, body)) {
+      const key = `${detected.provider}:${detected.identifier ?? detected.sourceUrl}`;
+      detectedSources.set(key, detected);
+    }
+    const structuredJobs = extractJsonLdJobs(canonical, body).filter((job) =>
+      looksLikeJobUrl(job.url),
+    );
     for (const job of structuredJobs) jobs.set(job.url, job);
     if (structuredJobs.length === 0 && looksLikeJobUrl(canonical)) {
       const title = extractPageTitle(body);
@@ -128,6 +183,9 @@ export async function crawlOfficialCareersSite(
     jobs: [...jobs.values()],
     pagesVisited: visited.size,
     discoveredUrls: [...discoveredUrls],
+    detectedSources: [...detectedSources.values()],
+    careersPurposeConfirmed,
+    blocked,
   };
 }
 
@@ -267,8 +325,13 @@ function shouldCrawl(input: string): boolean {
 }
 
 function looksLikeJobUrl(input: string): boolean {
-  return /\/(?:jobs?|careers?|positions?|openings?|vacancies?)\//i.test(
-    new URL(input).pathname,
+  const path = new URL(input).pathname;
+  const match = path.match(
+    /\/(?:jobs?|positions?|openings?|vacancies?|postings?)\/([^/]+)/i,
+  );
+  if (!match) return false;
+  return !["page", "pages", "search", "filter", "filters", "category"].includes(
+    match[1].toLowerCase(),
   );
 }
 

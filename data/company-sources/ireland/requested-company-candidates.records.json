@@ -1,0 +1,469 @@
+{
+  "defaults": {
+    "sourceType": "official-company-page",
+    "sourceName": "Requested Ireland company official-domain candidates",
+    "sourceRetrievedAt": "2026-07-23T00:00:00.000Z",
+    "country": "Ireland",
+    "cities": ["Dublin"],
+    "industries": ["technology"],
+    "aliases": [],
+    "hiringSourceClassification": "direct-employer"
+  },
+  "records": [
+    {
+      "sourceRecordId": "ie-stripe",
+      "legalName": "Stripe, Inc.",
+      "displayName": "Stripe",
+      "websiteUrl": "https://stripe.com/",
+      "careersUrl": "https://stripe.com/jobs"
+    },
+    {
+      "sourceRecordId": "ie-hubspot",
+      "legalName": "HubSpot, Inc.",
+      "displayName": "HubSpot",
+      "websiteUrl": "https://www.hubspot.com/",
+      "careersUrl": "https://www.hubspot.com/careers"
+    },
+    {
+      "sourceRecordId": "ie-workhuman",
+      "legalName": "Workhuman Limited",
+      "displayName": "Workhuman",
+      "websiteUrl": "https://www.workhuman.com/"
+    },
+    {
+      "sourceRecordId": "ie-datadog",
+      "legalName": "Datadog, Inc.",
+      "displayName": "Datadog",
+      "websiteUrl": "https://www.datadoghq.com/"
+    },
+    {
+      "sourceRecordId": "ie-mongodb",
+      "legalName": "MongoDB, Inc.",
+      "displayName": "MongoDB",
+      "websiteUrl": "https://www.mongodb.com/"
+    },
+    {
+      "sourceRecordId": "ie-intercom",
+      "legalName": "Intercom, Inc.",
+      "displayName": "Intercom",
+      "websiteUrl": "https://www.intercom.com/",
+      "careersUrl": "https://www.intercom.com/careers"
+    },
+    {
+      "sourceRecordId": "ie-toast",
+      "legalName": "Toast, Inc.",
+      "displayName": "Toast",
+      "websiteUrl": "https://pos.toasttab.com/"
+    },
+    {
+      "sourceRecordId": "ie-fidelity",
+      "legalName": "Fidelity Investments",
+      "aliases": ["Fidelity Investments Ireland"],
+      "websiteUrl": "https://www.fidelityinvestments.ie/"
+    },
+    {
+      "sourceRecordId": "ie-mastercard",
+      "legalName": "Mastercard Incorporated",
+      "displayName": "Mastercard",
+      "aliases": ["Mastercard Ireland"],
+      "websiteUrl": "https://www.mastercard.com/"
+    },
+    {
+      "sourceRecordId": "ie-visa",
+      "legalName": "Visa Inc.",
+      "displayName": "Visa",
+      "aliases": ["Visa Ireland"],
+      "websiteUrl": "https://www.visa.com/"
+    },
+    {
+      "sourceRecordId": "ie-workday",
+      "legalName": "Workday, Inc.",
+      "displayName": "Workday",
+      "aliases": ["Workday Ireland"],
+      "websiteUrl": "https://www.workday.com/"
+    },
+    {
+      "sourceRecordId": "ie-salesforce",
+      "legalName": "Salesforce, Inc.",
+      "displayName": "Salesforce",
+      "aliases": ["Salesforce Ireland"],
+      "websiteUrl": "https://www.salesforce.com/"
+    },
+    {
+      "sourceRecordId": "ie-microsoft",
+      "legalName": "Microsoft Corporation",
+      "displayName": "Microsoft",
+      "aliases": ["Microsoft Ireland"],
+      "websiteUrl": "https://www.microsoft.com/"
+    },
+    {
+      "sourceRecordId": "ie-google",
+      "legalName": "Google LLC",
+      "displayName": "Google",
+      "aliases": ["Google Ireland"],
+      "websiteUrl": "https://about.google/"
+    },
+    {
+      "sourceRecordId": "ie-amazon",
+      "legalName": "Amazon.com, Inc.",
+      "displayName": "Amazon",
+      "aliases": ["Amazon Ireland", "AWS Ireland"],
+      "websiteUrl": "https://www.amazon.jobs/"
+    },
+    {
+      "sourceRecordId": "ie-meta",
+      "legalName": "Meta Platforms, Inc.",
+      "displayName": "Meta",
+      "aliases": ["Meta Ireland"],
+      "websiteUrl": "https://www.metacareers.com/"
+    },
+    {
+      "sourceRecordId": "ie-tiktok",
+      "legalName": "TikTok Ltd.",
+      "displayName": "TikTok",
+      "aliases": ["TikTok Ireland"],
+      "websiteUrl": "https://www.tiktok.com/"
+    },
+    {
+      "sourceRecordId": "ie-linkedin",
+      "legalName": "LinkedIn Corporation",
+      "displayName": "LinkedIn",
+      "aliases": ["LinkedIn Ireland"],
+      "websiteUrl": "https://careers.linkedin.com/"
+    },
+    {
+      "sourceRecordId": "ie-apple",
+      "legalName": "Apple Inc.",
+      "displayName": "Apple",
+      "aliases": ["Apple Ireland"],
+      "websiteUrl": "https://www.apple.com/"
+    },
+    {
+      "sourceRecordId": "ie-oracle",
+      "legalName": "Oracle Corporation",
+      "displayName": "Oracle",
+      "aliases": ["Oracle Ireland"],
+      "websiteUrl": "https://www.oracle.com/"
+    },
+    {
+      "sourceRecordId": "ie-sap",
+      "legalName": "SAP SE",
+      "displayName": "SAP",
+      "aliases": ["SAP Ireland"],
+      "websiteUrl": "https://www.sap.com/"
+    },
+    {
+      "sourceRecordId": "ie-ibm",
+      "legalName": "International Business Machines Corporation",
+      "displayName": "IBM",
+      "aliases": ["IBM Ireland"],
+      "websiteUrl": "https://www.ibm.com/"
+    },
+    {
+      "sourceRecordId": "ie-redhat",
+      "legalName": "Red Hat, Inc.",
+      "displayName": "Red Hat",
+      "aliases": ["Red Hat Ireland"],
+      "websiteUrl": "https://www.redhat.com/"
+    },
+    {
+      "sourceRecordId": "ie-dell",
+      "legalName": "Dell Technologies Inc.",
+      "displayName": "Dell Technologies",
+      "aliases": ["Dell Technologies Ireland"],
+      "websiteUrl": "https://www.dell.com/"
+    },
+    {
+      "sourceRecordId": "ie-intel",
+      "legalName": "Intel Corporation",
+      "displayName": "Intel",
+      "aliases": ["Intel Ireland"],
+      "websiteUrl": "https://www.intel.com/"
+    },
+    {
+      "sourceRecordId": "ie-amd",
+      "legalName": "Advanced Micro Devices, Inc.",
+      "displayName": "AMD",
+      "aliases": ["AMD Ireland"],
+      "websiteUrl": "https://www.amd.com/"
+    },
+    {
+      "sourceRecordId": "ie-qualcomm",
+      "legalName": "Qualcomm Incorporated",
+      "displayName": "Qualcomm",
+      "aliases": ["Qualcomm Ireland"],
+      "websiteUrl": "https://www.qualcomm.com/"
+    },
+    {
+      "sourceRecordId": "ie-cisco",
+      "legalName": "Cisco Systems, Inc.",
+      "displayName": "Cisco",
+      "aliases": ["Cisco Ireland"],
+      "websiteUrl": "https://www.cisco.com/"
+    },
+    {
+      "sourceRecordId": "ie-broadcom",
+      "legalName": "Broadcom Inc.",
+      "displayName": "Broadcom",
+      "aliases": ["Broadcom Ireland", "VMware Ireland"],
+      "websiteUrl": "https://www.broadcom.com/",
+      "notes": "VMware is represented as a Broadcom brand alias after acquisition; verify shared board evidence before monitoring."
+    },
+    {
+      "sourceRecordId": "ie-servicenow",
+      "legalName": "ServiceNow, Inc.",
+      "displayName": "ServiceNow",
+      "aliases": ["ServiceNow Ireland"],
+      "websiteUrl": "https://www.servicenow.com/"
+    },
+    {
+      "sourceRecordId": "ie-snowflake",
+      "legalName": "Snowflake Inc.",
+      "displayName": "Snowflake",
+      "aliases": ["Snowflake Ireland"],
+      "websiteUrl": "https://www.snowflake.com/"
+    },
+    {
+      "sourceRecordId": "ie-cloudflare",
+      "legalName": "Cloudflare, Inc.",
+      "displayName": "Cloudflare",
+      "aliases": ["Cloudflare Ireland"],
+      "websiteUrl": "https://www.cloudflare.com/"
+    },
+    {
+      "sourceRecordId": "ie-twilio",
+      "legalName": "Twilio Inc.",
+      "displayName": "Twilio",
+      "aliases": ["Twilio Ireland"],
+      "websiteUrl": "https://www.twilio.com/"
+    },
+    {
+      "sourceRecordId": "ie-zendesk",
+      "legalName": "Zendesk, Inc.",
+      "displayName": "Zendesk",
+      "aliases": ["Zendesk Ireland"],
+      "websiteUrl": "https://www.zendesk.com/"
+    },
+    {
+      "sourceRecordId": "ie-squarespace",
+      "legalName": "Squarespace, Inc.",
+      "displayName": "Squarespace",
+      "aliases": ["Squarespace Ireland"],
+      "websiteUrl": "https://www.squarespace.com/"
+    },
+    {
+      "sourceRecordId": "ie-indeed",
+      "legalName": "Indeed, Inc.",
+      "displayName": "Indeed",
+      "aliases": ["Indeed Ireland"],
+      "websiteUrl": "https://www.indeed.com/",
+      "notes": "Employer careers only; do not scrape the Indeed job-search product."
+    },
+    {
+      "sourceRecordId": "ie-docusign",
+      "legalName": "DocuSign, Inc.",
+      "displayName": "DocuSign",
+      "aliases": ["DocuSign Ireland"],
+      "websiteUrl": "https://www.docusign.com/"
+    },
+    {
+      "sourceRecordId": "ie-dropbox",
+      "legalName": "Dropbox, Inc.",
+      "displayName": "Dropbox",
+      "aliases": ["Dropbox Ireland"],
+      "websiteUrl": "https://www.dropbox.com/"
+    },
+    {
+      "sourceRecordId": "ie-pinterest",
+      "legalName": "Pinterest, Inc.",
+      "displayName": "Pinterest",
+      "aliases": ["Pinterest Ireland"],
+      "websiteUrl": "https://www.pinterest.com/"
+    },
+    {
+      "sourceRecordId": "ie-reddit",
+      "legalName": "Reddit, Inc.",
+      "displayName": "Reddit",
+      "aliases": ["Reddit Ireland"],
+      "websiteUrl": "https://www.redditinc.com/"
+    },
+    {
+      "sourceRecordId": "ie-airbnb",
+      "legalName": "Airbnb, Inc.",
+      "displayName": "Airbnb",
+      "aliases": ["Airbnb Ireland"],
+      "websiteUrl": "https://www.airbnb.com/"
+    },
+    {
+      "sourceRecordId": "ie-etsy",
+      "legalName": "Etsy, Inc.",
+      "displayName": "Etsy",
+      "aliases": ["Etsy Ireland"],
+      "websiteUrl": "https://www.etsy.com/"
+    },
+    {
+      "sourceRecordId": "ie-paypal",
+      "legalName": "PayPal Holdings, Inc.",
+      "displayName": "PayPal",
+      "aliases": ["PayPal Ireland"],
+      "websiteUrl": "https://www.paypal.com/"
+    },
+    {
+      "sourceRecordId": "ie-block",
+      "legalName": "Block, Inc.",
+      "displayName": "Block",
+      "aliases": ["Block Ireland", "Square Ireland"],
+      "websiteUrl": "https://block.xyz/",
+      "notes": "Square is a Block business/brand and shares the group careers source."
+    },
+    {
+      "sourceRecordId": "ie-coinbase",
+      "legalName": "Coinbase Global, Inc.",
+      "displayName": "Coinbase",
+      "aliases": ["Coinbase Ireland"],
+      "websiteUrl": "https://www.coinbase.com/"
+    },
+    {
+      "sourceRecordId": "ie-revolut",
+      "legalName": "Revolut Ltd",
+      "displayName": "Revolut",
+      "aliases": ["Revolut Ireland"],
+      "websiteUrl": "https://www.revolut.com/"
+    },
+    {
+      "sourceRecordId": "ie-fenergo",
+      "legalName": "Fenergo Limited",
+      "displayName": "Fenergo",
+      "websiteUrl": "https://www.fenergo.com/"
+    },
+    {
+      "sourceRecordId": "ie-fineos",
+      "legalName": "FINEOS Corporation Holdings plc",
+      "displayName": "Fineos",
+      "websiteUrl": "https://www.fineos.com/"
+    },
+    {
+      "sourceRecordId": "ie-cartrawler",
+      "legalName": "ETrawler Unlimited Company",
+      "displayName": "CarTrawler",
+      "websiteUrl": "https://www.cartrawler.com/"
+    },
+    {
+      "sourceRecordId": "ie-letsgetchecked",
+      "legalName": "LetsGetChecked",
+      "websiteUrl": "https://www.letsgetchecked.com/",
+      "industries": ["health technology"]
+    },
+    {
+      "sourceRecordId": "ie-flipdish",
+      "legalName": "Flipdish Limited",
+      "displayName": "Flipdish",
+      "websiteUrl": "https://www.flipdish.com/"
+    },
+    {
+      "sourceRecordId": "ie-tines",
+      "legalName": "Tines Security Services Limited",
+      "displayName": "Tines",
+      "websiteUrl": "https://www.tines.com/",
+      "industries": ["cybersecurity"]
+    },
+    {
+      "sourceRecordId": "ie-learnupon",
+      "legalName": "LearnUpon Limited",
+      "displayName": "LearnUpon",
+      "websiteUrl": "https://www.learnupon.com/",
+      "industries": ["education technology"]
+    },
+    {
+      "sourceRecordId": "ie-teamwork",
+      "legalName": "Teamwork.com Limited",
+      "displayName": "Teamwork.com",
+      "websiteUrl": "https://www.teamwork.com/"
+    },
+    {
+      "sourceRecordId": "ie-wayflyer",
+      "legalName": "Wayflyer Limited",
+      "displayName": "Wayflyer",
+      "websiteUrl": "https://www.wayflyer.com/",
+      "industries": ["fintech"]
+    },
+    {
+      "sourceRecordId": "ie-datalex",
+      "legalName": "Datalex plc",
+      "displayName": "Datalex",
+      "websiteUrl": "https://www.datalex.com/",
+      "industries": ["travel technology"]
+    },
+    {
+      "sourceRecordId": "ie-version1",
+      "legalName": "Version 1 Solutions Limited",
+      "displayName": "Version 1",
+      "websiteUrl": "https://www.version1.com/",
+      "hiringSourceClassification": "staffing-consultancy"
+    },
+    {
+      "sourceRecordId": "ie-accenture",
+      "legalName": "Accenture plc",
+      "displayName": "Accenture",
+      "aliases": ["Accenture Ireland"],
+      "websiteUrl": "https://www.accenture.com/",
+      "hiringSourceClassification": "staffing-consultancy"
+    },
+    {
+      "sourceRecordId": "ie-deloitte",
+      "legalName": "Deloitte Touche Tohmatsu Limited",
+      "displayName": "Deloitte",
+      "aliases": ["Deloitte Ireland"],
+      "websiteUrl": "https://www.deloitte.com/",
+      "hiringSourceClassification": "staffing-consultancy"
+    },
+    {
+      "sourceRecordId": "ie-pwc",
+      "legalName": "PricewaterhouseCoopers International Limited",
+      "displayName": "PwC",
+      "aliases": ["PwC Ireland"],
+      "websiteUrl": "https://www.pwc.com/",
+      "hiringSourceClassification": "staffing-consultancy"
+    },
+    {
+      "sourceRecordId": "ie-ey",
+      "legalName": "Ernst & Young Global Limited",
+      "displayName": "EY",
+      "aliases": ["EY Ireland"],
+      "websiteUrl": "https://www.ey.com/",
+      "hiringSourceClassification": "staffing-consultancy"
+    },
+    {
+      "sourceRecordId": "ie-kpmg",
+      "legalName": "KPMG International Limited",
+      "displayName": "KPMG",
+      "aliases": ["KPMG Ireland"],
+      "websiteUrl": "https://kpmg.com/",
+      "hiringSourceClassification": "staffing-consultancy"
+    },
+    {
+      "sourceRecordId": "ie-cognizant",
+      "legalName": "Cognizant Technology Solutions Corporation",
+      "displayName": "Cognizant",
+      "aliases": ["Cognizant Ireland"],
+      "websiteUrl": "https://www.cognizant.com/",
+      "hiringSourceClassification": "staffing-consultancy"
+    },
+    {
+      "sourceRecordId": "ie-capgemini",
+      "legalName": "Capgemini SE",
+      "displayName": "Capgemini",
+      "aliases": ["Capgemini Ireland"],
+      "websiteUrl": "https://www.capgemini.com/",
+      "hiringSourceClassification": "staffing-consultancy"
+    },
+    {
+      "sourceRecordId": "ie-epam",
+      "legalName": "EPAM Systems, Inc.",
+      "displayName": "EPAM",
+      "aliases": ["EPAM Ireland"],
+      "websiteUrl": "https://www.epam.com/",
+      "hiringSourceClassification": "staffing-consultancy"
+    }
+  ]
+}

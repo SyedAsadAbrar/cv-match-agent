@@ -11,24 +11,27 @@ import { z } from "zod";
 import { OllamaLocalAIProvider } from "../ai/localAIProvider";
 import { updateApplication } from "../applications/tracking";
 import {
+  detectCompanySource,
+  enableVerifiedCompanies,
   exportUnresolvedCompanies,
   generateCompanyRegistryStats,
   importCompanyResolutions,
+  recordCompanySourceDetection,
   verifyCompanySource,
 } from "../company/registry";
-import { detectCareerSource } from "../company/detection";
 import { canonicalisePublicUrl, normaliseDomain } from "../company/normalise";
 import { JobCopilotStore } from "../db/store";
 import {
   applicationStatusSchema,
   atsProviderSchema,
   candidateProfileSchema,
+  companyBoardStateSchema,
   companyVerificationStatusSchema,
+  hiringSourceClassificationSchema,
   targetCompanySchema,
 } from "../domain/schemas";
 import { runDiscovery } from "../discovery/pipeline";
 import { createConfiguredWebSearchProvider } from "../discovery/webSearch";
-import { seedDemo } from "../demo/seed";
 import { validateCvUpload } from "../security/content";
 import { readCvFile } from "../services/readCvFile";
 
@@ -72,7 +75,7 @@ async function route(
   if (method !== "GET" && method !== "HEAD") assertSameOrigin(request);
 
   if (url.pathname === "/api/dashboard" && method === "GET") {
-    const jobs = store.listRankedJobs();
+    const jobs = store.listRankedJobs({ includeSkipped: true });
     const today = new Date().toISOString().slice(0, 10);
     return sendJson(response, 200, {
       lastRun: store.getLatestDiscoveryRun(),
@@ -138,8 +141,17 @@ async function route(
       store.listRankedJobs({
         includeDismissed: url.searchParams.get("includeDismissed") === "true",
         includeClosed: url.searchParams.get("includeClosed") === "true",
+        includeSkipped: url.searchParams.get("includeSkipped") === "true",
       }),
     );
+  if (url.pathname === "/api/jobs/reset" && method === "POST") {
+    if (activeDiscovery)
+      return sendJson(response, 409, {
+        error:
+          "Wait for the active discovery run to finish before resetting jobs.",
+      });
+    return sendJson(response, 200, store.resetJobData());
+  }
   const jobMatch = url.pathname.match(/^\/api\/jobs\/([^/]+)$/);
   if (jobMatch && method === "GET") {
     const job = store.getRankedJob(decodeURIComponent(jobMatch[1]));
@@ -217,9 +229,31 @@ async function route(
         enabled: url.searchParams.has("enabled")
           ? url.searchParams.get("enabled") === "true"
           : undefined,
+        boardState: url.searchParams.has("boardState")
+          ? companyBoardStateSchema.parse(url.searchParams.get("boardState"))
+          : undefined,
+        hiringSourceClassification: url.searchParams.has(
+          "hiringSourceClassification",
+        )
+          ? hiringSourceClassificationSchema.parse(
+              url.searchParams.get("hiringSourceClassification"),
+            )
+          : undefined,
         search: url.searchParams.get("search") || undefined,
       }),
     );
+  }
+  if (url.pathname === "/api/companies/enable-verified" && method === "POST") {
+    const body = z
+      .object({
+        companyIds: z.array(z.string()).default([]),
+        country: z.string().optional(),
+        provider: atsProviderSchema.optional(),
+        dryRun: z.boolean().default(false),
+      })
+      .parse(await readJson(request));
+    const result = enableVerifiedCompanies(store, body);
+    return sendJson(response, result.errors.length ? 409 : 200, result);
   }
   if (url.pathname === "/api/companies/unresolved.csv" && method === "GET") {
     const csv = exportUnresolvedCompanies(store);
@@ -257,9 +291,6 @@ async function route(
       })
       .parse(await readJson(request));
     const now = new Date().toISOString();
-    const detected = body.careersUrl
-      ? detectCareerSource(body.careersUrl)
-      : undefined;
     const company = targetCompanySchema.parse({
       id: randomUUID(),
       ...body,
@@ -267,8 +298,8 @@ async function route(
       websiteUrl: body.companyDomain
         ? `https://${normaliseDomain(body.companyDomain)}/`
         : undefined,
-      atsProvider: body.atsProvider ?? detected?.provider,
-      atsIdentifier: body.atsIdentifier ?? detected?.identifier,
+      atsProvider: body.atsProvider ?? (body.careersUrl ? "custom" : undefined),
+      atsIdentifier: body.atsIdentifier,
       sourceType: "manual-resolution",
       sourceRecords: [
         {
@@ -321,16 +352,16 @@ async function route(
     const careersUrl = body.careersUrl
       ? canonicalisePublicUrl(body.careersUrl)
       : company.careersUrl;
-    const detected = careersUrl ? detectCareerSource(careersUrl) : undefined;
     const updated = targetCompanySchema.parse({
       ...company,
       companyDomain: domain,
       websiteUrl: domain ? `https://${domain}/` : company.websiteUrl,
       careersUrl,
       atsProvider:
-        body.atsProvider ?? detected?.provider ?? company.atsProvider,
-      atsIdentifier:
-        body.atsIdentifier ?? detected?.identifier ?? company.atsIdentifier,
+        body.atsProvider ??
+        company.atsProvider ??
+        (careersUrl ? "custom" : undefined),
+      atsIdentifier: body.atsIdentifier ?? company.atsIdentifier,
       verificationStatus: careersUrl
         ? "careers-page-found"
         : domain
@@ -362,6 +393,21 @@ async function route(
     if (!company)
       return sendJson(response, 404, { error: "Company not found." });
     return sendJson(response, 200, await verifyCompanySource(store, company));
+  }
+  const companyDetect = url.pathname.match(
+    /^\/api\/companies\/([^/]+)\/detect$/,
+  );
+  if (companyDetect && method === "POST") {
+    const company = store
+      .listCompanies()
+      .find((item) => item.id === decodeURIComponent(companyDetect[1]));
+    if (!company)
+      return sendJson(response, 404, { error: "Company not found." });
+    const detection = await detectCompanySource(company);
+    const persisted = store.saveCompany(
+      recordCompanySourceDetection(company, detection),
+    );
+    return sendJson(response, 200, { ...detection, company: persisted });
   }
   const companyReject = url.pathname.match(
     /^\/api\/companies\/([^/]+)\/reject$/,
@@ -488,16 +534,6 @@ async function route(
       run: store.getLatestDiscoveryRun(),
     });
   }
-  if (url.pathname === "/api/demo" && method === "POST") {
-    if (activeDiscovery)
-      return sendJson(response, 409, {
-        error: "A discovery run is already active.",
-      });
-    activeDiscovery = seedDemo(store).finally(() => {
-      activeDiscovery = undefined;
-    });
-    return sendJson(response, 202, { status: "running", fictional: true });
-  }
   if (url.pathname === "/api/settings" && method === "GET")
     return sendJson(response, 200, {
       database: process.env.DATABASE_URL ?? "file:./data/job-copilot.db",
@@ -556,7 +592,8 @@ async function serveAsset(
     "/app.js": ["app.js", "text/javascript; charset=utf-8"],
     "/styles.css": ["styles.css", "text/css; charset=utf-8"],
   };
-  const asset = assets[pathname];
+  const asset =
+    assets[pathname] ?? (isClientRoute(pathname) ? assets["/"] : undefined);
   if (!asset) return sendJson(response, 404, { error: "Not found." });
   const content = await fs.readFile(
     path.resolve(process.cwd(), "public", asset[0]),
@@ -569,6 +606,20 @@ async function serveAsset(
     }),
   );
   response.end(head ? undefined : content);
+}
+
+function isClientRoute(pathname: string): boolean {
+  return (
+    [
+      "/dashboard",
+      "/discover",
+      "/saved",
+      "/applications",
+      "/profile",
+      "/sources",
+      "/settings",
+    ].includes(pathname) || /^\/jobs\/[^/]+$/.test(pathname)
+  );
 }
 
 async function readJson(request: IncomingMessage): Promise<unknown> {

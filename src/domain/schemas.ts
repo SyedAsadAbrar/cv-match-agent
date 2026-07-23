@@ -118,6 +118,47 @@ export const atsProviderSchema = z.enum([
   "custom",
 ]);
 
+export const companyBoardStateSchema = z.enum([
+  "active-with-jobs",
+  "active-empty",
+  "temporarily-unavailable",
+  "invalid",
+  "wrong-company",
+  "unsupported",
+  "blocked",
+]);
+
+export const detectedCareerSourceSchema = z.object({
+  provider: atsProviderSchema,
+  identifier: optionalText,
+  sourceUrl: z.string().url(),
+  confidence: z.enum(["high", "medium", "low"]),
+  evidence: stringList,
+  ingestible: z.boolean(),
+});
+
+export const hiringSourceClassificationSchema = z.enum([
+  "direct-employer",
+  "recruitment-agency",
+  "staffing-consultancy",
+  "job-platform",
+  "government-portal",
+  "ecosystem-directory",
+  "unknown",
+]);
+
+export const companySourceVerificationResultSchema = z.object({
+  sourceReachable: z.boolean(),
+  responseValid: z.boolean(),
+  sourceIdentityMatchesCompany: z.boolean(),
+  boardState: companyBoardStateSchema,
+  jobsParsed: z.number().int().nonnegative(),
+  sampleJobUrl: z.string().url().optional(),
+  sampleExternalId: optionalText,
+  evidence: stringList,
+  checkedAt: text,
+});
+
 export const companySourceReferenceSchema = z.object({
   sourceRecordId: text,
   sourceType: text,
@@ -145,6 +186,7 @@ export const targetCompanySchema = z.preprocess(
       countries: input.countries ?? input.hiringCountries ?? [],
       knownCities: input.knownCities ?? [],
       industries: input.industries ?? [],
+      additionalCareersUrls: input.additionalCareersUrls ?? [],
       companyType: input.companyType ?? "unknown",
       sizeBand: input.sizeBand ?? "unknown",
       engineeringRelevance: input.engineeringRelevance ?? "unknown",
@@ -152,9 +194,12 @@ export const targetCompanySchema = z.preprocess(
         input.englishEngineeringJobsLikelihood ?? "unknown",
       sourceType: input.sourceType ?? "legacy-manual",
       sourceRecords: input.sourceRecords ?? [],
+      hiringSourceClassification: input.hiringSourceClassification ?? "unknown",
       sponsorshipCountries: input.sponsorshipCountries ?? [],
       relocationEvidence: input.relocationEvidence ?? "unknown",
       remoteHiringEvidence: input.remoteHiringEvidence ?? "unknown",
+      verificationFailureCount: input.verificationFailureCount ?? 0,
+      sourceDetections: input.sourceDetections ?? [],
       verificationStatus:
         input.verificationStatus ??
         (input.enabled ? "source-verified" : "candidate"),
@@ -170,6 +215,7 @@ export const targetCompanySchema = z.preprocess(
     companyDomain: optionalText,
     websiteUrl: z.string().url().optional(),
     careersUrl: z.string().url().optional(),
+    additionalCareersUrls: stringList,
     headquartersCountry: optionalText,
     operatingCountries: stringList,
     hiringCountries: stringList,
@@ -206,8 +252,14 @@ export const targetCompanySchema = z.preprocess(
     ]),
     atsProvider: atsProviderSchema.optional(),
     atsIdentifier: optionalText,
+    atsBoardUrl: z.string().url().optional(),
+    corporateCareersUrl: z.string().url().optional(),
+    sourceDetections: z.array(detectedCareerSourceSchema),
+    sourceDetectionCheckedAt: optionalText,
+    sharedCareerBoardKey: optionalText,
     sourceType: text,
     sourceRecords: z.array(companySourceReferenceSchema),
+    hiringSourceClassification: hiringSourceClassificationSchema,
     sponsorshipEvidence: z.enum([
       "confirmed",
       "historical",
@@ -236,6 +288,10 @@ export const targetCompanySchema = z.preprocess(
     resolvedAt: optionalText,
     lastCheckedAt: optionalText,
     lastSuccessfulSyncAt: optionalText,
+    boardState: companyBoardStateSchema.optional(),
+    lastVerification: companySourceVerificationResultSchema.optional(),
+    verificationFailureCount: z.number().int().nonnegative(),
+    nextVerificationAt: optionalText,
     verificationError: optionalText,
     notes: optionalText,
   }),
@@ -263,6 +319,13 @@ export const companySourceRecordSchema = z.object({
   cities: stringList,
   websiteUrl: z.string().url().optional(),
   careersUrl: z.string().url().optional(),
+  additionalCareersUrls: stringList,
+  atsBoardUrl: z.string().url().optional(),
+  hiringSourceClassification: hiringSourceClassificationSchema.optional(),
+  parentCompanyName: optionalText,
+  relationship: z
+    .enum(["parent", "subsidiary", "brand", "former-name", "regional-entity"])
+    .optional(),
   industries: stringList,
   sponsorshipEvidence: z
     .object({
@@ -327,6 +390,8 @@ export const jobPostingSchema = z.object({
   discoveredUrl: z.string().url().optional(),
   sourceType: jobSourceTypeSchema,
   sourceName: optionalText,
+  hiringSourceClassification:
+    hiringSourceClassificationSchema.default("unknown"),
   title: text,
   company: text,
   locationText: optionalText,
@@ -559,6 +624,13 @@ export type CompanyRelationship = z.infer<typeof companyRelationshipSchema>;
 export type CompanyImportRun = z.infer<typeof companyImportRunSchema>;
 export type CompanyVerificationStatus = z.infer<
   typeof companyVerificationStatusSchema
+>;
+export type CompanyBoardState = z.infer<typeof companyBoardStateSchema>;
+export type HiringSourceClassification = z.infer<
+  typeof hiringSourceClassificationSchema
+>;
+export type CompanySourceVerificationResult = z.infer<
+  typeof companySourceVerificationResultSchema
 >;
 export type JobPosting = z.infer<typeof jobPostingSchema>;
 export type JobSourceType = z.infer<typeof jobSourceTypeSchema>;

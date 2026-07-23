@@ -1,5 +1,6 @@
 import type {
   CandidateProfile,
+  HiringSourceClassification,
   JobSourceType,
   TargetCompany,
 } from "../domain/schemas";
@@ -25,6 +26,7 @@ export type DiscoveredJobReference = {
 export type RawJobPosting = {
   sourceType: JobSourceType;
   sourceName: string;
+  hiringSourceClassification?: HiringSourceClassification;
   externalId: string;
   canonicalUrl: string;
   discoveredUrl?: string;

@@ -9,18 +9,18 @@
   </head>
   <body>
     <aside class="sidebar">
-      <a class="brand" href="#dashboard"
+      <a class="brand" href="/"
         ><span>JC</span><strong>Job Copilot</strong
         ><small>Local & private</small></a
       >
       <nav id="nav">
-        <a href="#dashboard">Dashboard</a>
-        <a href="#discover">Discover Jobs</a>
-        <a href="#saved">Saved Jobs</a>
-        <a href="#applications">Applications</a>
-        <a href="#profile">Profile</a>
-        <a href="#sources">Sources</a>
-        <a href="#settings">Settings</a>
+        <a href="/">Dashboard</a>
+        <a href="/discover">Discover Jobs</a>
+        <a href="/saved">Saved Jobs</a>
+        <a href="/applications">Applications</a>
+        <a href="/profile">Profile</a>
+        <a href="/sources">Sources</a>
+        <a href="/settings">Settings</a>
       </nav>
       <div class="privacy-note">
         No automatic applications. You stay in control of every submission.
@@ -32,7 +32,10 @@
           <div class="eyebrow">AUTONOMOUS DISCOVERY</div>
           <h1 id="page-title">Dashboard</h1>
         </div>
-        <button class="primary" id="find-jobs">Find New Jobs</button>
+        <div class="actions">
+          <button class="danger" id="reset-jobs">Reset jobs</button>
+          <button class="primary" id="find-jobs">Find New Jobs</button>
+        </div>
       </header>
       <div id="notice" role="status"></div>
       <section id="app">
