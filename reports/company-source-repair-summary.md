@@ -1,6 +1,6 @@
 # Company source repair summary
 
-Generated: 2026-07-23T10:02:03.725Z
+Generated: 2026-07-23T11:22:47.194Z
 
 Counts describe the database used for this report. A company may appear in more than one country row; headline counts are unique companies. “Unresolved” means the candidate workflow state, not merely a missing domain.
 
@@ -10,9 +10,9 @@ Counts describe the database used for this report. A company may appear in more 
 - Domain resolved: 373
 - Careers pages found: 54
 - Source verified: 0
-- Source verified with jobs: 0
+- Source verified with jobs: 1
 - Source verified but empty: 0
-- Monitored: 0
+- Monitored: 1
 - Temporarily failing: 0
 - Temporarily unavailable: 0
 - Blocked or unsupported: 0
@@ -42,11 +42,13 @@ Counts describe the database used for this report. A company may appear in more 
 
 | Value | Count |
 | --- | ---: |
+| Europe | 1 |
 
 ## Monitored by country
 
 | Value | Count |
 | --- | ---: |
+| Europe | 1 |
 
 ## Unresolved by country
 
@@ -57,20 +59,23 @@ Counts describe the database used for this report. A company may appear in more 
 
 | Value | Count |
 | --- | ---: |
-| careers-page-found | 45 |
+| careers-page-found | 44 |
 | domain-resolved | 328 |
+| monitored | 1 |
 
 ## By board state
 
 | Value | Count |
 | --- | ---: |
-| not-checked | 373 |
+| active-with-jobs | 1 |
+| not-checked | 372 |
 
 ## By ATS provider
 
 | Value | Count |
 | --- | ---: |
-| custom | 54 |
+| ashby | 1 |
+| custom | 53 |
 | unresolved | 319 |
 
 ## By hiring-source classification

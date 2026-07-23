@@ -386,6 +386,23 @@ test("hard filters reject excluded companies", () => {
   assert.equal(applyHardFilters(profile, job, authorization).accepted, false);
 });
 
+test("role filtering rejects broad one-word overlaps", () => {
+  const profile = createInitialCandidateProfile();
+  profile.targetRoles = ["Product Engineer"];
+  const job = {
+    ...sampleJob("Build product experiences."),
+    title: "Product Manager",
+  };
+  const authorization = assessWorkAuthorization(profile, job);
+  const result = applyHardFilters(profile, job, authorization);
+  assert.equal(result.accepted, false);
+  assert.ok(
+    result.reasons.some((reason) =>
+      /outside the configured role/i.test(reason),
+    ),
+  );
+});
+
 test("embedding scores are bounded and blended into deterministic scoring", () => {
   const job = sampleJob("Build React and TypeScript.");
   const profile = withSkills();

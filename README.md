@@ -17,13 +17,7 @@ npm run companies:normalise
 npm run web
 ```
 
-Open `http://127.0.0.1:4310`. For a no-network fictional walkthrough:
-
-```bash
-npm run demo
-```
-
-Every demo company and job is labelled fictional. The fixture includes a strong React/TypeScript job, backend-heavy stretch, explicit no-sponsorship blocker, unknown sponsorship, disclosed and undisclosed salary, a cross-source duplicate, closed job, suspicious posting, and isolated connector failure.
+Open `http://127.0.0.1:4310`, configure your profile and verified company sources, then press **Find New Jobs**.
 
 ## Architecture
 
@@ -34,7 +28,6 @@ Every demo company and job is labelled fictional. The fixture includes a strong 
 - `src/discovery`: source contracts, ATS/careers adapters, normalisation, deduplication, filters, scoring, trust, sponsorship, salary, and orchestration.
 - `src/security`: URL/SSRF controls, bounded fetches, upload validation, and HTML-to-text sanitisation.
 - `src/web` and `public`: local HTTP API and responsive dashboard.
-- `src/demo`: deterministic fictional product demonstration.
 
 The original discovery design is in [`docs/autonomous-job-discovery-plan.md`](docs/autonomous-job-discovery-plan.md). The Version 1 registry inspection, source strategy, migration plan, and limitations are in [`docs/version-1-company-registry-plan.md`](docs/version-1-company-registry-plan.md).
 
@@ -162,7 +155,6 @@ npm run companies:audit
 npm run companies:stats
 npm run web
 npm run jobs:discover
-npm run demo
 npm run typecheck
 npm run lint
 npm test

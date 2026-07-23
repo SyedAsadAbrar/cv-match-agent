@@ -1026,14 +1026,14 @@ export class JobCopilotStore {
       LEFT JOIN applications a ON a.job_id = j.id
       WHERE (? = 1 OR dj.job_id IS NULL)
         AND (? = 1 OR j.status <> 'closed')
-      ORDER BY CASE json_extract(j.payload, '$.hiringSourceClassification')
+      ORDER BY COALESCE(m.score, 0) DESC,
+        CASE json_extract(j.payload, '$.hiringSourceClassification')
           WHEN 'direct-employer' THEN 0
           WHEN 'staffing-consultancy' THEN 1
           WHEN 'recruitment-agency' THEN 2
           WHEN 'job-platform' THEN 3
           ELSE 4
         END,
-        COALESCE(m.score, 0) DESC,
         j.first_seen_at DESC
     `,
       )

@@ -5,9 +5,9 @@
   "domainResolved": 373,
   "careersPageFound": 54,
   "sourceVerified": 0,
-  "sourceVerifiedWithJobs": 0,
+  "sourceVerifiedWithJobs": 1,
   "sourceVerifiedEmpty": 0,
-  "monitored": 0,
+  "monitored": 1,
   "temporarilyFailing": 0,
   "temporarilyUnavailable": 0,
   "blockedOrUnsupported": 0,
@@ -25,19 +25,26 @@
     "Sweden": 2,
     "Lithuania": 1
   },
-  "verifiedByCountry": {},
-  "monitoredByCountry": {},
+  "verifiedByCountry": {
+    "Europe": 1
+  },
+  "monitoredByCountry": {
+    "Europe": 1
+  },
   "unresolvedByCountry": {},
   "byStatus": {
     "domain-resolved": 328,
-    "careers-page-found": 45
+    "careers-page-found": 44,
+    "monitored": 1
   },
   "byAtsProvider": {
     "unresolved": 319,
-    "custom": 54
+    "custom": 53,
+    "ashby": 1
   },
   "byBoardState": {
-    "not-checked": 373
+    "not-checked": 372,
+    "active-with-jobs": 1
   },
   "byHiringSourceClassification": {
     "direct-employer": 348,
@@ -159,7 +166,7 @@
     "Nameless Ventures official company page": 1,
     "Hub71 Market Partners": 1
   },
-  "enabled": 0,
+  "enabled": 1,
   "unresolved": 0,
   "rejected": 0,
   "duplicates": 0,

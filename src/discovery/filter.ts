@@ -76,23 +76,23 @@ function isRelatedRole(targetRoles: string[], title: string): boolean {
   const titleTokens = tokens(title);
   return targetRoles.some((role) => {
     const roleTokens = tokens(role);
-    return [...roleTokens].some((token) => titleTokens.has(token));
+    const overlap = [...roleTokens].filter((token) =>
+      titleTokens.has(token),
+    ).length;
+    // A single broad word (for example, "product") is not enough to make a
+    // role relevant. Require two meaningful terms when the target role has
+    // more than one, while still allowing precise one-word targets.
+    const requiredMatches = roleTokens.size > 1 ? 2 : 1;
+    return overlap >= Math.min(requiredMatches, roleTokens.size);
   });
 }
 
 function tokens(value: string): Set<string> {
-  const ignored = new Set([
-    "senior",
-    "junior",
-    "lead",
-    "engineer",
-    "developer",
-    "technical",
-    "hands",
-    "on",
-  ]);
+  const ignored = new Set(["senior", "junior", "hands", "on", "full"]);
   return new Set(
     normalize(value)
+      .replace(/\bdev(?:eloper)?\b/g, "engineer")
+      .replace(/\btech\b/g, "technical")
       .split(" ")
       .filter((token) => token.length > 2 && !ignored.has(token)),
   );

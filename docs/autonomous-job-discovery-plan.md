@@ -20,7 +20,7 @@ Baseline on 2026-07-22: `npm run build` passed. `npm test` could not start insid
 
 - CV extraction prompts explicitly mark documents as untrusted and reject embedded instructions.
 - Ollama requests gain timeouts and role-specific model configuration while retaining `OLLAMA_MODEL` compatibility.
-- The CLI gains `serve`, `jobs discover`, `db migrate`, and `demo seed` commands.
+- The CLI gains `serve`, `jobs discover`, and `db migrate` commands.
 - Profile context can be upgraded to the richer editable discovery profile and stored in SQLite.
 - Package scripts add web, worker, migration, lint, type-check, and test entry points.
 
@@ -31,7 +31,6 @@ Baseline on 2026-07-22: `npm run build` passed. `npm test` could not start insid
 - `discovery`: search-plan generation, connector contracts, Greenhouse/Lever/Ashby public adapters, optional web search, normalisation, deduplication, filters, scoring, trust, salary analysis, and orchestration.
 - `security`: URL/SSRF validation, bounded safe HTTP fetching, HTML-to-text sanitisation, upload validation, and sensitive-log avoidance.
 - `web`: native Node HTTP API plus a responsive local dashboard. A framework is deliberately not introduced because the existing repository has none; domain logic remains outside UI code.
-- `demo`: deterministic fictional sources covering all required product states.
 
 ## Database strategy
 
@@ -41,7 +40,7 @@ Use one local `better-sqlite3` database at `data/job-copilot.db` (or `DATABASE_U
 
 Enabled company records with verified ATS identifiers are polled through official public read endpoints. Greenhouse uses its Job Board API, Lever its Postings API, and Ashby its public Job Postings API. Broad discovery is optional behind a server-side web-search adapter; the app remains useful with company feeds and without a search key. Search plans contain only roles, skills, locations, and public preference data.
 
-Each source is isolated and bounded by timeout, retry, concurrency, response-size, and URL controls. Results are converted to plain text, validated, normalised, verified, deduplicated by strong deterministic signals, prefiltered, scored, assigned evidence-based trust/work-authorisation/salary assessments, and persisted. Reasoning-model analysis is limited to the strongest configurable shortlist and never changes deterministic scores. Demo mode uses fixtures and performs no network calls.
+Each source is isolated and bounded by timeout, retry, concurrency, response-size, and URL controls. Results are converted to plain text, validated, normalised, verified, deduplicated by strong deterministic signals, prefiltered, scored, assigned evidence-based trust/work-authorisation/salary assessments, and persisted. Reasoning-model analysis is limited to the strongest configurable shortlist and never changes deterministic scores.
 
 ## AI-model strategy
 
@@ -67,6 +66,6 @@ All saved structured output must pass Zod. Extraction inputs are explicitly untr
 3. Add SQLite migrations/repository and the initial editable profile.
 4. Add official ATS connectors and fixture tests.
 5. Add deterministic search, normalisation, filtering, matching, work-authorisation, trust, salary, and deduplication.
-6. Add discovery orchestration, demo data, CLI worker, and optional AI enrichment.
+6. Add discovery orchestration, CLI worker, and optional AI enrichment.
 7. Add the local web API/dashboard for profile, feed, sources, settings, and application tracking.
 8. Add unit/integration coverage, update documentation, migrate, and run final verification.

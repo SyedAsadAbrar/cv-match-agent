@@ -24,11 +24,10 @@
     "companies:stats": "node --import tsx src/index.ts companies stats --write-reports",
     "companies:refresh": "node --import tsx src/index.ts companies refresh",
     "db:migrate": "node --import tsx src/index.ts db migrate",
-    "demo": "node --import tsx src/index.ts demo seed",
     "typecheck": "tsc --noEmit",
     "lint": "eslint \"src/**/*.ts\" \"test/**/*.ts\"",
-    "format": "prettier --write src/applications src/db src/demo src/discovery src/domain src/security src/web src/company src/ai/localAIProvider.ts src/services/discoveryProfile.ts src/commands/jobs.ts src/commands/companies.ts src/commands/database.ts src/commands/demo.ts src/commands/serve.ts src/index.ts test/autonomousDiscovery.test.ts test/autonomousDiscovery.integration.test.ts test/companyRegistry.test.ts public docs README.md package.json \".agents/**/*.md\" \".agents/**/*.json\" data/company-sources",
-    "format:check": "prettier --check src/applications src/db src/demo src/discovery src/domain src/security src/web src/company src/ai/localAIProvider.ts src/services/discoveryProfile.ts src/commands/jobs.ts src/commands/companies.ts src/commands/database.ts src/commands/demo.ts src/commands/serve.ts src/index.ts test/autonomousDiscovery.test.ts test/autonomousDiscovery.integration.test.ts test/companyRegistry.test.ts public docs README.md package.json \".agents/**/*.md\" \".agents/**/*.json\" data/company-sources",
+    "format": "prettier --write src/applications src/db src/discovery src/domain src/security src/web src/company src/ai/localAIProvider.ts src/services/discoveryProfile.ts src/commands/jobs.ts src/commands/companies.ts src/commands/database.ts src/commands/serve.ts src/index.ts test/autonomousDiscovery.test.ts test/autonomousDiscovery.integration.test.ts test/companyRegistry.test.ts public docs README.md package.json \".agents/**/*.md\" \".agents/**/*.json\" data/company-sources",
+    "format:check": "prettier --check src/applications src/db src/discovery src/domain src/security src/web src/company src/ai/localAIProvider.ts src/services/discoveryProfile.ts src/commands/jobs.ts src/commands/companies.ts src/commands/database.ts src/commands/serve.ts src/index.ts test/autonomousDiscovery.test.ts test/autonomousDiscovery.integration.test.ts test/companyRegistry.test.ts public docs README.md package.json \".agents/**/*.md\" \".agents/**/*.json\" data/company-sources",
     "test": "node --import tsx --test test/*.test.ts"
   },
   "keywords": [

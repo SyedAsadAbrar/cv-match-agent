@@ -32,7 +32,6 @@ import {
 } from "../domain/schemas";
 import { runDiscovery } from "../discovery/pipeline";
 import { createConfiguredWebSearchProvider } from "../discovery/webSearch";
-import { seedDemo } from "../demo/seed";
 import { validateCvUpload } from "../security/content";
 import { readCvFile } from "../services/readCvFile";
 
@@ -525,16 +524,6 @@ async function route(
       status: "running",
       run: store.getLatestDiscoveryRun(),
     });
-  }
-  if (url.pathname === "/api/demo" && method === "POST") {
-    if (activeDiscovery)
-      return sendJson(response, 409, {
-        error: "A discovery run is already active.",
-      });
-    activeDiscovery = seedDemo(store).finally(() => {
-      activeDiscovery = undefined;
-    });
-    return sendJson(response, 202, { status: "running", fictional: true });
   }
   if (url.pathname === "/api/settings" && method === "GET")
     return sendJson(response, 200, {

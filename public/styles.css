@@ -434,10 +434,6 @@ td details form {
   color: var(--muted);
   padding: 40px;
 }
-.fictional {
-  color: var(--warn);
-  font-weight: 800;
-}
 .code {
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
   font-size: 12px;

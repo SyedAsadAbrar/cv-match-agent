@@ -79,8 +79,7 @@ No critical build, migration, data-loss, or direct secret-exposure defect was fo
 ## Verified working
 
 - Strict TypeScript build, ESLint, Prettier check, and the full 94-test suite passed after repair.
-- A fresh SQLite database migrated successfully; the fictional demo seeded 8 jobs, detected 1 duplicate, and retained 1 expected isolated source error.
-- The local HTTP dashboard served its HTML, security headers, dashboard API, jobs API, and application-tracking update/read-back flow from that isolated demo database.
+- A fresh SQLite database migrated successfully, and the local HTTP dashboard served its HTML, security headers, dashboard API, jobs API, and application-tracking update/read-back flow.
 - Read-only public endpoint smoke checks returned valid non-empty payloads for Greenhouse (22 jobs), Lever (1 job), and Ashby (59 jobs); no live jobs were imported.
 - SQLite migrations, foreign keys, WAL mode, gitignore rules, and transactional imports are present.
 - CV upload checks extension and 5 MB limit; extraction uses server-side Ollama/Zod JSON repair and untrusted-data prompts.
