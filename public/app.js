@@ -2,6 +2,7 @@ const app = document.querySelector("#app");
 const title = document.querySelector("#page-title");
 const notice = document.querySelector("#notice");
 const findButton = document.querySelector("#find-jobs");
+const resetJobsButton = document.querySelector("#reset-jobs");
 let state = {
   jobs: [],
   profile: null,
@@ -64,6 +65,7 @@ async function refresh() {
     companyFilters: state.companyFilters,
   };
   findButton.disabled = dashboard.discoveryRunning;
+  resetJobsButton.disabled = dashboard.discoveryRunning;
   findButton.textContent = dashboard.discoveryRunning
     ? "Discovery running…"
     : "Find New Jobs";
@@ -667,6 +669,18 @@ async function runDiscovery() {
     "Discovery started. Progress will refresh automatically.",
   );
 }
+async function resetJobs() {
+  if (
+    !window.confirm(
+      "Reset all discovered jobs, saved jobs, applications, and discovery history? Your profile and company sources will be kept.",
+    )
+  )
+    return;
+  await action(
+    () => api("/api/jobs/reset", { method: "POST", body: "{}" }),
+    "Jobs and discovery history reset. Your profile and sources were kept.",
+  );
+}
 async function action(work, message) {
   try {
     await work();
@@ -756,6 +770,7 @@ function e(v) {
 }
 
 findButton.addEventListener("click", runDiscovery);
+resetJobsButton.addEventListener("click", resetJobs);
 window.addEventListener("hashchange", render);
 refresh().catch((error) => {
   app.innerHTML = `<div class="empty">${e(error.message)}</div>`;

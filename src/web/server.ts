@@ -143,6 +143,14 @@ async function route(
         includeClosed: url.searchParams.get("includeClosed") === "true",
       }),
     );
+  if (url.pathname === "/api/jobs/reset" && method === "POST") {
+    if (activeDiscovery)
+      return sendJson(response, 409, {
+        error:
+          "Wait for the active discovery run to finish before resetting jobs.",
+      });
+    return sendJson(response, 200, store.resetJobData());
+  }
   const jobMatch = url.pathname.match(/^\/api\/jobs\/([^/]+)$/);
   if (jobMatch && method === "GET") {
     const job = store.getRankedJob(decodeURIComponent(jobMatch[1]));

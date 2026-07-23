@@ -57,6 +57,20 @@ test("integration: imported job appears in deterministic ranked feed", async () 
   store.close();
 });
 
+test("integration: resetting jobs preserves the candidate profile", async () => {
+  const store = memoryStore();
+  const profile = store.getProfile();
+  await discover(store);
+
+  const result = store.resetJobData();
+
+  assert.equal(result.jobsRemoved, 1);
+  assert.equal(store.listRankedJobs().length, 0);
+  assert.equal(store.getLatestDiscoveryRun(), undefined);
+  assert.equal(store.getProfile().id, profile.id);
+  store.close();
+});
+
 test("integration: job can be saved and then marked as manually applied", async () => {
   const store = memoryStore();
   await discover(store);

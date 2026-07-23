@@ -759,6 +759,26 @@ export class JobCopilotStore {
     return run;
   }
 
+  resetJobData(): {
+    jobsRemoved: number;
+    discoveryRunsRemoved: number;
+    modelRunsRemoved: number;
+  } {
+    const reset = this.database.transaction(() => {
+      const jobsRemoved = this.database
+        .prepare("DELETE FROM jobs")
+        .run().changes;
+      const discoveryRunsRemoved = this.database
+        .prepare("DELETE FROM discovery_runs")
+        .run().changes;
+      const modelRunsRemoved = this.database
+        .prepare("DELETE FROM ai_model_runs")
+        .run().changes;
+      return { jobsRemoved, discoveryRunsRemoved, modelRunsRemoved };
+    });
+    return reset();
+  }
+
   getLatestDiscoveryRun(): DiscoveryRun | undefined {
     const row = this.database
       .prepare(
