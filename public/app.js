@@ -10,6 +10,7 @@ let state = {
   dashboard: null,
   sources: null,
   companyPage: null,
+  jobFilters: {},
   companyFilters: {
     country: "",
     status: "",
@@ -47,7 +48,9 @@ async function api(url, options = {}) {
 async function refresh() {
   const [jobs, profile, dashboard, sources, settings, companyPage] =
     await Promise.all([
-      api("/api/jobs?includeDismissed=true&includeClosed=true"),
+      api(
+        "/api/jobs?includeDismissed=true&includeClosed=true&includeSkipped=true",
+      ),
       api("/api/profile"),
       api("/api/dashboard"),
       api("/api/sources"),
@@ -62,14 +65,28 @@ async function refresh() {
     sources,
     settings,
     companyPage,
+    jobFilters: state.jobFilters,
     companyFilters: state.companyFilters,
   };
+  updateDiscoveryControls(dashboard);
+  render();
+}
+
+function updateDiscoveryControls(dashboard) {
   findButton.disabled = dashboard.discoveryRunning;
   resetJobsButton.disabled = dashboard.discoveryRunning;
   findButton.textContent = dashboard.discoveryRunning
     ? "Discovery running…"
     : "Find New Jobs";
-  render();
+}
+
+async function refreshDashboard() {
+  const dashboard = await api("/api/dashboard");
+  const wasRunning = state.dashboard?.discoveryRunning;
+  state = { ...state, dashboard };
+  updateDiscoveryControls(dashboard);
+  if (wasRunning && !dashboard.discoveryRunning) return refresh();
+  if (currentRoute() === "dashboard") render();
 }
 
 function currentRoute() {
@@ -154,22 +171,23 @@ function renderJobs(items, options = {}) {
   const dismissedCount = state.jobs.filter((x) => x.dismissed).length;
   const defaultMinimumScore =
     options.defaultMinimumScore ?? (options.showDismissed ? 0 : 68);
-  const defaultItems = items.filter(
-    (item) => (item.match?.score || 0) >= defaultMinimumScore,
-  );
-  const itemLabel = options.showDismissed ? "dismissed job" : "eligible job";
-  app.innerHTML = `<div class="panel"><div class="panel-head"><div><h2>${options.showDismissed ? "Dismissed jobs" : "Job opportunities"}</h2><p class="muted small">${options.showDismissed ? "Restore a role to return it to discovery." : "Only eligible jobs appear here. The 68% default shows Apply and Strong Apply matches; lower it to review wider matches."}</p></div>${!options.showDismissed && dismissedCount ? `<button class="secondary" data-show-dismissed>Show dismissed (${dismissedCount})</button>` : ""}</div><form id="job-filters" class="filters"><label>Sort by<select id="f-sort"><option value="confidence-desc">Match confidence: high to low</option><option value="confidence-asc">Match confidence: low to high</option><option value="newest">Newest first</option><option value="trust">Trust: highest first</option></select></label><label>Match category<select id="f-rec"><option value="">Any eligible category</option>${["strong-apply", "apply", "stretch", "eligibility-unclear", "low-priority"].map((x) => `<option>${x}</option>`).join("")}</select></label><label>Match confidence (%)<input id="f-score" type="number" min="0" max="100" value="${defaultMinimumScore}"></label><label>Country<select id="f-country"><option value="">All</option>${uniq(
+  const filterKey = options.showDismissed ? "dismissed" : currentRoute();
+  const filters = getJobFilters(filterKey, defaultMinimumScore);
+  const defaultItems = filterJobItems(items, filters);
+  const itemLabel = options.showDismissed ? "dismissed job" : "job";
+  app.innerHTML = `<div class="panel"><div class="panel-head"><div><h2>${options.showDismissed ? "Dismissed jobs" : "Job opportunities"}</h2><p class="muted small">${options.showDismissed ? "Restore a role to return it to discovery." : "The 68% default shows Apply and Strong Apply matches; lower it to review all discovered jobs, including roles marked not recommended."}</p></div>${!options.showDismissed && dismissedCount ? `<button class="secondary" data-show-dismissed>Show dismissed (${dismissedCount})</button>` : ""}</div><form id="job-filters" class="filters"><label>Sort by<select id="f-sort"><option value="confidence-desc">Match confidence: high to low</option><option value="confidence-asc">Match confidence: low to high</option><option value="newest">Newest first</option><option value="trust">Trust: highest first</option></select></label><label>Match category<select id="f-rec"><option value="">Any category</option>${["strong-apply", "apply", "stretch", "eligibility-unclear", "low-priority"].map((x) => `<option>${x}</option>`).join("")}<option value="skip">not recommended</option></select></label><label>Match confidence (%)<input id="f-score" type="number" min="0" max="100" value="${defaultMinimumScore}"></label><label>Country<select id="f-country"><option value="">All</option>${uniq(
     items.map((x) => x.job.country).filter(Boolean),
   )
     .map((x) => `<option>${e(x)}</option>`)
     .join(
       "",
     )}</select></label><label>Workplace<select id="f-work"><option value="">All</option><option>remote</option><option>hybrid</option><option>onsite</option><option>unknown</option></select></label><label>Trust<select id="f-trust"><option value="">All</option><option>verified</option><option>likely-legitimate</option><option>unverified</option><option>suspicious</option></select></label><div class="filter-actions"><button class="primary" type="submit">Apply filters</button></div></form><p id="filter-summary" class="muted small">Showing ${defaultItems.length} of ${items.length} ${itemLabel}${items.length === 1 ? "" : "s"}.</p><div id="filtered">${jobCards(
-    sortJobs(defaultItems, "confidence-desc"),
+    sortJobs(defaultItems, filters.sort),
   )}</div></div>`;
+  setJobFilterInputs(filters);
   document.querySelector("#job-filters").addEventListener("submit", (event) => {
     event.preventDefault();
-    filterJobs(items, itemLabel);
+    filterJobs(items, itemLabel, filterKey);
   });
   bindCommon();
 }
@@ -181,18 +199,54 @@ function renderDismissedJobs() {
   );
 }
 
-function filterJobs(items, itemLabel = "eligible job") {
-  const v = (id) => document.querySelector(`#${id}`).value;
-  const filtered = items.filter(
+function getJobFilters(key, defaultMinimumScore) {
+  if (!state.jobFilters[key])
+    state.jobFilters[key] = {
+      sort: "confidence-desc",
+      recommendation: "",
+      minimumScore: defaultMinimumScore,
+      country: "",
+      workplace: "",
+      trust: "",
+    };
+  return state.jobFilters[key];
+}
+
+function setJobFilterInputs(filters) {
+  document.querySelector("#f-sort").value = filters.sort;
+  document.querySelector("#f-rec").value = filters.recommendation;
+  document.querySelector("#f-score").value = String(filters.minimumScore);
+  document.querySelector("#f-country").value = filters.country;
+  document.querySelector("#f-work").value = filters.workplace;
+  document.querySelector("#f-trust").value = filters.trust;
+}
+
+function filterJobItems(items, filters) {
+  return items.filter(
     (x) =>
-      (!v("f-rec") || x.match?.recommendation === v("f-rec")) &&
-      (!v("f-country") || x.job.country === v("f-country")) &&
-      (!v("f-work") || x.job.workplaceType === v("f-work")) &&
-      (!v("f-trust") || x.trust?.level === v("f-trust")) &&
-      (x.match?.score || 0) >= Number(v("f-score")),
+      (!filters.recommendation ||
+        x.match?.recommendation === filters.recommendation) &&
+      (!filters.country || x.job.country === filters.country) &&
+      (!filters.workplace || x.job.workplaceType === filters.workplace) &&
+      (!filters.trust || x.trust?.level === filters.trust) &&
+      (x.match?.score || 0) >= filters.minimumScore,
   );
+}
+
+function filterJobs(items, itemLabel = "job", filterKey = currentRoute()) {
+  const v = (id) => document.querySelector(`#${id}`).value;
+  const filters = {
+    sort: v("f-sort"),
+    recommendation: v("f-rec"),
+    minimumScore: Number(v("f-score")) || 0,
+    country: v("f-country"),
+    workplace: v("f-work"),
+    trust: v("f-trust"),
+  };
+  state.jobFilters[filterKey] = filters;
+  const filtered = filterJobItems(items, filters);
   document.querySelector("#filtered").innerHTML = jobCards(
-    sortJobs(filtered, v("f-sort")),
+    sortJobs(filtered, filters.sort),
   );
   document.querySelector("#filter-summary").textContent =
     `Showing ${filtered.length} of ${items.length} ${itemLabel}${items.length === 1 ? "" : "s"}.`;
@@ -817,5 +871,5 @@ refresh().catch((error) => {
   app.innerHTML = `<div class="empty">${e(error.message)}</div>`;
 });
 setInterval(() => {
-  if (state.dashboard?.discoveryRunning) refresh().catch(() => {});
+  if (state.dashboard?.discoveryRunning) refreshDashboard().catch(() => {});
 }, 3000);

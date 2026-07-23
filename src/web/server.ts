@@ -75,7 +75,7 @@ async function route(
   if (method !== "GET" && method !== "HEAD") assertSameOrigin(request);
 
   if (url.pathname === "/api/dashboard" && method === "GET") {
-    const jobs = store.listRankedJobs();
+    const jobs = store.listRankedJobs({ includeSkipped: true });
     const today = new Date().toISOString().slice(0, 10);
     return sendJson(response, 200, {
       lastRun: store.getLatestDiscoveryRun(),
