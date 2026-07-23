@@ -1,3 +1,3 @@
-id,company,country,classification,provider,identifier,corporateCareersUrl,atsBoardUrl,boardState,status,enabled,lastCheckedAt,error
-company-d1d77058ba1b9c8b85b43f79,Property Finder,United Arab Emirates,direct-employer,custom,,https://www.propertyfinder.ae/careers/,,invalid,careers-page-found,false,2026-07-23T12:44:38.230Z,HTTP 404 from www.propertyfinder.ae.
-company-f8f80092aa6d902e9a3e1940,Talabat,United Arab Emirates,direct-employer,custom,,https://careers.deliveryhero.com/talabat,,wrong-company,careers-page-found,false,2026-07-23T12:46:26.140Z,Source belongs to another company.
+id,company,country,classification,provider,identifier,corporateCareersUrl,additionalCareersUrls,atsBoardUrl,boardState,status,enabled,lastCheckedAt,error
+company-d1d77058ba1b9c8b85b43f79,Property Finder,United Arab Emirates,direct-employer,custom,,https://www.propertyfinder.ae/careers/,,,invalid,careers-page-found,false,2026-07-23T12:44:38.230Z,HTTP 404 from www.propertyfinder.ae.
+company-f8f80092aa6d902e9a3e1940,Talabat,United Arab Emirates,direct-employer,custom,,https://careers.deliveryhero.com/talabat,,,wrong-company,careers-page-found,false,2026-07-23T12:46:26.140Z,Source belongs to another company.

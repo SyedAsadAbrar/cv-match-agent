@@ -20,6 +20,7 @@ import {
   extractSitemapUrls,
   parseRobotsPolicy,
 } from "../src/company/crawler";
+import { crawlPinpointBoard } from "../src/discovery/connectors/pinpoint";
 import { compareCompanies } from "../src/company/deduplicate";
 import {
   detectCareerSource,
@@ -275,6 +276,63 @@ test("generic crawler canonicalises tracking parameters before crawling", async 
   });
   assert.equal(result.pagesVisited, 2);
   assert.equal(result.jobs[0]?.url, "https://example.com/careers/jobs/one");
+});
+
+test("generic crawler rejects careers listing metadata as a job", async () => {
+  const result = await crawlOfficialCareersSite("https://example.com/careers", {
+    maxPages: 1,
+    lookup: publicLookup,
+    retries: 0,
+    fetchImpl: async () =>
+      new Response(
+        `<script type="application/ld+json">${JSON.stringify({
+          "@type": "JobPosting",
+          title: "Open positions at Example",
+          description: "Browse the current jobs at Example.",
+          url: "https://example.com/careers",
+        })}</script>`,
+        { headers: { "Content-Type": "text/html" } },
+      ),
+  });
+  assert.deepEqual(result.jobs, []);
+});
+
+test("Pinpoint board crawler maps individual public job records", async () => {
+  const jobs = await crawlPinpointBoard(
+    "https://indrive.pinpointhq.com/en/postings/",
+    {
+      lookup: publicLookup,
+      retries: 0,
+      fetchImpl: async () =>
+        new Response(
+          JSON.stringify({
+            data: [
+              {
+                id: "42",
+                title: "Platform Engineer",
+                url: "https://indrive.pinpointhq.com/en/postings/42",
+                description: "Build reliable systems.",
+                key_responsibilities: "Own production services.",
+                skills_knowledge_expertise: "TypeScript and Kubernetes.",
+                employment_type_text: "Full Time",
+                workplace_type_text: "Hybrid",
+                location: { city: "Dubai", name: "United Arab Emirates" },
+              },
+            ],
+          }),
+          { headers: { "Content-Type": "application/json" } },
+        ),
+    },
+  );
+  assert.deepEqual(jobs, [
+    {
+      title: "Platform Engineer",
+      url: "https://indrive.pinpointhq.com/en/postings/42",
+      description:
+        "Build reliable systems. Own production services. TypeScript and Kubernetes. Full Time Hybrid",
+      locationText: "Dubai, United Arab Emirates",
+    },
+  ]);
 });
 
 test("generic crawler detects a validated redirect from an official page to an ATS", async () => {

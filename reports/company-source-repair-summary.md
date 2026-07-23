@@ -1,6 +1,6 @@
 # Company source repair summary
 
-Generated: 2026-07-23T12:51:39.813Z
+Generated: 2026-07-23T21:20:35.701Z
 
 Counts describe the database used for this report. A company may appear in more than one country row; headline counts are unique companies. “Unresolved” means the candidate workflow state, not merely a missing domain.
 

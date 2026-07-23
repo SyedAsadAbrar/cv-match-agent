@@ -152,7 +152,9 @@ export async function crawlOfficialCareersSite(
       const key = `${detected.provider}:${detected.identifier ?? detected.sourceUrl}`;
       detectedSources.set(key, detected);
     }
-    const structuredJobs = extractJsonLdJobs(canonical, body);
+    const structuredJobs = extractJsonLdJobs(canonical, body).filter((job) =>
+      looksLikeJobUrl(job.url),
+    );
     for (const job of structuredJobs) jobs.set(job.url, job);
     if (structuredJobs.length === 0 && looksLikeJobUrl(canonical)) {
       const title = extractPageTitle(body);
@@ -323,8 +325,13 @@ function shouldCrawl(input: string): boolean {
 }
 
 function looksLikeJobUrl(input: string): boolean {
-  return /\/(?:jobs?|careers?|positions?|openings?|vacancies?)\//i.test(
-    new URL(input).pathname,
+  const path = new URL(input).pathname;
+  const match = path.match(
+    /\/(?:jobs?|positions?|openings?|vacancies?|postings?)\/([^/]+)/i,
+  );
+  if (!match) return false;
+  return !["page", "pages", "search", "filter", "filters", "category"].includes(
+    match[1].toLowerCase(),
   );
 }
 

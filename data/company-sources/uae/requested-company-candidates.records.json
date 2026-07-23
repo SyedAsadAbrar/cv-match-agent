@@ -416,10 +416,11 @@
       "legalName": "inDrive",
       "aliases": ["inDrive UAE"],
       "websiteUrl": "https://indrive.com/",
-      "careersUrl": "https://careers.indrive.com/",
+      "careersUrl": "https://careers.indrive.com/vacancies/",
+      "atsBoardUrl": "https://indrive.pinpointhq.com/en/postings/",
       "cities": ["Dubai"],
       "industries": ["mobility"],
-      "notes": "Global shared careers source."
+      "notes": "Official inDrive vacancies page links to the public Pinpoint postings board, which provides the individual job records."
     },
     {
       "sourceRecordId": "uae-deriv",

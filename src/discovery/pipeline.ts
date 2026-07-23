@@ -418,7 +418,7 @@ function groupCompaniesByBoard(companies: TargetCompany[]): TargetCompany[][] {
       (company.atsProvider && company.atsIdentifier
         ? `${company.atsProvider}:${company.atsIdentifier}`
         : company.careersUrl
-          ? `custom:${company.careersUrl}`
+          ? `custom:${[company.careersUrl, ...company.additionalCareersUrls].join("|")}`
           : `company:${company.id}`);
     groups.set(key, [...(groups.get(key) ?? []), company]);
   }

@@ -2,8 +2,10 @@ import { createHash } from "node:crypto";
 import { z } from "zod";
 import {
   crawlOfficialCareersSite,
+  type CrawledJob,
   type CareersCrawlerOptions,
 } from "../../company/crawler";
+import { crawlPinpointBoard, isPinpointBoardUrl } from "./pinpoint";
 import type {
   DiscoveredJobReference,
   JobDiscoveryContext,
@@ -26,26 +28,40 @@ export class CareersPageConnector implements JobSourceConnector {
   async discoverJobs(
     context: JobDiscoveryContext,
   ): Promise<DiscoveredJobReference[]> {
-    if (!context.company.careersUrl)
-      throw new Error("A verified official careers URL is required.");
-    const result = await crawlOfficialCareersSite(
+    const careersUrls = [
       context.company.careersUrl,
-      this.options,
-    );
-    return result.jobs.slice(0, context.maximumJobs ?? 500).map((job) => ({
-      sourceType: this.sourceType,
-      sourceName: `Official careers · ${context.company.displayName}`,
-      externalId: createHash("sha256")
-        .update(job.url)
-        .digest("hex")
-        .slice(0, 24),
-      url: job.url,
-      company: context.company.displayName,
-      title: job.title,
-      locationText: job.locationText,
-      publishedAt: job.publishedAt,
-      raw: job,
-    }));
+      ...context.company.additionalCareersUrls,
+    ].filter((url): url is string => Boolean(url));
+    if (!careersUrls.length)
+      throw new Error("A verified official careers URL is required.");
+    const jobs = new Map<string, CrawledJob>();
+    for (const careersUrl of careersUrls) {
+      const result = await crawlOfficialCareersSite(careersUrl, this.options);
+      for (const job of result.jobs) jobs.set(job.url, job);
+    }
+    if (isPinpointBoardUrl(context.company.atsBoardUrl)) {
+      for (const job of await crawlPinpointBoard(
+        context.company.atsBoardUrl!,
+        this.options,
+      ))
+        jobs.set(job.url, job);
+    }
+    return [...jobs.values()]
+      .slice(0, context.maximumJobs ?? 500)
+      .map((job) => ({
+        sourceType: this.sourceType,
+        sourceName: `Official careers · ${context.company.displayName}`,
+        externalId: createHash("sha256")
+          .update(job.url)
+          .digest("hex")
+          .slice(0, 24),
+        url: job.url,
+        company: context.company.displayName,
+        title: job.title,
+        locationText: job.locationText,
+        publishedAt: job.publishedAt,
+        raw: job,
+      }));
   }
 
   async fetchJob(reference: DiscoveredJobReference): Promise<RawJobPosting> {

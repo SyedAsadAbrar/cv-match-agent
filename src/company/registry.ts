@@ -490,8 +490,9 @@ export async function verifyCompanySource(
         throw new Error(
           "Official page did not contain enough careers-purpose evidence.",
         );
-      references = connectors.custom
-        ? await connectors.custom.discoverJobs({
+      const customConnector = connectors.custom ?? defaults.custom;
+      references = customConnector
+        ? await customConnector.discoverJobs({
             profile: store.getProfile(),
             company: working,
             maximumJobs: 1,
@@ -1281,6 +1282,10 @@ function buildCompany(
   const websiteUrl = record.websiteUrl ?? existing?.websiteUrl;
   const companyDomain = normaliseDomain(websiteUrl) ?? existing?.companyDomain;
   const careersUrl = record.careersUrl ?? existing?.careersUrl;
+  const additionalCareersUrls = [
+    ...(existing?.additionalCareersUrls ?? []),
+    ...(record.additionalCareersUrls ?? []),
+  ].filter((url) => url !== careersUrl);
   const sponsorshipEvidence = strongestSponsorship(
     existing?.sponsorshipEvidence ?? "unknown",
     sourceSponsorship(record),
@@ -1295,6 +1300,7 @@ function buildCompany(
     companyDomain,
     websiteUrl,
     careersUrl,
+    additionalCareersUrls: [...new Set(additionalCareersUrls)],
     headquartersCountry: existing?.headquartersCountry ?? record.country,
     operatingCountries: [
       ...new Set([...(existing?.operatingCountries ?? []), record.country]),
@@ -1559,6 +1565,7 @@ function renderCompanySourceCsv(companies: TargetCompany[]): string {
       "provider",
       "identifier",
       "corporateCareersUrl",
+      "additionalCareersUrls",
       "atsBoardUrl",
       "boardState",
       "status",
@@ -1574,6 +1581,7 @@ function renderCompanySourceCsv(companies: TargetCompany[]): string {
       company.atsProvider ?? "",
       company.atsIdentifier ?? "",
       company.corporateCareersUrl ?? company.careersUrl ?? "",
+      company.additionalCareersUrls.join("; "),
       company.atsBoardUrl ?? "",
       company.boardState ?? "",
       company.verificationStatus,
