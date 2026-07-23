@@ -1,0 +1,70 @@
+{
+  "records": [
+    {
+      "sourceRecordId": "dicetek-uae-official-page",
+      "legalName": "DICETEK",
+      "displayName": "Dicetek",
+      "aliases": ["DICETEK L.L.C"],
+      "sourceType": "official-company-page",
+      "sourceName": "Dicetek official company page",
+      "sourceUrl": "https://www.dicetek.net/",
+      "sourceRetrievedAt": "2026-07-23T00:00:00.000Z",
+      "country": "United Arab Emirates",
+      "cities": ["Dubai"],
+      "websiteUrl": "https://www.dicetek.net/",
+      "industries": ["it services", "consulting", "staffing"],
+      "notes": "The official site identifies DICETEK as operating in the UAE and its footer identifies Dicetek L.L.C, Dubai. No public careers listing was verified during onboarding."
+    },
+    {
+      "sourceRecordId": "hcltech-uae-official-page",
+      "legalName": "HCL Technologies Limited",
+      "displayName": "HCLTech",
+      "aliases": ["HCL Technologies", "HCL"],
+      "sourceType": "official-company-page",
+      "sourceName": "HCLTech UAE official page",
+      "sourceUrl": "https://www.hcltech.com/geo-presence/united-arab-emirates",
+      "sourceRetrievedAt": "2026-07-23T00:00:00.000Z",
+      "country": "United Arab Emirates",
+      "cities": ["Dubai", "Abu Dhabi"],
+      "websiteUrl": "https://www.hcltech.com/",
+      "careersUrl": "https://careers.hcltech.com/",
+      "industries": [
+        "it services",
+        "consulting",
+        "cloud",
+        "engineering services"
+      ],
+      "notes": "The UAE page lists Dubai and Abu Dhabi offices and links directly to the official public careers site."
+    },
+    {
+      "sourceRecordId": "discovered-mena-official-page",
+      "legalName": "Discovered",
+      "displayName": "Discovered MENA",
+      "aliases": ["Discovered MENA"],
+      "sourceType": "official-company-page",
+      "sourceName": "Discovered official job board",
+      "sourceUrl": "https://www.discovered.ae/",
+      "sourceRetrievedAt": "2026-07-23T00:00:00.000Z",
+      "country": "United Arab Emirates",
+      "cities": ["Dubai"],
+      "websiteUrl": "https://www.discovered.ae/",
+      "careersUrl": "https://www.discovered.ae/jobs/location",
+      "industries": ["recruitment", "staffing", "technology"],
+      "notes": "The official site identifies a Dubai address and publishes live positions across technology specialisms."
+    },
+    {
+      "sourceRecordId": "nameless-ventures-official-page",
+      "legalName": "Nameless Ventures",
+      "aliases": ["Nameless"],
+      "sourceType": "official-company-page",
+      "sourceName": "Nameless Ventures official company page",
+      "sourceUrl": "https://www.nameless-ventures.io/",
+      "sourceRetrievedAt": "2026-07-23T00:00:00.000Z",
+      "country": "United Arab Emirates",
+      "cities": ["Dubai"],
+      "websiteUrl": "https://www.nameless-ventures.io/",
+      "industries": ["recruitment", "staffing", "technology"],
+      "notes": "The official site describes a GCC technology recruitment agency and provides a candidate contact path; no public job-listing endpoint was verified during onboarding."
+    }
+  ]
+}

@@ -12,13 +12,13 @@ The baseline was clean: `npm install`, `npm run format:check`, `npm run lint`, `
 
 The committed data is a small, reproducible seed registry, not the previously committed live IND refresh database. A clean temporary SQLite database imported only from `data/company-sources/` contains:
 
-- 21 source records and 21 unique companies.
-- 21 domain-resolved companies; 20 with careers pages.
+- 25 source records and 25 unique companies.
+- 25 domain-resolved companies; 22 with careers pages.
 - 0 candidates, 0 source-verified, 0 monitored, 0 temporarily failing, 0 inactive, 0 rejected, and 0 duplicate candidates.
-- 4 confirmed company-level sponsor records (Netherlands), 3 historical permit-evidence records (Ireland), and 14 unknown sponsorship records. These are not vacancy-level eligibility claims.
-- 9 of the stated 16 target countries: Netherlands (4), Ireland (3), United Arab Emirates (3), Saudi Arabia (3), Germany (3), Sweden (2), Estonia (1), France (1), and Lithuania (1).
+- 4 confirmed company-level sponsor records (Netherlands), 3 historical permit-evidence records (Ireland), and 18 unknown sponsorship records. These are not vacancy-level eligibility claims.
+- 9 of the stated 16 target countries: Netherlands (4), Ireland (3), United Arab Emirates (7), Saudi Arabia (3), Germany (3), Sweden (2), Estonia (1), France (1), and Lithuania (1).
 
-The source provenance is preserved in the structured snapshots: IND Public Register Work (4), Ireland Employment Permit Statistics 2025 (3), Hub71 Job Board Companies (2), Hub71 Market Partners (1), verified EU company pages (5), verified German company pages (3), and verified Saudi company pages (3). The seven remaining target countries have no committed source snapshot, so 16-country coverage is not complete.
+The source provenance is preserved in the structured snapshots: IND Public Register Work (4), Ireland Employment Permit Statistics 2025 (3), Hub71 Job Board Companies (2), Hub71 Market Partners (1), verified EU company pages (5), verified German company pages (3), verified Saudi company pages (3), and one official record each for Dicetek, HCLTech UAE, Discovered, and Nameless Ventures. The seven remaining target countries have no committed source snapshot, so 16-country coverage is not complete.
 
 ## Critical
 
@@ -48,10 +48,10 @@ No critical data-loss, migration, secret-exposure, or arbitrary-network-access d
 
 - Severity: High
 - Files: `reports/*`, `src/company/registry.ts`
-- Why it mattered: reports claimed 12,897 source records and 12,860 companies although the committed snapshots contain 21 records. The report database was not part of the repository.
+- Why it mattered: reports claimed 12,897 source records and 12,860 companies although the committed snapshots now contain 25 records. The report database was not part of the repository.
 - User impact: operators could mistake a local, transient refresh for a reproducible product data state.
 - Minimal fix: rebuild report artifacts from a clean database imported only from committed source files and label distinct count categories precisely.
-- Fixed status: Fixed. Reports now describe the 21-record reproducible snapshot and distinguish unique companies, candidates, domain/careers resolution, verification states, and unresolved workflow state.
+- Fixed status: Fixed. Reports now describe the 25-record reproducible snapshot and distinguish unique companies, candidates, domain/careers resolution, verification states, and unresolved workflow state.
 
 ### Company pagination materialised the full registry before slicing
 
@@ -97,7 +97,7 @@ No additional low-severity defect required a code change in this pass.
 
 ## Verified working
 
-- Clean-database import completed for all seven committed source groups; normalisation dry-run made zero changes, registry audit returned no errors/warnings, and no duplicate candidates were found.
+- Clean-database import completed for all 11 committed source names; normalisation dry-run made zero changes, registry audit returned no errors/warnings, and no duplicate candidates were found.
 - The source onboarding policy is present and requires provenance, official/reviewed URLs, non-invented ATS identifiers, bounded public-source verification, and verified-only enablement.
 - Discovery independently filters to enabled `source-verified`/`monitored` companies; sponsor/permit evidence remains company-level rather than vacancy-level.
 - Greenhouse, Lever, Ashby, and the conservative same-domain careers crawler are covered by fixtures. The crawler respects robots directives, depth/page/response limits, does not execute page JavaScript or submit forms, and now strips common tracking parameters from canonical URLs.
@@ -107,7 +107,7 @@ No additional low-severity defect required a code change in this pass.
 ## Not implemented
 
 - Official-source snapshots for the remaining seven target countries.
-- Verification of the 20 committed careers pages into active monitored sources; the reproducible seed has zero verified/monitored sources.
+- Verification of the 22 committed careers pages into active monitored sources; the reproducible seed has zero verified/monitored sources.
 - Ingestion connectors for detection-only ATS products (Workday, Workable, SmartRecruiters, Personio, Recruitee, SuccessFactors, Oracle).
 - Generic web-search result ingestion, paid search, broad internet scraping, automated applications, Chrome extension, scheduler, and a full UI redesign.
 

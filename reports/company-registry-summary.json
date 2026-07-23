@@ -1,9 +1,9 @@
 {
-  "totalSourceRecords": 21,
-  "totalCompanies": 21,
+  "totalSourceRecords": 25,
+  "totalCompanies": 25,
   "candidateCompanies": 0,
-  "domainResolved": 21,
-  "careersPageFound": 20,
+  "domainResolved": 25,
+  "careersPageFound": 22,
   "sourceVerified": 0,
   "monitored": 0,
   "temporarilyFailing": 0,
@@ -11,7 +11,7 @@
   "byCountry": {
     "Netherlands": 4,
     "Ireland": 3,
-    "United Arab Emirates": 3,
+    "United Arab Emirates": 7,
     "Estonia": 1,
     "France": 1,
     "Saudi Arabia": 3,
@@ -23,19 +23,19 @@
   "monitoredByCountry": {},
   "unresolvedByCountry": {},
   "byStatus": {
-    "careers-page-found": 20,
-    "domain-resolved": 1
+    "careers-page-found": 22,
+    "domain-resolved": 3
   },
   "byAtsProvider": {
-    "custom": 20,
-    "unresolved": 1
+    "custom": 22,
+    "unresolved": 3
   },
   "byIndustry": {
     "semiconductors": 1,
     "industrial technology": 1,
     "fintech": 7,
     "payments": 3,
-    "cloud": 4,
+    "cloud": 5,
     "e-commerce": 3,
     "logistics technology": 2,
     "hr technology": 2,
@@ -43,9 +43,15 @@
     "mobility": 2,
     "marketplace": 4,
     "travel technology": 1,
+    "it services": 2,
+    "consulting": 2,
+    "staffing": 3,
+    "recruitment": 2,
+    "technology": 2,
     "health technology": 1,
     "internet": 1,
     "artificial intelligence": 2,
+    "engineering services": 1,
     "enterprise software": 2,
     "digital banking": 3,
     "media technology": 1,
@@ -57,15 +63,19 @@
   "bySponsorshipEvidence": {
     "confirmed": 4,
     "historical": 3,
-    "unknown": 14
+    "unknown": 18
   },
   "bySource": {
     "IND Public Register Work": 4,
     "Ireland Employment Permit Statistics 2025": 3,
     "Hub71 Job Board Companies": 2,
     "Verified EU technology employer pages": 5,
+    "Dicetek official company page": 1,
+    "Discovered official job board": 1,
+    "HCLTech UAE official page": 1,
     "Verified Saudi technology employer pages": 3,
     "Verified German technology employer pages": 3,
+    "Nameless Ventures official company page": 1,
     "Hub71 Market Partners": 1
   },
   "enabled": 0,
