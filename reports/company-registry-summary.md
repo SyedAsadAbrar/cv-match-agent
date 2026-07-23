@@ -1,6 +1,6 @@
 # Company registry summary
 
-Generated: 2026-07-23T11:22:47.186Z
+Generated: 2026-07-23T12:51:39.805Z
 
 Counts describe the database used for this report. A company may appear in more than one country row; headline counts are unique companies. “Unresolved” means the candidate workflow state, not merely a missing domain.
 
@@ -8,15 +8,15 @@ Counts describe the database used for this report. A company may appear in more 
 - Unique companies: 373
 - Candidate companies: 0
 - Domain resolved: 373
-- Careers pages found: 54
+- Careers pages found: 58
 - Source verified: 0
-- Source verified with jobs: 1
-- Source verified but empty: 0
-- Monitored: 1
-- Temporarily failing: 0
-- Temporarily unavailable: 0
-- Blocked or unsupported: 0
-- Invalid or wrong-company: 0
+- Source verified with jobs: 4
+- Source verified but empty: 6
+- Monitored: 10
+- Temporarily failing: 3
+- Temporarily unavailable: 3
+- Blocked or unsupported: 2
+- Invalid or wrong-company: 2
 - Inactive: 0
 - Unresolved: 0
 - Rejected: 0
@@ -43,12 +43,16 @@ Counts describe the database used for this report. A company may appear in more 
 | Value | Count |
 | --- | ---: |
 | Europe | 1 |
+| Saudi Arabia | 6 |
+| United Arab Emirates | 5 |
 
 ## Monitored by country
 
 | Value | Count |
 | --- | ---: |
 | Europe | 1 |
+| Saudi Arabia | 6 |
+| United Arab Emirates | 5 |
 
 ## Unresolved by country
 
@@ -59,24 +63,31 @@ Counts describe the database used for this report. A company may appear in more 
 
 | Value | Count |
 | --- | ---: |
-| careers-page-found | 44 |
-| domain-resolved | 328 |
-| monitored | 1 |
+| careers-page-found | 36 |
+| domain-resolved | 324 |
+| monitored | 10 |
+| temporarily-failing | 3 |
 
 ## By board state
 
 | Value | Count |
 | --- | ---: |
-| active-with-jobs | 1 |
-| not-checked | 372 |
+| active-empty | 6 |
+| active-with-jobs | 4 |
+| blocked | 1 |
+| invalid | 1 |
+| not-checked | 356 |
+| temporarily-unavailable | 3 |
+| unsupported | 1 |
+| wrong-company | 1 |
 
 ## By ATS provider
 
 | Value | Count |
 | --- | ---: |
 | ashby | 1 |
-| custom | 53 |
-| unresolved | 319 |
+| custom | 57 |
+| unresolved | 315 |
 
 ## By hiring-source classification
 

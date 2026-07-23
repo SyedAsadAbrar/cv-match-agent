@@ -25,7 +25,7 @@ import { GreenhouseConnector } from "../src/discovery/connectors/greenhouse";
 import { LeverConnector } from "../src/discovery/connectors/lever";
 import { areDuplicateJobs } from "../src/discovery/deduplicate";
 import { applyHardFilters } from "../src/discovery/filter";
-import { normalizeJob } from "../src/discovery/normalize";
+import { extractSkills, normalizeJob } from "../src/discovery/normalize";
 import { runDiscovery } from "../src/discovery/pipeline";
 import { analyseSalary, removeSalaryOutliers } from "../src/discovery/salary";
 import { generateSearchPlan } from "../src/discovery/searchPlan";
@@ -53,6 +53,17 @@ test("job normalisation strips executable HTML and extracts structured signals",
   assert.equal(job.description.includes("attack"), false);
   assert.deepEqual(job.requiredSkills.slice(0, 2), ["React", "TypeScript"]);
   assert.equal(job.workAuthorization.sponsorshipAvailable, true);
+});
+
+test("skill extraction does not mistake ordinary prose for the Go language", () => {
+  assert.equal(
+    extractSkills("Let’s go beyond the usual approach.").includes("Go"),
+    false,
+  );
+  assert.equal(
+    extractSkills("Built services in Golang and Kubernetes.").includes("Go"),
+    true,
+  );
 });
 
 test("Greenhouse connector validates and maps the official fixture", async () => {

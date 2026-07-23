@@ -1,1 +1,3 @@
 id,company,country,classification,provider,identifier,corporateCareersUrl,atsBoardUrl,boardState,status,enabled,lastCheckedAt,error
+company-25b6bc38b03a189a89bcb963,Foodics,Saudi Arabia; United Arab Emirates,direct-employer,custom,,https://www.foodics.com/careers/,,unsupported,careers-page-found,false,2026-07-23T12:50:05.537Z,workable is detected but not ingestible.
+company-fa2cb32fffc9e0cb6cc5097b,G42,United Arab Emirates,direct-employer,custom,,https://www.g42.ai/careers/,,blocked,careers-page-found,false,2026-07-23T12:44:29.328Z,Careers page is blocked by CAPTCHA or bot protection.

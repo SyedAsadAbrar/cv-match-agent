@@ -1,1 +1,7 @@
 id,company,country,classification,provider,identifier,corporateCareersUrl,atsBoardUrl,boardState,status,enabled,lastCheckedAt,error
+company-0c99d172d7f3402793850cd6,BitOasis,United Arab Emirates,direct-employer,custom,,https://bitoasis.net/en/careers,,active-empty,monitored,true,2026-07-23T12:48:24.413Z,
+company-99a3feb6882f6557a0f24989,Careem,Saudi Arabia; United Arab Emirates,direct-employer,custom,,https://www.careem.com/en-AE/careers/,,active-empty,monitored,true,2026-07-23T12:48:24.416Z,
+company-0d797a189cab2d640414f0b3,Dubizzle Group,United Arab Emirates,direct-employer,custom,,https://www.dubizzlegroup.com/careers/,,active-empty,monitored,true,2026-07-23T12:48:24.417Z,
+company-c8fb722617e5b1164f0fadab,Mozn,Saudi Arabia,direct-employer,custom,,https://www.mozn.sa/careers,,active-empty,monitored,true,2026-07-23T12:50:38.803Z,
+company-3207db9fd6abbc04d226eb26,Salla,Saudi Arabia,direct-employer,custom,,https://jobs.salla.com/,,active-empty,monitored,true,2026-07-23T12:51:10.754Z,
+company-b593152842c0266ad406636b,Tabby,Saudi Arabia; United Arab Emirates,direct-employer,custom,,https://tabby.ai/careers,,active-empty,monitored,true,2026-07-23T12:49:38.318Z,

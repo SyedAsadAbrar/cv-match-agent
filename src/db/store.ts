@@ -44,6 +44,7 @@ export type RankedJob = {
 export type RankedJobListOptions = {
   includeDismissed?: boolean;
   includeClosed?: boolean;
+  includeSkipped?: boolean;
 };
 
 export type CompanyListOptions = {
@@ -1046,6 +1047,7 @@ export class JobCopilotStore {
       LEFT JOIN applications a ON a.job_id = j.id
       WHERE (? = 1 OR dj.job_id IS NULL)
         AND (? = 1 OR j.status <> 'closed')
+        AND (? = 1 OR COALESCE(m.recommendation, 'unanalysed') <> 'skip')
       ORDER BY COALESCE(m.score, 0) DESC,
         CASE json_extract(j.payload, '$.hiringSourceClassification')
           WHEN 'direct-employer' THEN 0
@@ -1060,6 +1062,7 @@ export class JobCopilotStore {
       .all(
         options.includeDismissed ? 1 : 0,
         options.includeClosed ? 1 : 0,
+        options.includeSkipped ? 1 : 0,
       ) as RankedJobRow[];
     return rows.map(mapRankedJob);
   }
@@ -1068,6 +1071,7 @@ export class JobCopilotStore {
     return this.listRankedJobs({
       includeDismissed: true,
       includeClosed: true,
+      includeSkipped: true,
     }).find(({ job }) => job.id === jobId);
   }
 

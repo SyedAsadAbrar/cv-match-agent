@@ -3,15 +3,15 @@
   "totalCompanies": 373,
   "candidateCompanies": 0,
   "domainResolved": 373,
-  "careersPageFound": 54,
+  "careersPageFound": 58,
   "sourceVerified": 0,
-  "sourceVerifiedWithJobs": 1,
-  "sourceVerifiedEmpty": 0,
-  "monitored": 1,
-  "temporarilyFailing": 0,
-  "temporarilyUnavailable": 0,
-  "blockedOrUnsupported": 0,
-  "invalidSources": 0,
+  "sourceVerifiedWithJobs": 4,
+  "sourceVerifiedEmpty": 6,
+  "monitored": 10,
+  "temporarilyFailing": 3,
+  "temporarilyUnavailable": 3,
+  "blockedOrUnsupported": 2,
+  "invalidSources": 2,
   "inactive": 0,
   "byCountry": {
     "Netherlands": 54,
@@ -26,25 +26,36 @@
     "Lithuania": 1
   },
   "verifiedByCountry": {
+    "United Arab Emirates": 5,
+    "Saudi Arabia": 6,
     "Europe": 1
   },
   "monitoredByCountry": {
+    "United Arab Emirates": 5,
+    "Saudi Arabia": 6,
     "Europe": 1
   },
   "unresolvedByCountry": {},
   "byStatus": {
-    "domain-resolved": 328,
-    "careers-page-found": 44,
-    "monitored": 1
+    "domain-resolved": 324,
+    "careers-page-found": 36,
+    "monitored": 10,
+    "temporarily-failing": 3
   },
   "byAtsProvider": {
-    "unresolved": 319,
-    "custom": 53,
+    "unresolved": 315,
+    "custom": 57,
     "ashby": 1
   },
   "byBoardState": {
-    "not-checked": 372,
-    "active-with-jobs": 1
+    "not-checked": 356,
+    "active-empty": 6,
+    "unsupported": 1,
+    "blocked": 1,
+    "temporarily-unavailable": 3,
+    "active-with-jobs": 4,
+    "invalid": 1,
+    "wrong-company": 1
   },
   "byHiringSourceClassification": {
     "direct-employer": 348,
@@ -166,10 +177,10 @@
     "Nameless Ventures official company page": 1,
     "Hub71 Market Partners": 1
   },
-  "enabled": 1,
+  "enabled": 10,
   "unresolved": 0,
   "rejected": 0,
   "duplicates": 0,
-  "verificationFailures": 0,
+  "verificationFailures": 3,
   "sharedCareerBoards": 0
 }

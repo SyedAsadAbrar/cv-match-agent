@@ -57,6 +57,34 @@ test("integration: imported job appears in deterministic ranked feed", async () 
   store.close();
 });
 
+test("integration: skipped jobs stay available for inspection but not in the normal feed", async () => {
+  const store = memoryStore();
+  const profile = store.getProfile();
+  store.saveProfile({ ...profile, targetRoles: ["Senior React Engineer"] });
+  const run = await runDiscovery({
+    store,
+    companies: [company],
+    connectors: {
+      greenhouse: {
+        ...connector,
+        async fetchJob(reference) {
+          return {
+            ...(await connector.fetchJob(reference)),
+            title: "Customer Success Manager",
+          };
+        },
+      },
+    },
+    analyse: false,
+    verify: false,
+  });
+
+  assert.equal(run.jobsImported, 1);
+  assert.equal(store.listRankedJobs().length, 0);
+  assert.equal(store.listRankedJobs({ includeSkipped: true }).length, 1);
+  store.close();
+});
+
 test("integration: resetting jobs preserves the candidate profile", async () => {
   const store = memoryStore();
   const profile = store.getProfile();

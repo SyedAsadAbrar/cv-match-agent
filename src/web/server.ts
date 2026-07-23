@@ -141,6 +141,7 @@ async function route(
       store.listRankedJobs({
         includeDismissed: url.searchParams.get("includeDismissed") === "true",
         includeClosed: url.searchParams.get("includeClosed") === "true",
+        includeSkipped: url.searchParams.get("includeSkipped") === "true",
       }),
     );
   if (url.pathname === "/api/jobs/reset" && method === "POST") {
