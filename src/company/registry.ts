@@ -10,6 +10,7 @@ import {
   companyImportRunSchema,
   companySourceRecordSchema,
   targetCompanySchema,
+  type CompanySourceVerificationResult,
   type CompanyImportRun,
   type CompanySourceRecord,
   type TargetCompany,
@@ -18,7 +19,12 @@ import { safeFetch } from "../security/safeFetch";
 import { htmlToSafeText } from "../security/content";
 import { JobCopilotStore } from "../db/store";
 import { findCompanyDuplicates } from "./deduplicate";
-import { detectCareerSource, findCareerLink } from "./detection";
+import {
+  detectCareerSource,
+  findCareerLink,
+  type DetectedCareerSource,
+} from "./detection";
+import { crawlOfficialCareersSite } from "./crawler";
 import {
   canonicalisePublicUrl,
   normaliseCompanyName,
@@ -33,8 +39,13 @@ export type CompanyRegistryStats = {
   domainResolved: number;
   careersPageFound: number;
   sourceVerified: number;
+  sourceVerifiedWithJobs: number;
+  sourceVerifiedEmpty: number;
   monitored: number;
   temporarilyFailing: number;
+  temporarilyUnavailable: number;
+  blockedOrUnsupported: number;
+  invalidSources: number;
   inactive: number;
   byCountry: Record<string, number>;
   verifiedByCountry: Record<string, number>;
@@ -42,6 +53,8 @@ export type CompanyRegistryStats = {
   unresolvedByCountry: Record<string, number>;
   byStatus: Record<string, number>;
   byAtsProvider: Record<string, number>;
+  byBoardState: Record<string, number>;
+  byHiringSourceClassification: Record<string, number>;
   byIndustry: Record<string, number>;
   bySponsorshipEvidence: Record<string, number>;
   bySource: Record<string, number>;
@@ -50,6 +63,14 @@ export type CompanyRegistryStats = {
   rejected: number;
   duplicates: number;
   verificationFailures: number;
+  sharedCareerBoards: number;
+};
+
+export type CompanySourceDetection = {
+  detection?: DetectedCareerSource;
+  detections: DetectedCareerSource[];
+  evidence: string[];
+  checkedAt: string;
 };
 
 export async function loadCompanySourceRecords(
@@ -59,6 +80,15 @@ export async function loadCompanySourceRecords(
   const records: CompanySourceRecord[] = [];
   for (const file of files) {
     const value = JSON.parse(await fs.readFile(file, "utf8")) as unknown;
+    const defaults =
+      value &&
+      typeof value === "object" &&
+      !Array.isArray(value) &&
+      "defaults" in value &&
+      (value as { defaults?: unknown }).defaults &&
+      typeof (value as { defaults: unknown }).defaults === "object"
+        ? ((value as { defaults: Record<string, unknown> }).defaults ?? {})
+        : {};
     const entries = Array.isArray(value)
       ? value
       : value && typeof value === "object" && "records" in value
@@ -67,7 +97,23 @@ export async function loadCompanySourceRecords(
     if (!Array.isArray(entries))
       throw new Error(`${file} must contain a JSON record array.`);
     records.push(
-      ...entries.map((entry) => companySourceRecordSchema.parse(entry)),
+      ...entries.map((entry) => {
+        const expanded =
+          entry && typeof entry === "object" && !Array.isArray(entry)
+            ? { ...defaults, ...entry }
+            : entry;
+        if (
+          expanded &&
+          typeof expanded === "object" &&
+          !Array.isArray(expanded) &&
+          !("sourceUrl" in expanded) &&
+          typeof (expanded as { websiteUrl?: unknown }).websiteUrl === "string"
+        )
+          (expanded as { sourceUrl: string }).sourceUrl = (
+            expanded as { websiteUrl: string }
+          ).websiteUrl;
+        return companySourceRecordSchema.parse(expanded);
+      }),
     );
   }
   return records;
@@ -286,17 +332,12 @@ export async function resolveCompany(
     throw new Error(`Official homepage returned HTTP ${response.status}.`);
   const html = await response.text();
   const careersUrl = company.careersUrl ?? findCareerLink(websiteUrl, html);
-  const detected = careersUrl ? detectCareerSource(careersUrl) : undefined;
   return targetCompanySchema.parse({
     ...company,
     companyDomain: normaliseDomain(websiteUrl),
     websiteUrl,
     careersUrl,
-    atsProvider:
-      company.atsProvider ??
-      detected?.provider ??
-      (careersUrl ? "custom" : undefined),
-    atsIdentifier: company.atsIdentifier ?? detected?.identifier,
+    atsProvider: company.atsProvider ?? (careersUrl ? "custom" : undefined),
     verificationStatus: careersUrl ? "careers-page-found" : "domain-resolved",
     resolvedAt: new Date().toISOString(),
     lastCheckedAt: new Date().toISOString(),
@@ -315,57 +356,573 @@ export async function verifyCompanySource(
     ashby: new AshbyConnector(),
     custom: new CareersPageConnector(),
   };
-  const connector =
-    connectors[company.atsProvider ?? "custom"] ??
-    defaults[company.atsProvider ?? "custom"];
-  if (!connector)
-    throw new Error(
-      `${company.atsProvider ?? "Unknown"} is detection-only and cannot ingest jobs.`,
-    );
-  if (company.atsProvider !== "custom" && !company.atsIdentifier)
-    throw new Error("A validated ATS identifier is required.");
-  if (company.atsProvider === "custom" && !company.careersUrl)
-    throw new Error("A verified official careers URL is required.");
   const verificationRunId = store.startCompanyVerificationRun(company);
+  const checkedAt = new Date().toISOString();
+  let working = company;
   try {
-    const references = await connector.discoverJobs({
-      profile: store.getProfile(),
-      company,
-      maximumJobs: 1,
+    let genericInspection:
+      Awaited<ReturnType<typeof crawlOfficialCareersSite>> | undefined;
+    if (!working.atsProvider || working.atsProvider === "custom") {
+      const directDetection = working.careersUrl
+        ? detectCareerSource(working.careersUrl, {
+            confidence: "high",
+            evidence: [
+              "The saved careers URL is a recognised public ATS board.",
+            ],
+          })
+        : undefined;
+      if (directDetection?.identifier) {
+        working = recordCompanySourceDetection(working, {
+          detection: directDetection,
+          detections: [directDetection],
+          evidence: directDetection.evidence,
+          checkedAt,
+        });
+        working = applyDetectedSource(working, directDetection);
+      } else if (working.careersUrl) {
+        genericInspection = await crawlOfficialCareersSite(working.careersUrl, {
+          maxDepth: 1,
+          maxPages: 10,
+        });
+        const detection = {
+          detection: genericInspection.detectedSources.find(
+            (item) => item.confidence === "high",
+          ),
+          detections: genericInspection.detectedSources,
+          evidence: genericInspection.detectedSources.flatMap(
+            (item) => item.evidence,
+          ),
+          checkedAt,
+        };
+        working = recordCompanySourceDetection(working, detection);
+        const handoff = selectSupportedCareerHandoff(detection.detections);
+        if (handoff.handoff) {
+          working = applyDetectedSource(working, handoff.handoff);
+        } else if (handoff.ambiguous) {
+          const result = verificationResult({
+            sourceReachable: true,
+            responseValid: true,
+            sourceIdentityMatchesCompany: false,
+            boardState: "unsupported",
+            jobsParsed: 0,
+            evidence: [
+              "More than one supported ATS board was linked from the official careers page.",
+              "A reviewer must select the canonical board before monitoring is enabled.",
+              ...handoff.ambiguous.flatMap((item) => item.evidence),
+              `Detected at ${checkedAt}.`,
+            ],
+            checkedAt,
+          });
+          return persistVerificationResult(
+            store,
+            verificationRunId,
+            working,
+            result,
+            "Multiple supported ATS boards require manual selection.",
+          );
+        } else {
+          const unsupported = genericInspection.detectedSources.find(
+            (item) => item.confidence === "high" && !item.ingestible,
+          );
+          if (
+            unsupported &&
+            genericInspection.jobs.length === 0 &&
+            genericInspection.discoveredUrls.length === 0
+          ) {
+            const result = verificationResult({
+              sourceReachable: true,
+              responseValid: true,
+              sourceIdentityMatchesCompany: true,
+              boardState: "unsupported",
+              jobsParsed: 0,
+              evidence: unsupported.evidence,
+              checkedAt,
+            });
+            return persistVerificationResult(
+              store,
+              verificationRunId,
+              working,
+              result,
+              `${unsupported.provider} is detected but not ingestible.`,
+            );
+          }
+        }
+      }
+    }
+
+    let references: Awaited<ReturnType<JobSourceConnector["discoverJobs"]>> =
+      [];
+    let evidence: string[] = [];
+    if (working.atsProvider && working.atsProvider !== "custom") {
+      const connector =
+        connectors[working.atsProvider] ?? defaults[working.atsProvider];
+      if (!connector)
+        throw new Error(
+          `${working.atsProvider} is detection-only and cannot ingest jobs.`,
+        );
+      if (!working.atsIdentifier)
+        throw new Error("A validated ATS identifier is required.");
+      references = await connector.discoverJobs({
+        profile: store.getProfile(),
+        company: working,
+        maximumJobs: 1,
+      });
+      evidence = [
+        `Valid ${working.atsProvider} public source response.`,
+        `ATS identifier: ${working.atsIdentifier}`,
+        ...(working.corporateCareersUrl
+          ? [`Linked from ${working.corporateCareersUrl}.`]
+          : []),
+        ...selectedSourceEvidence(working, checkedAt),
+      ];
+    } else {
+      if (!working.careersUrl)
+        throw new Error("A verified official careers URL is required.");
+      genericInspection ??= await crawlOfficialCareersSite(working.careersUrl, {
+        maxDepth: 1,
+        maxPages: 10,
+      });
+      if (genericInspection.blocked)
+        throw new Error(
+          "Careers page is blocked by CAPTCHA or bot protection.",
+        );
+      if (!genericInspection.careersPurposeConfirmed)
+        throw new Error(
+          "Official page did not contain enough careers-purpose evidence.",
+        );
+      references = connectors.custom
+        ? await connectors.custom.discoverJobs({
+            profile: store.getProfile(),
+            company: working,
+            maximumJobs: 1,
+          })
+        : genericInspection.jobs.slice(0, 1).map((job) => ({
+            sourceType: "company-careers" as const,
+            sourceName: `Official careers · ${working.displayName}`,
+            externalId: createHash("sha256")
+              .update(job.url)
+              .digest("hex")
+              .slice(0, 24),
+            url: job.url,
+            company: working.displayName,
+            title: job.title,
+            locationText: job.locationText,
+            publishedAt: job.publishedAt,
+            raw: job,
+          }));
+      evidence = [
+        `Official careers page is reachable: ${working.careersUrl}`,
+        `${genericInspection.pagesVisited} bounded page(s) inspected.`,
+        "Careers-purpose language was confirmed.",
+      ];
+    }
+
+    const identityMatches = sourceIdentityMatchesCompany(working, references);
+    const result = verificationResult({
+      sourceReachable: true,
+      responseValid: true,
+      sourceIdentityMatchesCompany: identityMatches,
+      boardState: identityMatches
+        ? references.length > 0
+          ? "active-with-jobs"
+          : "active-empty"
+        : "wrong-company",
+      jobsParsed: references.length,
+      sampleJobUrl: references[0]?.url,
+      sampleExternalId: references[0]?.externalId,
+      evidence: identityMatches
+        ? evidence
+        : [
+            ...evidence,
+            "Source identity did not match the company name or aliases.",
+          ],
+      checkedAt,
     });
-    if (references.length === 0)
-      throw new Error(
-        "Source returned no current or valid historical job postings; it cannot be source-verified.",
+    if (!identityMatches)
+      return persistVerificationResult(
+        store,
+        verificationRunId,
+        working,
+        result,
+        "Source belongs to another company.",
       );
     const verified = targetCompanySchema.parse({
-      ...company,
-      verificationStatus: company.enabled ? "monitored" : "source-verified",
-      lastCheckedAt: new Date().toISOString(),
+      ...working,
+      verificationStatus: working.enabled ? "monitored" : "source-verified",
+      boardState: result.boardState,
+      lastVerification: result,
+      sharedCareerBoardKey: careerBoardKey(working),
+      lastCheckedAt: checkedAt,
+      verificationFailureCount: 0,
+      nextVerificationAt: undefined,
       verificationError: undefined,
     });
     store.saveCompany(verified);
     store.finishCompanyVerificationRun(verificationRunId, verified, undefined, {
-      jobsParsed: references.length,
-      sampleJobUrl: references[0]?.url,
-      sampleExternalId: references[0]?.externalId,
+      ...result,
     });
     return verified;
   } catch (error) {
-    const failed = targetCompanySchema.parse({
-      ...company,
-      enabled: false,
-      verificationStatus: "temporarily-failing",
-      lastCheckedAt: new Date().toISOString(),
-      verificationError: formatError(error),
-    });
-    store.saveCompany(failed);
-    store.finishCompanyVerificationRun(
+    const classified = classifyVerificationError(error, checkedAt);
+    return persistVerificationResult(
+      store,
       verificationRunId,
-      failed,
+      working,
+      classified,
       formatError(error),
     );
-    throw error;
   }
+}
+
+export async function detectCompanySource(
+  company: TargetCompany,
+  options: {
+    fetchImpl?: typeof fetch;
+    lookup?: (hostname: string) => Promise<string[]>;
+  } = {},
+): Promise<CompanySourceDetection> {
+  const checkedAt = new Date().toISOString();
+  const sourceUrl =
+    company.corporateCareersUrl ??
+    company.careersUrl ??
+    company.websiteUrl ??
+    (company.companyDomain ? `https://${company.companyDomain}/` : undefined);
+  if (!sourceUrl)
+    return {
+      detections: [],
+      evidence: ["No official or careers URL is available for inspection."],
+      checkedAt,
+    };
+  const direct = detectCareerSource(sourceUrl, {
+    confidence: "high",
+    evidence: ["The saved careers URL is a recognised ATS URL."],
+  });
+  if (direct)
+    return {
+      detection: direct,
+      detections: [direct],
+      evidence: direct.evidence,
+      checkedAt,
+    };
+  const inspection = await crawlOfficialCareersSite(sourceUrl, {
+    ...options,
+    maxDepth: 0,
+    maxPages: 1,
+  });
+  const detection = inspection.detectedSources.find(
+    (item) => item.confidence === "high",
+  );
+  return {
+    detection,
+    detections: inspection.detectedSources,
+    evidence: [
+      `Inspected official source ${sourceUrl}.`,
+      ...(detection?.evidence ?? ["No recognised ATS link was found."]),
+    ],
+    checkedAt,
+  };
+}
+
+export function recordCompanySourceDetection(
+  company: TargetCompany,
+  detection: CompanySourceDetection,
+): TargetCompany {
+  return targetCompanySchema.parse({
+    ...company,
+    sourceDetections: detection.detections,
+    sourceDetectionCheckedAt: detection.checkedAt,
+  });
+}
+
+export function selectSupportedCareerHandoff(
+  detections: DetectedCareerSource[],
+): {
+  handoff?: DetectedCareerSource;
+  ambiguous?: DetectedCareerSource[];
+} {
+  const supported = detections.filter(
+    (item) =>
+      item.confidence === "high" && item.ingestible && Boolean(item.identifier),
+  );
+  if (supported.length === 1) return { handoff: supported[0] };
+  if (supported.length > 1) return { ambiguous: supported };
+  return {};
+}
+
+export function enableVerifiedCompanies(
+  store: JobCopilotStore,
+  options: {
+    dryRun?: boolean;
+    country?: string;
+    provider?: TargetCompany["atsProvider"];
+    company?: string;
+    companyIds?: string[];
+    limit?: number;
+  } = {},
+): {
+  planned: Array<{ id: string; company: string; boardState: string }>;
+  changed: string[];
+  errors: Array<{ id: string; error: string }>;
+} {
+  const candidates = store
+    .listCompanies()
+    .filter(
+      (company) =>
+        company.verificationStatus === "source-verified" &&
+        ["active-with-jobs", "active-empty"].includes(
+          company.boardState ?? "",
+        ) &&
+        !company.enabled,
+    )
+    .filter(
+      (company) =>
+        !options.country ||
+        company.operatingCountries.includes(options.country) ||
+        company.hiringCountries.includes(options.country),
+    )
+    .filter(
+      (company) =>
+        !options.provider || company.atsProvider === options.provider,
+    )
+    .filter(
+      (company) =>
+        !options.company ||
+        company.id === options.company ||
+        normaliseCompanyName(company.displayName) ===
+          normaliseCompanyName(options.company),
+    )
+    .filter(
+      (company) =>
+        !options.companyIds ||
+        options.companyIds.length === 0 ||
+        options.companyIds.includes(company.id),
+    )
+    .slice(0, options.limit ?? Number.POSITIVE_INFINITY);
+  const planned = candidates.map((company) => ({
+    id: company.id,
+    company: company.displayName,
+    boardState: company.boardState!,
+  }));
+  const changed: string[] = [];
+  const errors: Array<{ id: string; error: string }> = [];
+  if (!options.dryRun) {
+    for (const company of candidates) {
+      try {
+        store.saveCompany({
+          ...company,
+          enabled: true,
+          verificationStatus: "monitored",
+        });
+        changed.push(company.id);
+      } catch (error) {
+        errors.push({ id: company.id, error: formatError(error) });
+      }
+    }
+  }
+  return { planned, changed, errors };
+}
+
+function persistVerificationResult(
+  store: JobCopilotStore,
+  verificationRunId: string,
+  company: TargetCompany,
+  result: CompanySourceVerificationResult,
+  error?: string,
+): TargetCompany {
+  const wasVerified = ["source-verified", "monitored"].includes(
+    company.verificationStatus,
+  );
+  const successful = ["active-with-jobs", "active-empty"].includes(
+    result.boardState,
+  );
+  const temporary = result.boardState === "temporarily-unavailable";
+  const failureCount = successful ? 0 : company.verificationFailureCount + 1;
+  const failed = targetCompanySchema.parse({
+    ...company,
+    enabled: successful
+      ? company.enabled
+      : temporary && wasVerified
+        ? company.enabled
+        : false,
+    verificationStatus: successful
+      ? company.enabled
+        ? "monitored"
+        : "source-verified"
+      : temporary
+        ? wasVerified
+          ? company.verificationStatus
+          : "temporarily-failing"
+        : company.careersUrl
+          ? "careers-page-found"
+          : company.companyDomain
+            ? "domain-resolved"
+            : "candidate",
+    boardState: result.boardState,
+    lastVerification: result,
+    lastCheckedAt: result.checkedAt,
+    verificationFailureCount: failureCount,
+    nextVerificationAt: temporary
+      ? verificationRetryAt(failureCount, result.checkedAt)
+      : undefined,
+    verificationError: error,
+  });
+  store.saveCompany(failed);
+  store.finishCompanyVerificationRun(
+    verificationRunId,
+    failed,
+    successful ? undefined : (error ?? result.boardState),
+    { ...result },
+  );
+  return failed;
+}
+
+function verificationResult(
+  input: CompanySourceVerificationResult,
+): CompanySourceVerificationResult {
+  return input;
+}
+
+function classifyVerificationError(
+  error: unknown,
+  checkedAt: string,
+): CompanySourceVerificationResult {
+  const message = formatError(error);
+  const boardState: CompanySourceVerificationResult["boardState"] =
+    /(?:captcha|verify you are human|bot protection|access denied|HTTP 403)/i.test(
+      message,
+    )
+      ? "blocked"
+      : /(?:detection-only|not ingestible|unsupported content type)/i.test(
+            message,
+          )
+        ? "unsupported"
+        : /(?:HTTP 404|invalid .*identifier|unsupported characters|required)/i.test(
+              message,
+            )
+          ? "invalid"
+          : "temporarily-unavailable";
+  return verificationResult({
+    sourceReachable: !/(?:resolve|network|timed out|failed: fetch)/i.test(
+      message,
+    ),
+    responseValid: false,
+    sourceIdentityMatchesCompany: false,
+    boardState,
+    jobsParsed: 0,
+    evidence: [message],
+    checkedAt,
+  });
+}
+
+function applyDetectedSource(
+  company: TargetCompany,
+  detected: DetectedCareerSource,
+): TargetCompany {
+  return targetCompanySchema.parse({
+    ...company,
+    corporateCareersUrl:
+      company.corporateCareersUrl ??
+      (company.careersUrl !== detected.sourceUrl
+        ? company.careersUrl
+        : undefined),
+    atsProvider: detected.provider,
+    atsIdentifier: detected.identifier,
+    atsBoardUrl: detected.sourceUrl,
+    sharedCareerBoardKey: `${detected.provider}:${detected.identifier}`,
+  });
+}
+
+function selectedSourceEvidence(
+  company: TargetCompany,
+  checkedAt: string,
+): string[] {
+  const detection = company.sourceDetections.find(
+    (item) =>
+      item.confidence === "high" &&
+      item.provider === company.atsProvider &&
+      item.identifier === company.atsIdentifier &&
+      item.sourceUrl === company.atsBoardUrl,
+  );
+  return detection ? [...detection.evidence, `Detected at ${checkedAt}.`] : [];
+}
+
+function sourceIdentityMatchesCompany(
+  company: TargetCompany,
+  references: Awaited<ReturnType<JobSourceConnector["discoverJobs"]>>,
+): boolean {
+  const names = [
+    company.legalName,
+    company.displayName,
+    company.name,
+    ...company.aliases,
+  ].map(normaliseCompanyName);
+  const observed = references
+    .flatMap((reference) => {
+      const raw =
+        reference.raw && typeof reference.raw === "object"
+          ? (reference.raw as Record<string, unknown>)
+          : {};
+      return [
+        raw.company_name,
+        raw.companyName,
+        raw.company,
+        raw.hiringOrganization &&
+        typeof raw.hiringOrganization === "object" &&
+        !Array.isArray(raw.hiringOrganization)
+          ? (raw.hiringOrganization as Record<string, unknown>).name
+          : undefined,
+      ];
+    })
+    .filter((value): value is string => typeof value === "string")
+    .map(normaliseCompanyName);
+  if (observed.length > 0)
+    return observed.some((value) =>
+      names.some(
+        (name) =>
+          value === name ||
+          (value.length >= 4 &&
+            name.length >= 4 &&
+            (value.includes(name) || name.includes(value))),
+      ),
+    );
+  if (
+    company.corporateCareersUrl &&
+    company.sourceDetections.some(
+      (item) =>
+        item.confidence === "high" &&
+        item.provider === company.atsProvider &&
+        item.identifier === company.atsIdentifier &&
+        item.sourceUrl === company.atsBoardUrl,
+    )
+  )
+    return true;
+  if (!company.careersUrl || !company.companyDomain) return false;
+  const careersHost = new URL(company.careersUrl).hostname.replace(
+    /^www\./,
+    "",
+  );
+  return (
+    careersHost === company.companyDomain ||
+    careersHost.endsWith(`.${company.companyDomain}`)
+  );
+}
+
+function careerBoardKey(company: TargetCompany): string | undefined {
+  if (company.atsProvider && company.atsIdentifier)
+    return `${company.atsProvider}:${company.atsIdentifier}`;
+  return company.careersUrl
+    ? `custom:${canonicalisePublicUrl(company.careersUrl)}`
+    : undefined;
+}
+
+function verificationRetryAt(failureCount: number, checkedAt: string): string {
+  const delayMinutes = Math.min(
+    24 * 60,
+    5 * 2 ** Math.min(8, Math.max(0, failureCount - 1)),
+  );
+  return new Date(
+    new Date(checkedAt).getTime() + delayMinutes * 60_000,
+  ).toISOString();
 }
 
 export function auditCompanyRegistry(store: JobCopilotStore): {
@@ -419,11 +976,30 @@ export function generateCompanyRegistryStats(
     sourceVerified: companies.filter(
       (company) => company.verificationStatus === "source-verified",
     ).length,
+    sourceVerifiedWithJobs: companies.filter(
+      (company) =>
+        ["source-verified", "monitored"].includes(company.verificationStatus) &&
+        company.boardState === "active-with-jobs",
+    ).length,
+    sourceVerifiedEmpty: companies.filter(
+      (company) =>
+        ["source-verified", "monitored"].includes(company.verificationStatus) &&
+        company.boardState === "active-empty",
+    ).length,
     monitored: companies.filter(
       (company) => company.verificationStatus === "monitored",
     ).length,
     temporarilyFailing: companies.filter(
       (company) => company.verificationStatus === "temporarily-failing",
+    ).length,
+    temporarilyUnavailable: companies.filter(
+      (company) => company.boardState === "temporarily-unavailable",
+    ).length,
+    blockedOrUnsupported: companies.filter((company) =>
+      ["blocked", "unsupported"].includes(company.boardState ?? ""),
+    ).length,
+    invalidSources: companies.filter((company) =>
+      ["invalid", "wrong-company"].includes(company.boardState ?? ""),
     ).length,
     inactive: companies.filter(
       (company) => company.verificationStatus === "inactive",
@@ -452,6 +1028,12 @@ export function generateCompanyRegistryStats(
     byAtsProvider: countMany(
       companies.map((company) => company.atsProvider ?? "unresolved"),
     ),
+    byBoardState: countMany(
+      companies.map((company) => company.boardState ?? "not-checked"),
+    ),
+    byHiringSourceClassification: countMany(
+      companies.map((company) => company.hiringSourceClassification),
+    ),
     byIndustry: countMany(companies.flatMap((company) => company.industries)),
     bySponsorshipEvidence: countMany(
       companies.map((company) => company.sponsorshipEvidence),
@@ -472,6 +1054,7 @@ export function generateCompanyRegistryStats(
     verificationFailures: companies.filter(
       (company) => company.verificationStatus === "temporarily-failing",
     ).length,
+    sharedCareerBoards: countSharedCareerBoards(companies),
   };
 }
 
@@ -491,6 +1074,17 @@ export async function writeCompanyRegistryReports(
     fs.writeFile(
       path.join(directory, "company-registry-summary.md"),
       renderStatsMarkdown(stats),
+    ),
+    fs.writeFile(
+      path.join(directory, "company-source-repair-summary.json"),
+      `${JSON.stringify(stats, null, 2)}\n`,
+    ),
+    fs.writeFile(
+      path.join(directory, "company-source-repair-summary.md"),
+      renderStatsMarkdown(stats).replace(
+        "# Company registry summary",
+        "# Company source repair summary",
+      ),
     ),
     fs.writeFile(
       path.join(directory, "unresolved-companies.csv"),
@@ -523,6 +1117,50 @@ export async function writeCompanyRegistryReports(
             company.verificationError ?? "",
           ]),
       ),
+    ),
+    fs.writeFile(
+      path.join(directory, "verified-company-sources.csv"),
+      renderCompanySourceCsv(
+        companies.filter((company) =>
+          ["source-verified", "monitored"].includes(company.verificationStatus),
+        ),
+      ),
+    ),
+    fs.writeFile(
+      path.join(directory, "active-empty-company-sources.csv"),
+      renderCompanySourceCsv(
+        companies.filter((company) => company.boardState === "active-empty"),
+      ),
+    ),
+    fs.writeFile(
+      path.join(directory, "unsupported-company-sources.csv"),
+      renderCompanySourceCsv(
+        companies.filter((company) =>
+          ["blocked", "unsupported"].includes(company.boardState ?? ""),
+        ),
+      ),
+    ),
+    fs.writeFile(
+      path.join(directory, "temporarily-failing-sources.csv"),
+      renderCompanySourceCsv(
+        companies.filter(
+          (company) =>
+            company.boardState === "temporarily-unavailable" ||
+            company.verificationStatus === "temporarily-failing",
+        ),
+      ),
+    ),
+    fs.writeFile(
+      path.join(directory, "invalid-ats-identifiers.csv"),
+      renderCompanySourceCsv(
+        companies.filter((company) =>
+          ["invalid", "wrong-company"].includes(company.boardState ?? ""),
+        ),
+      ),
+    ),
+    fs.writeFile(
+      path.join(directory, "shared-career-boards.csv"),
+      renderSharedCareerBoardsCsv(companies),
     ),
     fs.writeFile(
       path.join(directory, "company-duplicates.csv"),
@@ -587,16 +1225,16 @@ export function importCompanyResolutions(
       const careersUrl = row.careersUrl
         ? canonicalisePublicUrl(row.careersUrl)
         : company.careersUrl;
-      const detected = careersUrl ? detectCareerSource(careersUrl) : undefined;
       const updatedCompany = targetCompanySchema.parse({
         ...company,
         companyDomain: domain ?? company.companyDomain,
         websiteUrl: domain ? `https://${domain}/` : company.websiteUrl,
         careersUrl,
         atsProvider:
-          row.atsProvider || detected?.provider || company.atsProvider,
-        atsIdentifier:
-          row.atsIdentifier || detected?.identifier || company.atsIdentifier,
+          row.atsProvider ||
+          company.atsProvider ||
+          (careersUrl ? "custom" : undefined),
+        atsIdentifier: row.atsIdentifier || company.atsIdentifier,
         verificationStatus: careersUrl
           ? "careers-page-found"
           : domain
@@ -643,7 +1281,6 @@ function buildCompany(
   const websiteUrl = record.websiteUrl ?? existing?.websiteUrl;
   const companyDomain = normaliseDomain(websiteUrl) ?? existing?.companyDomain;
   const careersUrl = record.careersUrl ?? existing?.careersUrl;
-  const detected = careersUrl ? detectCareerSource(careersUrl) : undefined;
   const sponsorshipEvidence = strongestSponsorship(
     existing?.sponsorshipEvidence ?? "unknown",
     sourceSponsorship(record),
@@ -670,11 +1307,9 @@ function buildCompany(
     industries: [
       ...new Set([...(existing?.industries ?? []), ...record.industries]),
     ],
-    atsProvider:
-      existing?.atsProvider ??
-      detected?.provider ??
-      (careersUrl ? "custom" : undefined),
-    atsIdentifier: existing?.atsIdentifier ?? detected?.identifier,
+    atsProvider: existing?.atsProvider ?? (careersUrl ? "custom" : undefined),
+    atsIdentifier: existing?.atsIdentifier,
+    atsBoardUrl: existing?.atsBoardUrl ?? record.atsBoardUrl,
     sourceType: existing?.sourceType ?? record.sourceType,
     sourceRecords: [
       ...new Map(
@@ -684,6 +1319,10 @@ function buildCompany(
         ]),
       ).values(),
     ],
+    hiringSourceClassification:
+      existing?.hiringSourceClassification ??
+      record.hiringSourceClassification ??
+      inferHiringSourceClassification(record),
     sponsorshipEvidence,
     sponsorshipCountries: [
       ...new Set([
@@ -827,6 +1466,38 @@ function sourceSponsorship(
   }
 }
 
+function inferHiringSourceClassification(
+  record: CompanySourceRecord,
+): TargetCompany["hiringSourceClassification"] {
+  const normalized = normaliseCompanyName(record.legalName);
+  if (normalized === "dicetek" || normalized === "hcltech")
+    return "staffing-consultancy";
+  if (
+    normalized === "discovered" ||
+    normalized === "discovered mena" ||
+    normalized === "nameless ventures"
+  )
+    return "recruitment-agency";
+  if (normalized === "qureos") return "job-platform";
+  if (
+    [
+      "official-sponsor-register",
+      "official-permit-list",
+      "government-open-data",
+    ].includes(record.sourceType)
+  )
+    return "government-portal";
+  if (record.sourceType === "government-startup-ecosystem")
+    return "ecosystem-directory";
+  if (
+    ["official-company-page", "verified-curated-list"].includes(
+      record.sourceType,
+    )
+  )
+    return "direct-employer";
+  return "unknown";
+}
+
 function strongestSponsorship(
   left: TargetCompany["sponsorshipEvidence"],
   right: TargetCompany["sponsorshipEvidence"],
@@ -855,8 +1526,17 @@ function countMany(values: string[]): Record<string, number> {
   }, {});
 }
 
+function countSharedCareerBoards(companies: TargetCompany[]): number {
+  const counts = countMany(
+    companies
+      .map((company) => company.sharedCareerBoardKey)
+      .filter((value): value is string => Boolean(value)),
+  );
+  return Object.values(counts).filter((count) => count > 1).length;
+}
+
 function renderStatsMarkdown(stats: CompanyRegistryStats): string {
-  return `# Company registry summary\n\nGenerated: ${new Date().toISOString()}\n\nCounts describe the database used for this report. A company may appear in more than one country row; headline counts are unique companies. “Unresolved” means the candidate workflow state, not merely a missing domain.\n\n- Source records: ${stats.totalSourceRecords}\n- Unique companies: ${stats.totalCompanies}\n- Candidate companies: ${stats.candidateCompanies}\n- Domain resolved: ${stats.domainResolved}\n- Careers pages found: ${stats.careersPageFound}\n- Source verified: ${stats.sourceVerified}\n- Monitored: ${stats.monitored}\n- Temporarily failing: ${stats.temporarilyFailing}\n- Inactive: ${stats.inactive}\n- Unresolved: ${stats.unresolved}\n- Rejected: ${stats.rejected}\n- Duplicate candidates: ${stats.duplicates}\n\n## Companies by country\n\n${renderCountTable(stats.byCountry)}\n\n## Verified by country\n\n${renderCountTable(stats.verifiedByCountry)}\n\n## Monitored by country\n\n${renderCountTable(stats.monitoredByCountry)}\n\n## Unresolved by country\n\n${renderCountTable(stats.unresolvedByCountry)}\n\n## By verification status\n\n${renderCountTable(stats.byStatus)}\n\n## By ATS provider\n\n${renderCountTable(stats.byAtsProvider)}\n\n## By industry\n\n${renderCountTable(stats.byIndustry)}\n\n## By sponsorship evidence\n\n${renderCountTable(stats.bySponsorshipEvidence)}\n\n## By source\n\n${renderCountTable(stats.bySource)}\n`;
+  return `# Company registry summary\n\nGenerated: ${new Date().toISOString()}\n\nCounts describe the database used for this report. A company may appear in more than one country row; headline counts are unique companies. “Unresolved” means the candidate workflow state, not merely a missing domain.\n\n- Source records: ${stats.totalSourceRecords}\n- Unique companies: ${stats.totalCompanies}\n- Candidate companies: ${stats.candidateCompanies}\n- Domain resolved: ${stats.domainResolved}\n- Careers pages found: ${stats.careersPageFound}\n- Source verified: ${stats.sourceVerified}\n- Source verified with jobs: ${stats.sourceVerifiedWithJobs}\n- Source verified but empty: ${stats.sourceVerifiedEmpty}\n- Monitored: ${stats.monitored}\n- Temporarily failing: ${stats.temporarilyFailing}\n- Temporarily unavailable: ${stats.temporarilyUnavailable}\n- Blocked or unsupported: ${stats.blockedOrUnsupported}\n- Invalid or wrong-company: ${stats.invalidSources}\n- Inactive: ${stats.inactive}\n- Unresolved: ${stats.unresolved}\n- Rejected: ${stats.rejected}\n- Shared career boards: ${stats.sharedCareerBoards}\n- Duplicate candidates: ${stats.duplicates}\n\n## Companies by country\n\n${renderCountTable(stats.byCountry)}\n\n## Verified by country\n\n${renderCountTable(stats.verifiedByCountry)}\n\n## Monitored by country\n\n${renderCountTable(stats.monitoredByCountry)}\n\n## Unresolved by country\n\n${renderCountTable(stats.unresolvedByCountry)}\n\n## By verification status\n\n${renderCountTable(stats.byStatus)}\n\n## By board state\n\n${renderCountTable(stats.byBoardState)}\n\n## By ATS provider\n\n${renderCountTable(stats.byAtsProvider)}\n\n## By hiring-source classification\n\n${renderCountTable(stats.byHiringSourceClassification)}\n\n## By industry\n\n${renderCountTable(stats.byIndustry)}\n\n## By sponsorship evidence\n\n${renderCountTable(stats.bySponsorshipEvidence)}\n\n## By source\n\n${renderCountTable(stats.bySource)}\n`;
 }
 
 function renderCountTable(values: Record<string, number>): string {
@@ -867,6 +1547,66 @@ function renderCountTable(values: Record<string, number>): string {
       .sort(([a], [b]) => a.localeCompare(b))
       .map(([key, count]) => `| ${key.replace(/\|/g, "\\|")} | ${count} |`),
   ].join("\n");
+}
+
+function renderCompanySourceCsv(companies: TargetCompany[]): string {
+  return toCsv(
+    [
+      "id",
+      "company",
+      "country",
+      "classification",
+      "provider",
+      "identifier",
+      "corporateCareersUrl",
+      "atsBoardUrl",
+      "boardState",
+      "status",
+      "enabled",
+      "lastCheckedAt",
+      "error",
+    ],
+    companies.map((company) => [
+      company.id,
+      company.displayName,
+      company.operatingCountries.join("; "),
+      company.hiringSourceClassification,
+      company.atsProvider ?? "",
+      company.atsIdentifier ?? "",
+      company.corporateCareersUrl ?? company.careersUrl ?? "",
+      company.atsBoardUrl ?? "",
+      company.boardState ?? "",
+      company.verificationStatus,
+      String(company.enabled),
+      company.lastCheckedAt ?? "",
+      company.verificationError ?? "",
+    ]),
+  );
+}
+
+function renderSharedCareerBoardsCsv(companies: TargetCompany[]): string {
+  const groups = new Map<string, TargetCompany[]>();
+  for (const company of companies) {
+    if (!company.sharedCareerBoardKey) continue;
+    groups.set(company.sharedCareerBoardKey, [
+      ...(groups.get(company.sharedCareerBoardKey) ?? []),
+      company,
+    ]);
+  }
+  return toCsv(
+    ["boardKey", "provider", "identifier", "companies", "countries"],
+    [...groups.entries()]
+      .filter(([, members]) => members.length > 1)
+      .map(([key, members]) => [
+        key,
+        members[0].atsProvider ?? "custom",
+        members[0].atsIdentifier ?? "",
+        members.map((company) => company.displayName).join("; "),
+        [
+          ...new Set(members.flatMap((company) => company.operatingCountries)),
+        ].join("; "),
+      ]),
+  );
 }
 
 function toCsv(headers: string[], rows: string[][]): string {

@@ -1,0 +1,451 @@
+{
+  "defaults": {
+    "sourceType": "official-company-page",
+    "sourceName": "Requested Netherlands company official-domain candidates",
+    "sourceRetrievedAt": "2026-07-23T00:00:00.000Z",
+    "country": "Netherlands",
+    "cities": [],
+    "industries": ["technology"],
+    "aliases": [],
+    "hiringSourceClassification": "direct-employer"
+  },
+  "records": [
+    {
+      "sourceRecordId": "nl-miro",
+      "legalName": "Miro",
+      "websiteUrl": "https://miro.com/",
+      "careersUrl": "https://miro.com/careers/",
+      "cities": ["Amsterdam"],
+      "industries": ["software"]
+    },
+    {
+      "sourceRecordId": "nl-picnic",
+      "legalName": "Picnic Technologies B.V.",
+      "displayName": "Picnic",
+      "aliases": ["Picnic Technologies"],
+      "websiteUrl": "https://picnic.app/",
+      "careersUrl": "https://picnic.app/careers/",
+      "cities": ["Amsterdam"],
+      "industries": ["e-commerce", "logistics technology"]
+    },
+    {
+      "sourceRecordId": "nl-mollie",
+      "legalName": "Mollie B.V.",
+      "displayName": "Mollie",
+      "websiteUrl": "https://www.mollie.com/",
+      "cities": ["Amsterdam"],
+      "industries": ["fintech", "payments"]
+    },
+    {
+      "sourceRecordId": "nl-catawiki",
+      "legalName": "Catawiki B.V.",
+      "displayName": "Catawiki",
+      "websiteUrl": "https://www.catawiki.com/",
+      "cities": ["Amsterdam"],
+      "industries": ["marketplace"]
+    },
+    {
+      "sourceRecordId": "nl-backbase",
+      "legalName": "Backbase B.V.",
+      "displayName": "Backbase",
+      "websiteUrl": "https://www.backbase.com/",
+      "cities": ["Amsterdam"],
+      "industries": ["fintech", "software"]
+    },
+    {
+      "sourceRecordId": "nl-bunq",
+      "legalName": "bunq B.V.",
+      "displayName": "bunq",
+      "websiteUrl": "https://www.bunq.com/",
+      "cities": ["Amsterdam"],
+      "industries": ["digital banking", "fintech"]
+    },
+    {
+      "sourceRecordId": "nl-coolblue",
+      "legalName": "Coolblue B.V.",
+      "displayName": "Coolblue",
+      "websiteUrl": "https://www.coolblue.nl/",
+      "cities": ["Rotterdam"],
+      "industries": ["e-commerce"]
+    },
+    {
+      "sourceRecordId": "nl-bird",
+      "legalName": "Bird Rides, Inc.",
+      "displayName": "Bird",
+      "aliases": ["MessageBird"],
+      "websiteUrl": "https://bird.com/",
+      "cities": ["Amsterdam"],
+      "industries": ["communications platform"],
+      "notes": "MessageBird is the former name/brand represented by this one source."
+    },
+    {
+      "sourceRecordId": "nl-tomtom",
+      "legalName": "TomTom N.V.",
+      "displayName": "TomTom",
+      "websiteUrl": "https://www.tomtom.com/",
+      "cities": ["Amsterdam"],
+      "industries": ["mapping", "software"]
+    },
+    {
+      "sourceRecordId": "nl-adyen",
+      "legalName": "Adyen N.V.",
+      "displayName": "Adyen",
+      "websiteUrl": "https://www.adyen.com/",
+      "careersUrl": "https://careers.adyen.com/",
+      "cities": ["Amsterdam"],
+      "industries": ["fintech", "payments"]
+    },
+    {
+      "sourceRecordId": "nl-booking",
+      "legalName": "Booking.com B.V.",
+      "displayName": "Booking.com",
+      "websiteUrl": "https://www.booking.com/",
+      "careersUrl": "https://careers.booking.com/",
+      "cities": ["Amsterdam"],
+      "industries": ["travel technology"]
+    },
+    {
+      "sourceRecordId": "nl-asml",
+      "legalName": "ASML Holding N.V.",
+      "displayName": "ASML",
+      "websiteUrl": "https://www.asml.com/",
+      "cities": ["Veldhoven"],
+      "industries": ["semiconductors"]
+    },
+    {
+      "sourceRecordId": "nl-elastic",
+      "legalName": "Elastic N.V.",
+      "displayName": "Elastic",
+      "websiteUrl": "https://www.elastic.co/",
+      "careersUrl": "https://www.elastic.co/careers/",
+      "cities": ["Amsterdam", "Remote"],
+      "industries": ["software"]
+    },
+    {
+      "sourceRecordId": "nl-databricks",
+      "legalName": "Databricks, Inc.",
+      "displayName": "Databricks",
+      "aliases": ["Databricks Netherlands"],
+      "websiteUrl": "https://www.databricks.com/",
+      "careersUrl": "https://www.databricks.com/company/careers",
+      "cities": ["Amsterdam"],
+      "industries": ["data", "cloud"]
+    },
+    {
+      "sourceRecordId": "nl-uber",
+      "legalName": "Uber Technologies, Inc.",
+      "displayName": "Uber",
+      "aliases": ["Uber Amsterdam"],
+      "websiteUrl": "https://www.uber.com/",
+      "careersUrl": "https://www.uber.com/careers/",
+      "cities": ["Amsterdam"],
+      "industries": ["mobility"]
+    },
+    {
+      "sourceRecordId": "nl-jeta",
+      "legalName": "Just Eat Takeaway.com N.V.",
+      "displayName": "Just Eat Takeaway",
+      "websiteUrl": "https://www.justeattakeaway.com/",
+      "cities": ["Amsterdam"],
+      "industries": ["food delivery", "marketplace"]
+    },
+    {
+      "sourceRecordId": "nl-wetransfer",
+      "legalName": "WeTransfer B.V.",
+      "displayName": "WeTransfer",
+      "websiteUrl": "https://wetransfer.com/",
+      "cities": ["Amsterdam"],
+      "industries": ["software"]
+    },
+    {
+      "sourceRecordId": "nl-bynder",
+      "legalName": "Bynder B.V.",
+      "displayName": "Bynder",
+      "websiteUrl": "https://www.bynder.com/",
+      "cities": ["Amsterdam"],
+      "industries": ["software"]
+    },
+    {
+      "sourceRecordId": "nl-degiro",
+      "legalName": "flatexDEGIRO AG",
+      "displayName": "DEGIRO",
+      "websiteUrl": "https://www.degiro.nl/",
+      "cities": ["Amsterdam"],
+      "industries": ["fintech"]
+    },
+    {
+      "sourceRecordId": "nl-bux",
+      "legalName": "BUX B.V.",
+      "displayName": "Bux",
+      "websiteUrl": "https://getbux.com/",
+      "cities": ["Amsterdam"],
+      "industries": ["fintech"]
+    },
+    {
+      "sourceRecordId": "nl-optiver",
+      "legalName": "Optiver Holding B.V.",
+      "displayName": "Optiver",
+      "websiteUrl": "https://optiver.com/",
+      "cities": ["Amsterdam"],
+      "industries": ["trading", "technology"]
+    },
+    {
+      "sourceRecordId": "nl-imc",
+      "legalName": "IMC B.V.",
+      "displayName": "IMC Trading",
+      "websiteUrl": "https://www.imc.com/",
+      "cities": ["Amsterdam"],
+      "industries": ["trading", "technology"]
+    },
+    {
+      "sourceRecordId": "nl-flow",
+      "legalName": "Flow Traders N.V.",
+      "displayName": "Flow Traders",
+      "websiteUrl": "https://www.flowtraders.com/",
+      "cities": ["Amsterdam"],
+      "industries": ["trading", "technology"]
+    },
+    {
+      "sourceRecordId": "nl-nebius",
+      "legalName": "Nebius Group N.V.",
+      "displayName": "Nebius",
+      "websiteUrl": "https://nebius.com/",
+      "cities": ["Amsterdam"],
+      "industries": ["cloud", "artificial intelligence"]
+    },
+    {
+      "sourceRecordId": "nl-lemonade",
+      "legalName": "Lemonade, Inc.",
+      "displayName": "Lemonade",
+      "aliases": ["Lemonade Amsterdam"],
+      "websiteUrl": "https://www.lemonade.com/",
+      "cities": ["Amsterdam"],
+      "industries": ["insurtech"]
+    },
+    {
+      "sourceRecordId": "nl-otrium",
+      "legalName": "Otrium B.V.",
+      "displayName": "Otrium",
+      "websiteUrl": "https://www.otrium.com/",
+      "cities": ["Amsterdam"],
+      "industries": ["e-commerce"]
+    },
+    {
+      "sourceRecordId": "nl-framer",
+      "legalName": "Framer B.V.",
+      "displayName": "Framer",
+      "websiteUrl": "https://www.framer.com/",
+      "cities": ["Amsterdam"],
+      "industries": ["software"]
+    },
+    {
+      "sourceRecordId": "nl-creative-fabrica",
+      "legalName": "Creative Fabrica B.V.",
+      "displayName": "Creative Fabrica",
+      "websiteUrl": "https://www.creativefabrica.com/",
+      "cities": ["Amsterdam"],
+      "industries": ["marketplace", "software"]
+    },
+    {
+      "sourceRecordId": "nl-sendcloud",
+      "legalName": "Sendcloud B.V.",
+      "displayName": "Sendcloud",
+      "websiteUrl": "https://www.sendcloud.com/",
+      "cities": ["Eindhoven"],
+      "industries": ["logistics technology"]
+    },
+    {
+      "sourceRecordId": "nl-channable",
+      "legalName": "Channable B.V.",
+      "displayName": "Channable",
+      "websiteUrl": "https://www.channable.com/",
+      "cities": ["Utrecht"],
+      "industries": ["software"]
+    },
+    {
+      "sourceRecordId": "nl-lepaya",
+      "legalName": "Lepaya B.V.",
+      "displayName": "Lepaya",
+      "websiteUrl": "https://www.lepaya.com/",
+      "cities": ["Amsterdam"],
+      "industries": ["education technology"]
+    },
+    {
+      "sourceRecordId": "nl-studocu",
+      "legalName": "StuDocu B.V.",
+      "displayName": "StuDocu",
+      "websiteUrl": "https://www.studocu.com/",
+      "cities": ["Amsterdam"],
+      "industries": ["education technology"]
+    },
+    {
+      "sourceRecordId": "nl-ahold",
+      "legalName": "Koninklijke Ahold Delhaize N.V.",
+      "displayName": "Ahold Delhaize",
+      "websiteUrl": "https://www.aholddelhaize.com/",
+      "cities": ["Zaandam"],
+      "industries": ["retail", "technology"]
+    },
+    {
+      "sourceRecordId": "nl-ing",
+      "legalName": "ING Groep N.V.",
+      "displayName": "ING",
+      "websiteUrl": "https://www.ing.com/",
+      "cities": ["Amsterdam"],
+      "industries": ["banking", "fintech"]
+    },
+    {
+      "sourceRecordId": "nl-abn",
+      "legalName": "ABN AMRO Bank N.V.",
+      "displayName": "ABN AMRO",
+      "websiteUrl": "https://www.abnamro.com/",
+      "cities": ["Amsterdam"],
+      "industries": ["banking", "fintech"]
+    },
+    {
+      "sourceRecordId": "nl-rabobank",
+      "legalName": "Coöperatieve Rabobank U.A.",
+      "displayName": "Rabobank",
+      "websiteUrl": "https://www.rabobank.com/",
+      "cities": ["Utrecht"],
+      "industries": ["banking", "fintech"]
+    },
+    {
+      "sourceRecordId": "nl-kpn",
+      "legalName": "Koninklijke KPN N.V.",
+      "displayName": "KPN",
+      "websiteUrl": "https://www.kpn.com/",
+      "cities": ["Rotterdam"],
+      "industries": ["telecommunications"]
+    },
+    {
+      "sourceRecordId": "nl-philips",
+      "legalName": "Koninklijke Philips N.V.",
+      "displayName": "Philips",
+      "websiteUrl": "https://www.philips.com/",
+      "cities": ["Amsterdam"],
+      "industries": ["health technology"]
+    },
+    {
+      "sourceRecordId": "nl-nxp",
+      "legalName": "NXP Semiconductors N.V.",
+      "displayName": "NXP",
+      "websiteUrl": "https://www.nxp.com/",
+      "cities": ["Eindhoven"],
+      "industries": ["semiconductors"]
+    },
+    {
+      "sourceRecordId": "nl-amazon",
+      "legalName": "Amazon.com, Inc.",
+      "displayName": "Amazon",
+      "aliases": ["Amazon Netherlands"],
+      "websiteUrl": "https://www.amazon.jobs/"
+    },
+    {
+      "sourceRecordId": "nl-microsoft",
+      "legalName": "Microsoft Corporation",
+      "displayName": "Microsoft",
+      "aliases": ["Microsoft Netherlands"],
+      "websiteUrl": "https://www.microsoft.com/"
+    },
+    {
+      "sourceRecordId": "nl-google",
+      "legalName": "Google LLC",
+      "displayName": "Google",
+      "aliases": ["Google Netherlands"],
+      "websiteUrl": "https://about.google/"
+    },
+    {
+      "sourceRecordId": "nl-netflix",
+      "legalName": "Netflix, Inc.",
+      "displayName": "Netflix",
+      "aliases": ["Netflix Amsterdam"],
+      "websiteUrl": "https://jobs.netflix.com/"
+    },
+    {
+      "sourceRecordId": "nl-nike",
+      "legalName": "NIKE, Inc.",
+      "displayName": "Nike",
+      "aliases": ["Nike European Headquarters"],
+      "websiteUrl": "https://www.nike.com/"
+    },
+    {
+      "sourceRecordId": "nl-bosch",
+      "legalName": "Robert Bosch GmbH",
+      "displayName": "Bosch",
+      "aliases": ["Bosch Netherlands"],
+      "websiteUrl": "https://www.bosch.com/"
+    },
+    {
+      "sourceRecordId": "nl-siemens",
+      "legalName": "Siemens AG",
+      "displayName": "Siemens",
+      "aliases": ["Siemens Netherlands"],
+      "websiteUrl": "https://www.siemens.com/"
+    },
+    {
+      "sourceRecordId": "nl-accenture",
+      "legalName": "Accenture plc",
+      "displayName": "Accenture",
+      "aliases": ["Accenture Netherlands"],
+      "websiteUrl": "https://www.accenture.com/",
+      "hiringSourceClassification": "staffing-consultancy"
+    },
+    {
+      "sourceRecordId": "nl-deloitte",
+      "legalName": "Deloitte Touche Tohmatsu Limited",
+      "displayName": "Deloitte",
+      "aliases": ["Deloitte Netherlands"],
+      "websiteUrl": "https://www.deloitte.com/",
+      "hiringSourceClassification": "staffing-consultancy"
+    },
+    {
+      "sourceRecordId": "nl-pwc",
+      "legalName": "PricewaterhouseCoopers International Limited",
+      "displayName": "PwC",
+      "aliases": ["PwC Netherlands"],
+      "websiteUrl": "https://www.pwc.com/",
+      "hiringSourceClassification": "staffing-consultancy"
+    },
+    {
+      "sourceRecordId": "nl-ey",
+      "legalName": "Ernst & Young Global Limited",
+      "displayName": "EY",
+      "aliases": ["EY Netherlands"],
+      "websiteUrl": "https://www.ey.com/",
+      "hiringSourceClassification": "staffing-consultancy"
+    },
+    {
+      "sourceRecordId": "nl-kpmg",
+      "legalName": "KPMG International Limited",
+      "displayName": "KPMG",
+      "aliases": ["KPMG Netherlands"],
+      "websiteUrl": "https://kpmg.com/",
+      "hiringSourceClassification": "staffing-consultancy"
+    },
+    {
+      "sourceRecordId": "nl-capgemini",
+      "legalName": "Capgemini SE",
+      "displayName": "Capgemini",
+      "aliases": ["Capgemini Netherlands"],
+      "websiteUrl": "https://www.capgemini.com/",
+      "hiringSourceClassification": "staffing-consultancy"
+    },
+    {
+      "sourceRecordId": "nl-cognizant",
+      "legalName": "Cognizant Technology Solutions Corporation",
+      "displayName": "Cognizant",
+      "aliases": ["Cognizant Netherlands"],
+      "websiteUrl": "https://www.cognizant.com/",
+      "hiringSourceClassification": "staffing-consultancy"
+    },
+    {
+      "sourceRecordId": "nl-epam",
+      "legalName": "EPAM Systems, Inc.",
+      "displayName": "EPAM",
+      "aliases": ["EPAM Netherlands"],
+      "websiteUrl": "https://www.epam.com/",
+      "hiringSourceClassification": "staffing-consultancy"
+    }
+  ]
+}

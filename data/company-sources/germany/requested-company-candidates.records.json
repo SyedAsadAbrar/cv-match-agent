@@ -1,0 +1,556 @@
+{
+  "defaults": {
+    "sourceType": "official-company-page",
+    "sourceName": "Requested Germany company official-domain candidates",
+    "sourceRetrievedAt": "2026-07-23T00:00:00.000Z",
+    "country": "Germany",
+    "cities": [],
+    "industries": ["technology"],
+    "aliases": [],
+    "hiringSourceClassification": "direct-employer"
+  },
+  "records": [
+    {
+      "sourceRecordId": "de-delivery-hero",
+      "legalName": "Delivery Hero SE",
+      "displayName": "Delivery Hero",
+      "websiteUrl": "https://www.deliveryhero.com/",
+      "careersUrl": "https://careers.deliveryhero.com/",
+      "cities": ["Berlin"]
+    },
+    {
+      "sourceRecordId": "de-hellofresh",
+      "legalName": "HelloFresh SE",
+      "displayName": "HelloFresh",
+      "websiteUrl": "https://www.hellofreshgroup.com/",
+      "cities": ["Berlin"]
+    },
+    {
+      "sourceRecordId": "de-getyourguide",
+      "legalName": "GetYourGuide Deutschland GmbH",
+      "displayName": "GetYourGuide",
+      "websiteUrl": "https://www.getyourguide.careers/",
+      "cities": ["Berlin"]
+    },
+    {
+      "sourceRecordId": "de-personio",
+      "legalName": "Personio SE & Co. KG",
+      "displayName": "Personio",
+      "websiteUrl": "https://www.personio.com/",
+      "cities": ["Munich"]
+    },
+    {
+      "sourceRecordId": "de-celonis",
+      "legalName": "Celonis SE",
+      "displayName": "Celonis",
+      "websiteUrl": "https://www.celonis.com/",
+      "cities": ["Munich"]
+    },
+    {
+      "sourceRecordId": "de-trade-republic",
+      "legalName": "Trade Republic Bank GmbH",
+      "displayName": "Trade Republic",
+      "websiteUrl": "https://traderepublic.com/",
+      "cities": ["Berlin"],
+      "industries": ["fintech"]
+    },
+    {
+      "sourceRecordId": "de-n26",
+      "legalName": "N26 Bank SE",
+      "displayName": "N26",
+      "websiteUrl": "https://n26.com/",
+      "careersUrl": "https://n26.com/en-eu/careers",
+      "cities": ["Berlin"],
+      "industries": ["digital banking"]
+    },
+    {
+      "sourceRecordId": "de-zalando",
+      "legalName": "Zalando SE",
+      "displayName": "Zalando",
+      "websiteUrl": "https://www.zalando.com/",
+      "cities": ["Berlin"],
+      "industries": ["e-commerce"]
+    },
+    {
+      "sourceRecordId": "de-auto1",
+      "legalName": "AUTO1 Group SE",
+      "displayName": "AUTO1 Group",
+      "websiteUrl": "https://www.auto1-group.com/",
+      "cities": ["Berlin"],
+      "industries": ["marketplace"]
+    },
+    {
+      "sourceRecordId": "de-flix",
+      "legalName": "Flix SE",
+      "displayName": "Flix",
+      "websiteUrl": "https://flix.careers/",
+      "cities": ["Munich"],
+      "industries": ["mobility"]
+    },
+    {
+      "sourceRecordId": "de-contentful",
+      "legalName": "Contentful GmbH",
+      "displayName": "Contentful",
+      "websiteUrl": "https://www.contentful.com/",
+      "cities": ["Berlin"],
+      "industries": ["software"]
+    },
+    {
+      "sourceRecordId": "de-sumup",
+      "legalName": "SumUp Limited",
+      "displayName": "SumUp",
+      "websiteUrl": "https://www.sumup.com/",
+      "cities": ["Berlin"],
+      "industries": ["fintech"]
+    },
+    {
+      "sourceRecordId": "de-forto",
+      "legalName": "Forto Logistics SE & Co. KG",
+      "displayName": "Forto",
+      "websiteUrl": "https://forto.com/",
+      "cities": ["Berlin"],
+      "industries": ["logistics technology"]
+    },
+    {
+      "sourceRecordId": "de-sennder",
+      "legalName": "sennder Technologies GmbH",
+      "displayName": "sennder",
+      "websiteUrl": "https://www.sennder.com/",
+      "cities": ["Berlin"],
+      "industries": ["logistics technology"]
+    },
+    {
+      "sourceRecordId": "de-enpal",
+      "legalName": "Enpal B.V.",
+      "displayName": "Enpal",
+      "websiteUrl": "https://www.enpal.com/",
+      "cities": ["Berlin"],
+      "industries": ["climate technology"]
+    },
+    {
+      "sourceRecordId": "de-mambu",
+      "legalName": "Mambu B.V.",
+      "displayName": "Mambu",
+      "websiteUrl": "https://mambu.com/",
+      "cities": ["Berlin"],
+      "industries": ["fintech"]
+    },
+    {
+      "sourceRecordId": "de-taxfix",
+      "legalName": "Taxfix SE",
+      "displayName": "Taxfix",
+      "websiteUrl": "https://taxfix.de/",
+      "cities": ["Berlin"],
+      "industries": ["fintech"]
+    },
+    {
+      "sourceRecordId": "de-miles",
+      "legalName": "MILES Mobility GmbH",
+      "displayName": "MILES",
+      "websiteUrl": "https://www.miles-mobility.com/",
+      "cities": ["Berlin"],
+      "industries": ["mobility"]
+    },
+    {
+      "sourceRecordId": "de-coachhub",
+      "legalName": "CoachHub GmbH",
+      "displayName": "CoachHub",
+      "websiteUrl": "https://www.coachhub.com/",
+      "cities": ["Berlin"],
+      "industries": ["hr technology"]
+    },
+    {
+      "sourceRecordId": "de-moonfare",
+      "legalName": "Moonfare GmbH",
+      "displayName": "Moonfare",
+      "websiteUrl": "https://www.moonfare.com/",
+      "cities": ["Berlin"],
+      "industries": ["fintech"]
+    },
+    {
+      "sourceRecordId": "de-raisin",
+      "legalName": "Raisin SE",
+      "displayName": "Raisin",
+      "websiteUrl": "https://www.raisin.com/",
+      "cities": ["Berlin"],
+      "industries": ["fintech"]
+    },
+    {
+      "sourceRecordId": "de-pitch",
+      "legalName": "Pitch Software GmbH",
+      "displayName": "Pitch",
+      "websiteUrl": "https://pitch.com/",
+      "cities": ["Berlin"],
+      "industries": ["software"]
+    },
+    {
+      "sourceRecordId": "de-babbel",
+      "legalName": "Babbel GmbH",
+      "displayName": "Babbel",
+      "websiteUrl": "https://www.babbel.com/",
+      "cities": ["Berlin"],
+      "industries": ["education technology"]
+    },
+    {
+      "sourceRecordId": "de-deepl",
+      "legalName": "DeepL SE",
+      "displayName": "DeepL",
+      "websiteUrl": "https://www.deepl.com/",
+      "cities": ["Cologne"],
+      "industries": ["artificial intelligence"]
+    },
+    {
+      "sourceRecordId": "de-helsing",
+      "legalName": "Helsing GmbH",
+      "displayName": "Helsing",
+      "websiteUrl": "https://helsing.ai/",
+      "cities": ["Munich"],
+      "industries": ["artificial intelligence"]
+    },
+    {
+      "sourceRecordId": "de-aleph-alpha",
+      "legalName": "Aleph Alpha GmbH",
+      "displayName": "Aleph Alpha",
+      "websiteUrl": "https://aleph-alpha.com/",
+      "cities": ["Heidelberg"],
+      "industries": ["artificial intelligence"]
+    },
+    {
+      "sourceRecordId": "de-blacklane",
+      "legalName": "Blacklane GmbH",
+      "displayName": "Blacklane",
+      "websiteUrl": "https://www.blacklane.com/",
+      "cities": ["Berlin"],
+      "industries": ["mobility"]
+    },
+    {
+      "sourceRecordId": "de-omio",
+      "legalName": "Omio Travel GmbH",
+      "displayName": "Omio",
+      "websiteUrl": "https://www.omio.com/",
+      "cities": ["Berlin"],
+      "industries": ["travel technology"]
+    },
+    {
+      "sourceRecordId": "de-tourlane",
+      "legalName": "Tourlane GmbH",
+      "displayName": "Tourlane",
+      "websiteUrl": "https://www.tourlane.com/",
+      "cities": ["Berlin"],
+      "industries": ["travel technology"]
+    },
+    {
+      "sourceRecordId": "de-grover",
+      "legalName": "Grover Group GmbH",
+      "displayName": "Grover",
+      "websiteUrl": "https://www.grover.com/",
+      "cities": ["Berlin"],
+      "industries": ["e-commerce"]
+    },
+    {
+      "sourceRecordId": "de-home24",
+      "legalName": "home24 SE",
+      "displayName": "Home24",
+      "websiteUrl": "https://www.home24.de/",
+      "cities": ["Berlin"],
+      "industries": ["e-commerce"]
+    },
+    {
+      "sourceRecordId": "de-scout24",
+      "legalName": "Scout24 SE",
+      "displayName": "Scout24",
+      "websiteUrl": "https://www.scout24.com/",
+      "cities": ["Munich"],
+      "industries": ["marketplace"]
+    },
+    {
+      "sourceRecordId": "de-idealo",
+      "legalName": "idealo internet GmbH",
+      "displayName": "Idealo",
+      "websiteUrl": "https://www.idealo.de/",
+      "cities": ["Berlin"],
+      "industries": ["marketplace"]
+    },
+    {
+      "sourceRecordId": "de-stepstone",
+      "legalName": "The Stepstone Group GmbH",
+      "displayName": "StepStone",
+      "websiteUrl": "https://www.thestepstonegroup.com/",
+      "cities": ["Düsseldorf"],
+      "industries": ["job platform"],
+      "hiringSourceClassification": "job-platform"
+    },
+    {
+      "sourceRecordId": "de-sap",
+      "legalName": "SAP SE",
+      "displayName": "SAP",
+      "websiteUrl": "https://www.sap.com/",
+      "careersUrl": "https://jobs.sap.com/",
+      "cities": ["Walldorf"]
+    },
+    {
+      "sourceRecordId": "de-siemens",
+      "legalName": "Siemens AG",
+      "displayName": "Siemens",
+      "websiteUrl": "https://www.siemens.com/",
+      "cities": ["Munich"]
+    },
+    {
+      "sourceRecordId": "de-bosch",
+      "legalName": "Robert Bosch GmbH",
+      "displayName": "Bosch",
+      "websiteUrl": "https://www.bosch.com/",
+      "cities": ["Stuttgart"]
+    },
+    {
+      "sourceRecordId": "de-mercedes",
+      "legalName": "Mercedes-Benz Group AG",
+      "displayName": "Mercedes-Benz",
+      "aliases": ["Mercedes-Benz.io"],
+      "websiteUrl": "https://group.mercedes-benz.com/",
+      "cities": ["Stuttgart"],
+      "notes": "Mercedes-Benz.io remains an explicit brand alias until an independently verified board requires a separate source."
+    },
+    {
+      "sourceRecordId": "de-bmw",
+      "legalName": "Bayerische Motoren Werke AG",
+      "displayName": "BMW",
+      "websiteUrl": "https://www.bmwgroup.com/",
+      "cities": ["Munich"]
+    },
+    {
+      "sourceRecordId": "de-volkswagen",
+      "legalName": "Volkswagen AG",
+      "displayName": "Volkswagen",
+      "aliases": ["Volkswagen Digital Solutions"],
+      "websiteUrl": "https://www.volkswagen-group.com/",
+      "cities": ["Wolfsburg"]
+    },
+    {
+      "sourceRecordId": "de-audi",
+      "legalName": "AUDI AG",
+      "displayName": "Audi",
+      "websiteUrl": "https://www.audi.com/",
+      "cities": ["Ingolstadt"]
+    },
+    {
+      "sourceRecordId": "de-porsche",
+      "legalName": "Dr. Ing. h.c. F. Porsche AG",
+      "displayName": "Porsche",
+      "websiteUrl": "https://www.porsche.com/",
+      "cities": ["Stuttgart"]
+    },
+    {
+      "sourceRecordId": "de-telekom",
+      "legalName": "Deutsche Telekom AG",
+      "displayName": "Deutsche Telekom",
+      "aliases": ["T-Systems"],
+      "websiteUrl": "https://www.telekom.com/",
+      "cities": ["Bonn"]
+    },
+    {
+      "sourceRecordId": "de-deutsche-bank",
+      "legalName": "Deutsche Bank AG",
+      "displayName": "Deutsche Bank",
+      "websiteUrl": "https://www.db.com/",
+      "cities": ["Frankfurt"],
+      "industries": ["banking"]
+    },
+    {
+      "sourceRecordId": "de-commerzbank",
+      "legalName": "Commerzbank AG",
+      "displayName": "Commerzbank",
+      "websiteUrl": "https://www.commerzbank.com/",
+      "cities": ["Frankfurt"],
+      "industries": ["banking"]
+    },
+    {
+      "sourceRecordId": "de-allianz",
+      "legalName": "Allianz SE",
+      "displayName": "Allianz",
+      "websiteUrl": "https://www.allianz.com/",
+      "cities": ["Munich"],
+      "industries": ["insurance"]
+    },
+    {
+      "sourceRecordId": "de-munich-re",
+      "legalName": "Münchener Rückversicherungs-Gesellschaft AG",
+      "displayName": "Munich Re",
+      "websiteUrl": "https://www.munichre.com/",
+      "cities": ["Munich"],
+      "industries": ["insurance"]
+    },
+    {
+      "sourceRecordId": "de-lufthansa",
+      "legalName": "Deutsche Lufthansa AG",
+      "displayName": "Lufthansa Group",
+      "websiteUrl": "https://www.lufthansagroup.com/",
+      "cities": ["Frankfurt"],
+      "industries": ["aviation"]
+    },
+    {
+      "sourceRecordId": "de-db",
+      "legalName": "Deutsche Bahn AG",
+      "displayName": "Deutsche Bahn",
+      "websiteUrl": "https://www.deutschebahn.com/",
+      "cities": ["Berlin"],
+      "industries": ["mobility"]
+    },
+    {
+      "sourceRecordId": "de-dhl",
+      "legalName": "DHL Group",
+      "websiteUrl": "https://group.dhl.com/",
+      "cities": ["Bonn"],
+      "industries": ["logistics"]
+    },
+    {
+      "sourceRecordId": "de-global-tech",
+      "legalName": "Amazon.com, Inc.",
+      "displayName": "Amazon",
+      "aliases": ["Amazon Germany"],
+      "websiteUrl": "https://www.amazon.jobs/"
+    },
+    {
+      "sourceRecordId": "de-google",
+      "legalName": "Google LLC",
+      "displayName": "Google",
+      "aliases": ["Google Germany"],
+      "websiteUrl": "https://about.google/"
+    },
+    {
+      "sourceRecordId": "de-microsoft",
+      "legalName": "Microsoft Corporation",
+      "displayName": "Microsoft",
+      "aliases": ["Microsoft Germany"],
+      "websiteUrl": "https://www.microsoft.com/"
+    },
+    {
+      "sourceRecordId": "de-apple",
+      "legalName": "Apple Inc.",
+      "displayName": "Apple",
+      "aliases": ["Apple Germany"],
+      "websiteUrl": "https://www.apple.com/"
+    },
+    {
+      "sourceRecordId": "de-meta",
+      "legalName": "Meta Platforms, Inc.",
+      "displayName": "Meta",
+      "aliases": ["Meta Germany"],
+      "websiteUrl": "https://www.metacareers.com/"
+    },
+    {
+      "sourceRecordId": "de-enterprise-tech",
+      "legalName": "Salesforce, Inc.",
+      "displayName": "Salesforce",
+      "aliases": ["Salesforce Germany"],
+      "websiteUrl": "https://www.salesforce.com/"
+    },
+    {
+      "sourceRecordId": "de-stripe",
+      "legalName": "Stripe, Inc.",
+      "displayName": "Stripe",
+      "aliases": ["Stripe Germany"],
+      "websiteUrl": "https://stripe.com/"
+    },
+    {
+      "sourceRecordId": "de-cloud-set",
+      "legalName": "Datadog, Inc.",
+      "displayName": "Datadog",
+      "aliases": ["Datadog Germany"],
+      "websiteUrl": "https://www.datadoghq.com/"
+    },
+    {
+      "sourceRecordId": "de-mongodb",
+      "legalName": "MongoDB, Inc.",
+      "displayName": "MongoDB",
+      "aliases": ["MongoDB Germany"],
+      "websiteUrl": "https://www.mongodb.com/"
+    },
+    {
+      "sourceRecordId": "de-cloudflare",
+      "legalName": "Cloudflare, Inc.",
+      "displayName": "Cloudflare",
+      "aliases": ["Cloudflare Germany"],
+      "websiteUrl": "https://www.cloudflare.com/"
+    },
+    {
+      "sourceRecordId": "de-palantir",
+      "legalName": "Palantir Technologies Inc.",
+      "displayName": "Palantir",
+      "aliases": ["Palantir Germany"],
+      "websiteUrl": "https://www.palantir.com/"
+    },
+    {
+      "sourceRecordId": "de-consultancies",
+      "legalName": "Accenture plc",
+      "displayName": "Accenture",
+      "aliases": ["Accenture Germany"],
+      "websiteUrl": "https://www.accenture.com/",
+      "hiringSourceClassification": "staffing-consultancy"
+    },
+    {
+      "sourceRecordId": "de-capgemini",
+      "legalName": "Capgemini SE",
+      "displayName": "Capgemini",
+      "aliases": ["Capgemini Germany"],
+      "websiteUrl": "https://www.capgemini.com/",
+      "hiringSourceClassification": "staffing-consultancy"
+    },
+    {
+      "sourceRecordId": "de-cognizant",
+      "legalName": "Cognizant Technology Solutions Corporation",
+      "displayName": "Cognizant",
+      "aliases": ["Cognizant Germany"],
+      "websiteUrl": "https://www.cognizant.com/",
+      "hiringSourceClassification": "staffing-consultancy"
+    },
+    {
+      "sourceRecordId": "de-epam",
+      "legalName": "EPAM Systems, Inc.",
+      "displayName": "EPAM",
+      "aliases": ["EPAM Germany"],
+      "websiteUrl": "https://www.epam.com/",
+      "hiringSourceClassification": "staffing-consultancy"
+    },
+    {
+      "sourceRecordId": "de-thoughtworks",
+      "legalName": "Thoughtworks Holding, Inc.",
+      "displayName": "Thoughtworks",
+      "aliases": ["Thoughtworks Germany"],
+      "websiteUrl": "https://www.thoughtworks.com/",
+      "hiringSourceClassification": "staffing-consultancy"
+    },
+    {
+      "sourceRecordId": "de-big-four",
+      "legalName": "Deloitte Touche Tohmatsu Limited",
+      "displayName": "Deloitte",
+      "aliases": ["Deloitte Germany"],
+      "websiteUrl": "https://www.deloitte.com/",
+      "hiringSourceClassification": "staffing-consultancy"
+    },
+    {
+      "sourceRecordId": "de-pwc",
+      "legalName": "PricewaterhouseCoopers International Limited",
+      "displayName": "PwC",
+      "aliases": ["PwC Germany"],
+      "websiteUrl": "https://www.pwc.com/",
+      "hiringSourceClassification": "staffing-consultancy"
+    },
+    {
+      "sourceRecordId": "de-ey",
+      "legalName": "Ernst & Young Global Limited",
+      "displayName": "EY",
+      "aliases": ["EY Germany"],
+      "websiteUrl": "https://www.ey.com/",
+      "hiringSourceClassification": "staffing-consultancy"
+    },
+    {
+      "sourceRecordId": "de-kpmg",
+      "legalName": "KPMG International Limited",
+      "displayName": "KPMG",
+      "aliases": ["KPMG Germany"],
+      "websiteUrl": "https://kpmg.com/",
+      "hiringSourceClassification": "staffing-consultancy"
+    }
+  ]
+}

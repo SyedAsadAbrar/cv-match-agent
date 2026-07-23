@@ -91,10 +91,15 @@ async function fetchWithRedirects(
       response,
       options.maxBytes ?? 2_000_000,
     );
+    const headers = new Headers(response.headers);
+    // Response.url is not populated when a custom fetch implementation is
+    // used and rebuilding the bounded response would otherwise lose the
+    // validated redirect destination. Keep it as internal crawl metadata.
+    headers.set("x-cv-match-final-url", url.toString());
     return new Response(bytes, {
       status: response.status,
       statusText: response.statusText,
-      headers: response.headers,
+      headers,
     });
   }
 

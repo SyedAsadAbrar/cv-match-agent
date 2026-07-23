@@ -16,6 +16,8 @@ let state = {
     atsProvider: "",
     sponsorshipEvidence: "",
     engineeringRelevance: "",
+    boardState: "",
+    hiringSourceClassification: "",
   },
   settings: null,
 };
@@ -235,9 +237,9 @@ function renderSources() {
     pageSize: 25,
     total: 0,
   };
-  app.innerHTML = `<div class="grid stats">${stat("Unique companies", stats.totalCompanies)}${stat("Candidates", stats.candidateCompanies || 0)}${stat("Source verified", stats.sourceVerified || 0)}${stat("Monitored", stats.monitored || 0)}${stat("Unresolved", stats.unresolved)}${stat("Source records", stats.totalSourceRecords)}</div>
-  <div class="panel"><div class="panel-head"><div><h2>Free company-registry discovery</h2><p class="muted">Version 1 monitors maintained official career pages and public ATS feeds. It does not search the entire internet.</p></div><div class="actions"><a class="secondary" href="/api/companies/unresolved.csv">Export unresolved CSV</a><label class="secondary">Import reviewed CSV<input id="resolution-csv" type="file" accept=".csv,text/csv" hidden></label></div></div><p class="small muted">Sponsor-register or permit history is positive company evidence, not a guarantee for a specific vacancy.</p></div>
-  <div class="panel"><div class="panel-head"><h2>Companies</h2><span class="muted small">${page.total} total · page ${page.page}</span></div><div class="filters"><label>Search<input id="company-search" value="${e(state.companyFilters.search)}" placeholder="Company or domain"></label><label>Country<input id="company-country" value="${e(state.companyFilters.country)}" placeholder="Germany"></label><label>Status<select id="company-status"><option value="">All</option>${["candidate", "domain-resolved", "careers-page-found", "source-verified", "monitored", "temporarily-failing", "inactive", "rejected"].map((status) => `<option value="${status}" ${state.companyFilters.status === status ? "selected" : ""}>${status}</option>`).join("")}</select></label><label>ATS<select id="company-ats"><option value="">All</option>${["greenhouse", "lever", "ashby", "workable", "smartrecruiters", "workday", "personio", "recruitee", "successfactors", "oracle", "custom"].map((value) => `<option value="${value}" ${state.companyFilters.atsProvider === value ? "selected" : ""}>${value}</option>`).join("")}</select></label><label>Sponsorship<select id="company-sponsorship"><option value="">All</option>${["confirmed", "historical", "possible", "unknown", "unlikely"].map((value) => `<option value="${value}" ${state.companyFilters.sponsorshipEvidence === value ? "selected" : ""}>${value}</option>`).join("")}</select></label><label>Engineering<select id="company-engineering"><option value="">All</option>${["high", "medium", "low", "unknown"].map((value) => `<option value="${value}" ${state.companyFilters.engineeringRelevance === value ? "selected" : ""}>${value}</option>`).join("")}</select></label><button class="secondary" data-company-filter>Filter</button></div>${companyTable(page.items)}<div class="actions"><button class="ghost" data-company-page="${Math.max(1, page.page - 1)}" ${page.page <= 1 ? "disabled" : ""}>Previous</button><button class="ghost" data-company-page="${page.page + 1}" ${page.page * page.pageSize >= page.total ? "disabled" : ""}>Next</button></div></div>
+  app.innerHTML = `<div class="grid stats">${stat("Unique companies", stats.totalCompanies)}${stat("Candidates", stats.candidateCompanies || 0)}${stat("Domain resolved", stats.domainResolved || 0)}${stat("Careers page found", stats.careersPageFound || 0)}${stat("Verified with jobs", stats.sourceVerifiedWithJobs || 0)}${stat("Verified empty", stats.sourceVerifiedEmpty || 0)}${stat("Monitored", stats.monitored || 0)}${stat("Temporarily unavailable", stats.temporarilyUnavailable || 0)}${stat("Blocked / unsupported", stats.blockedOrUnsupported || 0)}${stat("Invalid", stats.invalidSources || 0)}${stat("Unresolved", stats.unresolved)}${stat("Rejected", stats.rejected || 0)}${stat("Source records", stats.totalSourceRecords)}</div>
+  <div class="panel"><div class="panel-head"><div><h2>Free company-registry discovery</h2><p class="muted">Verified public career pages and ATS feeds can be monitored even when they currently have no jobs.</p></div><div class="actions"><button class="primary" data-enable-verified>Enable verified</button><a class="secondary" href="/api/companies/unresolved.csv">Export unresolved CSV</a><label class="secondary">Import reviewed CSV<input id="resolution-csv" type="file" accept=".csv,text/csv" hidden></label></div></div><p class="small muted">Sponsor-register or permit history is positive company evidence, not a guarantee for a specific vacancy.</p></div>
+  <div class="panel"><div class="panel-head"><h2>Companies</h2><span class="muted small">${page.total} total · page ${page.page}</span></div><div class="filters"><label>Search<input id="company-search" value="${e(state.companyFilters.search)}" placeholder="Company or domain"></label><label>Country<input id="company-country" value="${e(state.companyFilters.country)}" placeholder="Germany"></label><label>Status<select id="company-status"><option value="">All</option>${["candidate", "domain-resolved", "careers-page-found", "source-verified", "monitored", "temporarily-failing", "inactive", "rejected"].map((status) => `<option value="${status}" ${state.companyFilters.status === status ? "selected" : ""}>${status}</option>`).join("")}</select></label><label>Board state<select id="company-board-state"><option value="">All</option>${["active-with-jobs", "active-empty", "temporarily-unavailable", "blocked", "unsupported", "invalid", "wrong-company"].map((value) => `<option value="${value}" ${state.companyFilters.boardState === value ? "selected" : ""}>${value}</option>`).join("")}</select></label><label>ATS<select id="company-ats"><option value="">All</option>${["greenhouse", "lever", "ashby", "workable", "smartrecruiters", "workday", "personio", "recruitee", "successfactors", "oracle", "custom"].map((value) => `<option value="${value}" ${state.companyFilters.atsProvider === value ? "selected" : ""}>${value}</option>`).join("")}</select></label><label>Source type<select id="company-classification"><option value="">All</option>${["direct-employer", "recruitment-agency", "staffing-consultancy", "job-platform", "government-portal", "ecosystem-directory", "unknown"].map((value) => `<option value="${value}" ${state.companyFilters.hiringSourceClassification === value ? "selected" : ""}>${value}</option>`).join("")}</select></label><label>Sponsorship<select id="company-sponsorship"><option value="">All</option>${["confirmed", "historical", "possible", "unknown", "unlikely"].map((value) => `<option value="${value}" ${state.companyFilters.sponsorshipEvidence === value ? "selected" : ""}>${value}</option>`).join("")}</select></label><label>Engineering<select id="company-engineering"><option value="">All</option>${["high", "medium", "low", "unknown"].map((value) => `<option value="${value}" ${state.companyFilters.engineeringRelevance === value ? "selected" : ""}>${value}</option>`).join("")}</select></label><button class="secondary" data-company-filter>Filter</button></div><div class="actions"><button class="ghost" data-bulk-verify>Verify selected</button><button class="ghost" data-bulk-retry>Retry temporarily unavailable</button><button class="ghost" data-bulk-enable>Enable selected verified</button><button class="ghost" data-bulk-disable>Disable selected</button></div>${companyTable(page.items)}<div class="actions"><button class="ghost" data-company-page="${Math.max(1, page.page - 1)}" ${page.page <= 1 ? "disabled" : ""}>Previous</button><button class="ghost" data-company-page="${page.page + 1}" ${page.page * page.pageSize >= page.total ? "disabled" : ""}>Next</button></div></div>
   <div class="two-col"><div class="panel"><h2>Recent imports</h2>${runList(s.importRuns, (run) => `${run.sourceName}: ${run.recordsCreated} created, ${run.recordsUpdated} updated`)}</div><div class="panel"><h2>Recent verifications</h2>${runList(s.verificationRuns, (run) => `${run.detectedProvider || "custom"}: ${run.companyId}`)}</div></div>
   <form id="company-form" class="panel"><h2>Add candidate company</h2><div class="form-grid"><label>Name<input name="name" required></label><label>Official domain<input name="domain" placeholder="example.com"></label><label>Careers URL<input name="careersUrl" type="url"></label><label>ATS<select name="ats"><option value="">Detect from careers URL</option>${["greenhouse", "lever", "ashby", "workable", "smartrecruiters", "workday", "personio", "recruitee", "successfactors", "oracle", "custom"].map((value) => `<option>${value}</option>`).join("")}</select></label><label>ATS identifier<input name="identifier"></label><label>Country<input name="countries"></label><label>Industries<input name="industries" placeholder="fintech, product"></label><label class="wide">Evidence URL<input name="evidenceUrl" type="url" required></label><label class="wide">Notes<textarea name="notes"></textarea></label></div><div class="actions"><button class="primary">Add candidate</button></div><p class="small muted">New records remain disabled until their official source verifies successfully.</p></form>`;
   document
@@ -258,6 +260,26 @@ function renderSources() {
     .forEach((b) =>
       b.addEventListener("click", () => verifySource(b.dataset.sourceVerify)),
     );
+  document
+    .querySelectorAll("[data-source-detect]")
+    .forEach((b) =>
+      b.addEventListener("click", () => detectSource(b.dataset.sourceDetect)),
+    );
+  document
+    .querySelector("[data-enable-verified]")
+    .addEventListener("click", enableVerifiedSources);
+  document
+    .querySelector("[data-bulk-verify]")
+    .addEventListener("click", () => bulkVerifySources(false));
+  document
+    .querySelector("[data-bulk-retry]")
+    .addEventListener("click", () => bulkVerifySources(true));
+  document
+    .querySelector("[data-bulk-enable]")
+    .addEventListener("click", enableSelectedVerifiedSources);
+  document
+    .querySelector("[data-bulk-disable]")
+    .addEventListener("click", disableSelectedSources);
   document
     .querySelectorAll("[data-source-reject]")
     .forEach((b) =>
@@ -300,7 +322,7 @@ function runList(runs, summary) {
 function companyTable(companies) {
   if (!companies.length)
     return `<div class="empty">No companies match these filters.</div>`;
-  return `<div class="table-wrap"><table><thead><tr><th>Company</th><th>Country / cities</th><th>Industry</th><th>Official source</th><th>ATS</th><th>Evidence</th><th>Status</th><th>Last sync</th><th>Actions</th></tr></thead><tbody>${companies.map((c) => `<tr><td><strong>${e(c.displayName)}</strong><br><span class="small muted">${e(c.legalName)}</span></td><td>${e(c.headquartersCountry || c.operatingCountries.join(", "))}<br><span class="small muted">${e(c.knownCities.join(", "))}</span></td><td>${e(c.industries.join(", ") || "unknown")}<br><span class="small muted">engineering ${e(c.engineeringRelevance)}</span></td><td>${c.companyDomain ? `<a target="_blank" rel="noopener noreferrer" href="https://${e(c.companyDomain)}">${e(c.companyDomain)}</a>` : "unresolved"}<br>${c.careersUrl ? `<a target="_blank" rel="noopener noreferrer" href="${e(c.careersUrl)}">Careers</a>` : ""}<br><span class="small muted">${e(c.sourceRecords?.map((s) => s.sourceName).join(", ") || "No provenance")}</span></td><td>${e(c.atsProvider || "unresolved")}<br><span class="small muted">${e(c.atsIdentifier || "")}</span></td><td>sponsor ${e(c.sponsorshipEvidence)}<br>relocation ${e(c.relocationEvidence)}</td><td><span class="badge ${e(c.verificationStatus)}">${e(c.verificationStatus)}</span><br><span class="small muted">${c.enabled ? "enabled" : "disabled"}</span></td><td>${date(c.lastSuccessfulSyncAt)}</td><td><div class="actions"><button class="ghost" data-source-verify="${e(c.id)}">Verify</button><button class="ghost" data-source-sync="${e(c.id)}">Sync</button><button class="ghost" data-source-toggle="${e(c.id)}">${c.enabled ? "Disable" : "Enable"}</button><button class="ghost" data-source-merge="${e(c.id)}">Merge</button><button class="ghost" data-source-reject="${e(c.id)}">Reject</button></div><details><summary class="small">Resolve / edit</summary><form data-resolve-form="${e(c.id)}"><label>Official domain<input name="officialDomain" value="${e(c.companyDomain || "")}"></label><label>Careers URL<input name="careersUrl" value="${e(c.careersUrl || "")}"></label><label>ATS provider<input name="atsProvider" value="${e(c.atsProvider || "")}"></label><label>ATS identifier<input name="atsIdentifier" value="${e(c.atsIdentifier || "")}"></label><label>Evidence URL<input name="evidenceUrl" type="url" required></label><label>Notes<textarea name="notes">${e(c.notes || "")}</textarea></label><button class="secondary">Save resolution</button></form></details></td></tr>`).join("")}</tbody></table></div>`;
+  return `<div class="table-wrap"><table><thead><tr><th>Select</th><th>Company</th><th>Country / cities</th><th>Industry</th><th>Official source</th><th>ATS</th><th>Evidence</th><th>Status</th><th>Last sync</th><th>Actions</th></tr></thead><tbody>${companies.map((c) => `<tr><td><input type="checkbox" data-company-select value="${e(c.id)}" aria-label="Select ${e(c.displayName)}"></td><td><strong>${e(c.displayName)}</strong><br><span class="small muted">${e(c.legalName)}</span><br><span class="small muted">${e(c.hiringSourceClassification)}</span></td><td>${e(c.headquartersCountry || c.operatingCountries.join(", "))}<br><span class="small muted">${e(c.knownCities.join(", "))}</span></td><td>${e(c.industries.join(", ") || "unknown")}<br><span class="small muted">engineering ${e(c.engineeringRelevance)}</span></td><td>${c.companyDomain ? `<a target="_blank" rel="noopener noreferrer" href="https://${e(c.companyDomain)}">${e(c.companyDomain)}</a>` : "unresolved"}<br>${c.corporateCareersUrl || c.careersUrl ? `<a target="_blank" rel="noopener noreferrer" href="${e(c.corporateCareersUrl || c.careersUrl)}">Corporate careers</a>` : ""}<br>${c.atsBoardUrl ? `<a target="_blank" rel="noopener noreferrer" href="${e(c.atsBoardUrl)}">ATS board</a>` : ""}<br><span class="small muted">${e(c.sourceRecords?.map((s) => s.sourceName).join(", ") || "No provenance")}</span></td><td>${e(c.atsProvider || "unresolved")}<br><span class="small muted">${e(c.atsIdentifier || "")}</span></td><td>sponsor ${e(c.sponsorshipEvidence)}<br>relocation ${e(c.relocationEvidence)}${c.lastVerification?.evidence?.length ? `<details><summary class="small">View evidence</summary>${list(c.lastVerification.evidence)}</details>` : ""}</td><td><span class="badge ${e(c.verificationStatus)}">${e(c.verificationStatus)}</span><br><span class="small muted">${e(c.boardState || "not checked")} · ${c.enabled ? "enabled" : "disabled"}</span>${c.verificationError ? `<br><span class="small muted">${e(c.verificationError)}</span>` : ""}</td><td>${date(c.lastSuccessfulSyncAt)}<br><span class="small muted">checked ${date(c.lastCheckedAt)}</span></td><td><div class="actions"><button class="ghost" data-source-detect="${e(c.id)}">Detect source</button><button class="ghost" data-source-verify="${e(c.id)}">${c.boardState === "temporarily-unavailable" ? "Retry" : "Verify"}</button><button class="ghost" data-source-sync="${e(c.id)}">Sync now</button><button class="ghost" data-source-toggle="${e(c.id)}">${c.enabled ? "Disable" : "Enable"}</button><button class="ghost" data-source-merge="${e(c.id)}">Merge duplicate</button><button class="ghost" data-source-reject="${e(c.id)}">Reject</button></div><details><summary class="small">Edit source</summary><form data-resolve-form="${e(c.id)}"><label>Official domain<input name="officialDomain" value="${e(c.companyDomain || "")}"></label><label>Careers URL<input name="careersUrl" value="${e(c.corporateCareersUrl || c.careersUrl || "")}"></label><label>ATS provider<input name="atsProvider" value="${e(c.atsProvider || "")}"></label><label>ATS identifier<input name="atsIdentifier" value="${e(c.atsIdentifier || "")}"></label><label>Evidence URL<input name="evidenceUrl" type="url" required></label><label>Notes<textarea name="notes">${e(c.notes || "")}</textarea></label><button class="secondary">Save resolution</button></form></details></td></tr>`).join("")}</tbody></table></div>`;
 }
 async function addCompany(event) {
   event.preventDefault();
@@ -349,6 +371,87 @@ async function verifySource(id) {
         body: "{}",
       }),
     "Company source verified.",
+  );
+}
+async function detectSource(id) {
+  await action(async () => {
+    const result = await api(
+      `/api/companies/${encodeURIComponent(id)}/detect`,
+      {
+        method: "POST",
+        body: "{}",
+      },
+    );
+    const message = result.detection
+      ? `${result.detection.provider} · ${result.detection.identifier || "manual review"} · ${result.detection.confidence} confidence`
+      : "No recognised ATS handoff found.";
+    window.alert(message);
+    return result;
+  }, "Source detection completed.");
+}
+async function enableVerifiedSources() {
+  await action(
+    () =>
+      api("/api/companies/enable-verified", {
+        method: "POST",
+        body: JSON.stringify({
+          country: state.companyFilters.country || undefined,
+          provider: state.companyFilters.atsProvider || undefined,
+        }),
+      }),
+    "Verified sources enabled.",
+  );
+}
+function selectedCompanyIds() {
+  return [...document.querySelectorAll("[data-company-select]:checked")].map(
+    (input) => input.value,
+  );
+}
+async function bulkVerifySources(temporaryOnly) {
+  const selected = selectedCompanyIds().filter((id) => {
+    const company = state.companyPage.items.find((item) => item.id === id);
+    return !temporaryOnly || company?.boardState === "temporarily-unavailable";
+  });
+  await action(
+    () =>
+      Promise.all(
+        selected.map((id) =>
+          api(`/api/companies/${encodeURIComponent(id)}/verify`, {
+            method: "POST",
+            body: "{}",
+          }),
+        ),
+      ),
+    `${selected.length} source(s) verified.`,
+  );
+}
+async function enableSelectedVerifiedSources() {
+  const companyIds = selectedCompanyIds();
+  await action(
+    () =>
+      api("/api/companies/enable-verified", {
+        method: "POST",
+        body: JSON.stringify({ companyIds }),
+      }),
+    `${companyIds.length} selected source(s) reviewed for enablement.`,
+  );
+}
+async function disableSelectedSources() {
+  const selected = selectedCompanyIds();
+  await action(
+    () =>
+      Promise.all(
+        selected.map((id) => {
+          const company = state.companyPage.items.find(
+            (item) => item.id === id,
+          );
+          return api(`/api/companies/${encodeURIComponent(id)}`, {
+            method: "PUT",
+            body: JSON.stringify({ ...company, enabled: false }),
+          });
+        }),
+      ),
+    `${selected.length} source(s) disabled.`,
   );
 }
 async function rejectSource(id) {
@@ -407,6 +510,9 @@ async function loadCompanyPage(page) {
       document.querySelector("#company-sponsorship")?.value || "",
     engineeringRelevance:
       document.querySelector("#company-engineering")?.value || "",
+    boardState: document.querySelector("#company-board-state")?.value || "",
+    hiringSourceClassification:
+      document.querySelector("#company-classification")?.value || "",
   };
   const query = new URLSearchParams({ page: String(page), pageSize: "25" });
   for (const [key, value] of Object.entries(state.companyFilters))

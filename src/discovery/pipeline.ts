@@ -46,8 +46,11 @@ export async function runDiscovery(options: DiscoveryPipelineOptions = {}) {
     .filter(
       (company) =>
         company.enabled &&
-        ["source-verified", "monitored"].includes(company.verificationStatus),
+        ["source-verified", "monitored"].includes(company.verificationStatus) &&
+        (!company.nextVerificationAt ||
+          new Date(company.nextVerificationAt).getTime() <= Date.now()),
     );
+  const companyGroups = groupCompaniesByBoard(companies);
   const errors = [...run.errors];
   const webResults: Array<{
     query: string;
@@ -93,11 +96,15 @@ export async function runDiscovery(options: DiscoveryPipelineOptions = {}) {
       4,
     );
     const sourceResults = await mapWithConcurrency(
-      companies,
+      companyGroups,
       discoveryConcurrency,
-      async (company) => {
+      async (group) => {
         sourcesChecked += 1;
-        const syncId = store.startSourceSync(run.id, company);
+        const company = group[0];
+        const syncIds = group.map((member) => ({
+          company: member,
+          syncId: store.startSourceSync(run.id, member),
+        }));
         const source = connectorSource(company);
         const connector = source ? connectors[source] : undefined;
         if (
@@ -106,7 +113,8 @@ export async function runDiscovery(options: DiscoveryPipelineOptions = {}) {
         ) {
           return {
             company,
-            syncId,
+            group,
+            syncIds,
             references: [],
             error: new Error(
               "No supported configured ATS connector and identifier.",
@@ -119,21 +127,29 @@ export async function runDiscovery(options: DiscoveryPipelineOptions = {}) {
             company,
             maximumJobs: 500,
           });
-          return { company, syncId, connector, references };
+          return { company, group, syncIds, connector, references };
         } catch (error) {
-          return { company, syncId, connector, references: [], error };
+          return {
+            company,
+            group,
+            syncIds,
+            connector,
+            references: [],
+            error,
+          };
         }
       },
     );
 
     for (const result of sourceResults) {
       if (result.error) {
-        store.finishSourceSync(
-          result.syncId,
-          result.company,
-          0,
-          formatError(result.error),
-        );
+        for (const sync of result.syncIds)
+          store.finishSourceSync(
+            sync.syncId,
+            sync.company,
+            0,
+            formatError(result.error),
+          );
         errors.push({
           source: result.company.name,
           message: formatError(result.error),
@@ -141,11 +157,12 @@ export async function runDiscovery(options: DiscoveryPipelineOptions = {}) {
         });
         continue;
       }
-      store.finishSourceSync(
-        result.syncId,
-        result.company,
-        result.references.length,
-      );
+      for (const sync of result.syncIds)
+        store.finishSourceSync(
+          sync.syncId,
+          sync.company,
+          result.references.length,
+        );
       jobsDiscovered += result.references.length;
       const seenJobIds: string[] = [];
       let jobErrors = 0;
@@ -155,6 +172,8 @@ export async function runDiscovery(options: DiscoveryPipelineOptions = {}) {
         async (reference) => {
           try {
             const raw = await result.connector!.fetchJob(reference);
+            raw.hiringSourceClassification =
+              result.company.hiringSourceClassification;
             if (options.verify !== false && result.connector!.verifyJobActive) {
               const active =
                 await result.connector!.verifyJobActive!(reference);
@@ -165,6 +184,7 @@ export async function runDiscovery(options: DiscoveryPipelineOptions = {}) {
             seenJobIds.push(imported.jobId);
             if (imported.duplicate) duplicatesFound += 1;
             else jobsImported += 1;
+            if (!imported.contentChanged) return;
             const storedJob = { ...job, id: imported.jobId };
             const authorization = assessWorkAuthorization(
               profile,
@@ -281,7 +301,8 @@ export async function runDiscovery(options: DiscoveryPipelineOptions = {}) {
         },
       );
       if (jobErrors === 0)
-        store.recordSuccessfulCompanyJobSnapshot(result.company.id, seenJobIds);
+        for (const member of result.group)
+          store.recordSuccessfulCompanyJobSnapshot(member.id, seenJobIds);
     }
 
     const analysisLimit = readPositiveInteger(
@@ -387,6 +408,21 @@ function connectorSource(company: TargetCompany): JobSourceType | undefined {
   )
     return "company-careers";
   return undefined;
+}
+
+function groupCompaniesByBoard(companies: TargetCompany[]): TargetCompany[][] {
+  const groups = new Map<string, TargetCompany[]>();
+  for (const company of companies) {
+    const key =
+      company.sharedCareerBoardKey ??
+      (company.atsProvider && company.atsIdentifier
+        ? `${company.atsProvider}:${company.atsIdentifier}`
+        : company.careersUrl
+          ? `custom:${company.careersUrl}`
+          : `company:${company.id}`);
+    groups.set(key, [...(groups.get(key) ?? []), company]);
+  }
+  return [...groups.values()];
 }
 
 function readBoolean(value: string | undefined, fallback: boolean): boolean {

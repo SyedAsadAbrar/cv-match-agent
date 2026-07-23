@@ -62,6 +62,7 @@ export function normalizeJob(
     discoveredUrl: raw.discoveredUrl,
     sourceType: raw.sourceType,
     sourceName: raw.sourceName,
+    hiringSourceClassification: raw.hiringSourceClassification,
     title: raw.title,
     company: raw.company,
     locationText: raw.locationText,

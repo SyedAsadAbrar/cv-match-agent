@@ -11,19 +11,23 @@ import { z } from "zod";
 import { OllamaLocalAIProvider } from "../ai/localAIProvider";
 import { updateApplication } from "../applications/tracking";
 import {
+  detectCompanySource,
+  enableVerifiedCompanies,
   exportUnresolvedCompanies,
   generateCompanyRegistryStats,
   importCompanyResolutions,
+  recordCompanySourceDetection,
   verifyCompanySource,
 } from "../company/registry";
-import { detectCareerSource } from "../company/detection";
 import { canonicalisePublicUrl, normaliseDomain } from "../company/normalise";
 import { JobCopilotStore } from "../db/store";
 import {
   applicationStatusSchema,
   atsProviderSchema,
   candidateProfileSchema,
+  companyBoardStateSchema,
   companyVerificationStatusSchema,
+  hiringSourceClassificationSchema,
   targetCompanySchema,
 } from "../domain/schemas";
 import { runDiscovery } from "../discovery/pipeline";
@@ -217,9 +221,31 @@ async function route(
         enabled: url.searchParams.has("enabled")
           ? url.searchParams.get("enabled") === "true"
           : undefined,
+        boardState: url.searchParams.has("boardState")
+          ? companyBoardStateSchema.parse(url.searchParams.get("boardState"))
+          : undefined,
+        hiringSourceClassification: url.searchParams.has(
+          "hiringSourceClassification",
+        )
+          ? hiringSourceClassificationSchema.parse(
+              url.searchParams.get("hiringSourceClassification"),
+            )
+          : undefined,
         search: url.searchParams.get("search") || undefined,
       }),
     );
+  }
+  if (url.pathname === "/api/companies/enable-verified" && method === "POST") {
+    const body = z
+      .object({
+        companyIds: z.array(z.string()).default([]),
+        country: z.string().optional(),
+        provider: atsProviderSchema.optional(),
+        dryRun: z.boolean().default(false),
+      })
+      .parse(await readJson(request));
+    const result = enableVerifiedCompanies(store, body);
+    return sendJson(response, result.errors.length ? 409 : 200, result);
   }
   if (url.pathname === "/api/companies/unresolved.csv" && method === "GET") {
     const csv = exportUnresolvedCompanies(store);
@@ -257,9 +283,6 @@ async function route(
       })
       .parse(await readJson(request));
     const now = new Date().toISOString();
-    const detected = body.careersUrl
-      ? detectCareerSource(body.careersUrl)
-      : undefined;
     const company = targetCompanySchema.parse({
       id: randomUUID(),
       ...body,
@@ -267,8 +290,8 @@ async function route(
       websiteUrl: body.companyDomain
         ? `https://${normaliseDomain(body.companyDomain)}/`
         : undefined,
-      atsProvider: body.atsProvider ?? detected?.provider,
-      atsIdentifier: body.atsIdentifier ?? detected?.identifier,
+      atsProvider: body.atsProvider ?? (body.careersUrl ? "custom" : undefined),
+      atsIdentifier: body.atsIdentifier,
       sourceType: "manual-resolution",
       sourceRecords: [
         {
@@ -321,16 +344,16 @@ async function route(
     const careersUrl = body.careersUrl
       ? canonicalisePublicUrl(body.careersUrl)
       : company.careersUrl;
-    const detected = careersUrl ? detectCareerSource(careersUrl) : undefined;
     const updated = targetCompanySchema.parse({
       ...company,
       companyDomain: domain,
       websiteUrl: domain ? `https://${domain}/` : company.websiteUrl,
       careersUrl,
       atsProvider:
-        body.atsProvider ?? detected?.provider ?? company.atsProvider,
-      atsIdentifier:
-        body.atsIdentifier ?? detected?.identifier ?? company.atsIdentifier,
+        body.atsProvider ??
+        company.atsProvider ??
+        (careersUrl ? "custom" : undefined),
+      atsIdentifier: body.atsIdentifier ?? company.atsIdentifier,
       verificationStatus: careersUrl
         ? "careers-page-found"
         : domain
@@ -362,6 +385,21 @@ async function route(
     if (!company)
       return sendJson(response, 404, { error: "Company not found." });
     return sendJson(response, 200, await verifyCompanySource(store, company));
+  }
+  const companyDetect = url.pathname.match(
+    /^\/api\/companies\/([^/]+)\/detect$/,
+  );
+  if (companyDetect && method === "POST") {
+    const company = store
+      .listCompanies()
+      .find((item) => item.id === decodeURIComponent(companyDetect[1]));
+    if (!company)
+      return sendJson(response, 404, { error: "Company not found." });
+    const detection = await detectCompanySource(company);
+    const persisted = store.saveCompany(
+      recordCompanySourceDetection(company, detection),
+    );
+    return sendJson(response, 200, { ...detection, company: persisted });
   }
   const companyReject = url.pathname.match(
     /^\/api\/companies\/([^/]+)\/reject$/,

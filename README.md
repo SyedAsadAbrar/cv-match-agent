@@ -153,6 +153,11 @@ The default database is `data/job-copilot.db`. Migrations are idempotent and app
 npm run db:migrate
 npm run companies:import
 npm run companies:normalise
+npm run companies:resolve
+npm run companies:detect-sources
+npm run companies:verify
+npm run companies:enable-verified -- --dry-run
+npm run companies:onboard -- --country "Germany" --limit 25
 npm run companies:audit
 npm run companies:stats
 npm run web
@@ -163,6 +168,10 @@ npm run lint
 npm test
 npm run build
 ```
+
+`companies:onboard` imports, normalises, resolves, detects, verifies, and reports without enabling by default. Pass `--enable-verified` explicitly to enable only sources verified as active with jobs or valid but empty. The Sources screen exposes the same guarded enablement.
+
+Verification distinguishes active boards with jobs, valid empty boards, temporary failures, invalid identifiers, wrong-company boards, unsupported providers, and blocked pages. Corporate pages may hand off to recognised ATS hosts, but an identifier is persisted only after official relationship evidence and successful live Greenhouse, Lever, or Ashby verification.
 
 Scheduling is intentionally not required in this milestone. `npm run jobs:discover` is the manual worker entry point and can later be called by an OS-local scheduler.
 
@@ -186,8 +195,8 @@ Missing sponsorship text means **unknown**, not incompatible. Explicit no-sponso
 
 ## Known Limitations and Troubleshooting
 
-- Only Greenhouse, Lever, Ashby, and conservative official careers pages have active ingestion. Other recognised ATS providers remain detection-only.
-- The committed registry derivatives are intentionally small and attributable. Run authorised official refreshes and reviewed onboarding to grow coverage; current counts are reported honestly in `reports/`.
+- Only Greenhouse, Lever, Ashby, and conservative official careers pages have active ingestion. Workable, SmartRecruiters, Workday, Personio, Recruitee, SAP SuccessFactors, and Oracle remain detection-only.
+- Requested employers are committed as attributable candidates. A candidate domain or careers URL is not a verified source; run reviewed onboarding and inspect evidence before enabling. Current counts are reported honestly in `reports/`.
 - Domain-less companies require manual resolution. JavaScript-only career sites may need a future dedicated public connector.
 - No automatic applications, LinkedIn scraping, browser automation, CAPTCHA bypass, authentication bypass, or always-on scheduler is included.
 - CV PDFs must contain extractable text; scanned PDFs need OCR before upload.

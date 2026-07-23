@@ -13,6 +13,7 @@
       "cities": ["Dubai"],
       "websiteUrl": "https://www.dicetek.net/",
       "industries": ["it services", "consulting", "staffing"],
+      "hiringSourceClassification": "staffing-consultancy",
       "notes": "The official site identifies DICETEK as operating in the UAE and its footer identifies Dicetek L.L.C, Dubai. No public careers listing was verified during onboarding."
     },
     {
@@ -34,6 +35,7 @@
         "cloud",
         "engineering services"
       ],
+      "hiringSourceClassification": "direct-employer",
       "notes": "The UAE page lists Dubai and Abu Dhabi offices and links directly to the official public careers site."
     },
     {
@@ -50,6 +52,7 @@
       "websiteUrl": "https://www.discovered.ae/",
       "careersUrl": "https://www.discovered.ae/jobs/location",
       "industries": ["recruitment", "staffing", "technology"],
+      "hiringSourceClassification": "recruitment-agency",
       "notes": "The official site identifies a Dubai address and publishes live positions across technology specialisms."
     },
     {
@@ -64,6 +67,7 @@
       "cities": ["Dubai"],
       "websiteUrl": "https://www.nameless-ventures.io/",
       "industries": ["recruitment", "staffing", "technology"],
+      "hiringSourceClassification": "recruitment-agency",
       "notes": "The official site describes a GCC technology recruitment agency and provides a candidate contact path; no public job-listing endpoint was verified during onboarding."
     }
   ]
