@@ -14,10 +14,10 @@ cp .env.example .env
 npm run db:migrate
 npm run companies:import
 npm run companies:normalise
-npm run web
+npm run web:dev
 ```
 
-Open `http://127.0.0.1:4310`, configure your profile and verified company sources, then press **Find New Jobs**.
+Open `http://127.0.0.1:4310`, configure your profile and verified company sources, then press **Find New Jobs**. `npm run web:dev` watches the server source and restarts it after backend changes; use `npm run web` for a one-off server process.
 
 ## Architecture
 
@@ -153,6 +153,7 @@ npm run companies:enable-verified -- --dry-run
 npm run companies:onboard -- --country "Germany" --limit 25
 npm run companies:audit
 npm run companies:stats
+npm run web:dev
 npm run web
 npm run jobs:discover
 npm run typecheck

@@ -592,7 +592,8 @@ async function serveAsset(
     "/app.js": ["app.js", "text/javascript; charset=utf-8"],
     "/styles.css": ["styles.css", "text/css; charset=utf-8"],
   };
-  const asset = assets[pathname];
+  const asset =
+    assets[pathname] ?? (isClientRoute(pathname) ? assets["/"] : undefined);
   if (!asset) return sendJson(response, 404, { error: "Not found." });
   const content = await fs.readFile(
     path.resolve(process.cwd(), "public", asset[0]),
@@ -605,6 +606,20 @@ async function serveAsset(
     }),
   );
   response.end(head ? undefined : content);
+}
+
+function isClientRoute(pathname: string): boolean {
+  return (
+    [
+      "/dashboard",
+      "/discover",
+      "/saved",
+      "/applications",
+      "/profile",
+      "/sources",
+      "/settings",
+    ].includes(pathname) || /^\/jobs\/[^/]+$/.test(pathname)
+  );
 }
 
 async function readJson(request: IncomingMessage): Promise<unknown> {

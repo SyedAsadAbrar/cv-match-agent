@@ -301,6 +301,10 @@ h1 {
   gap: 10px;
   margin-bottom: 18px;
 }
+.filter-actions {
+  display: flex;
+  align-items: end;
+}
 label {
   display: grid;
   gap: 7px;

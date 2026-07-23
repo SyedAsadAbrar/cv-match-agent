@@ -12,6 +12,7 @@
     "build": "tsc",
     "start": "node dist/index.js",
     "web": "node --import tsx src/index.ts serve",
+    "web:dev": "tsx watch src/index.ts serve",
     "jobs:discover": "node --import tsx src/index.ts jobs discover",
     "companies:import": "node --import tsx src/index.ts companies import",
     "companies:normalise": "node --import tsx src/index.ts companies normalise",
