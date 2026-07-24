@@ -404,7 +404,10 @@ export const jobPostingSchema = z.object({
   responsibilities: stringList,
   requiredSkills: stringList,
   preferredSkills: stringList,
-  minimumYearsExperience: z.number().nonnegative().optional(),
+  minimumYearsExperience: z.preprocess(
+    (value) => (value === null ? undefined : value),
+    z.number().nonnegative().optional(),
+  ),
   languages: z
     .array(z.object({ language: text, required: z.boolean() }))
     .default([]),

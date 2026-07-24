@@ -1,18 +1,18 @@
 # Company registry summary
 
-Generated: 2026-07-23T21:20:35.693Z
+Generated: 2026-07-24T09:42:44.216Z
 
 Counts describe the database used for this report. A company may appear in more than one country row; headline counts are unique companies. “Unresolved” means the candidate workflow state, not merely a missing domain.
 
-- Source records: 449
-- Unique companies: 373
+- Source records: 450
+- Unique companies: 374
 - Candidate companies: 0
-- Domain resolved: 373
-- Careers pages found: 58
+- Domain resolved: 374
+- Careers pages found: 59
 - Source verified: 0
 - Source verified with jobs: 4
-- Source verified but empty: 6
-- Monitored: 10
+- Source verified but empty: 7
+- Monitored: 11
 - Temporarily failing: 3
 - Temporarily unavailable: 3
 - Blocked or unsupported: 2
@@ -27,6 +27,7 @@ Counts describe the database used for this report. A company may appear in more 
 
 | Value | Count |
 | --- | ---: |
+| Denmark | 1 |
 | Estonia | 1 |
 | Europe | 79 |
 | France | 1 |
@@ -42,6 +43,7 @@ Counts describe the database used for this report. A company may appear in more 
 
 | Value | Count |
 | --- | ---: |
+| Denmark | 1 |
 | Europe | 1 |
 | Saudi Arabia | 6 |
 | United Arab Emirates | 5 |
@@ -50,6 +52,7 @@ Counts describe the database used for this report. A company may appear in more 
 
 | Value | Count |
 | --- | ---: |
+| Denmark | 1 |
 | Europe | 1 |
 | Saudi Arabia | 6 |
 | United Arab Emirates | 5 |
@@ -65,14 +68,14 @@ Counts describe the database used for this report. A company may appear in more 
 | --- | ---: |
 | careers-page-found | 36 |
 | domain-resolved | 324 |
-| monitored | 10 |
+| monitored | 11 |
 | temporarily-failing | 3 |
 
 ## By board state
 
 | Value | Count |
 | --- | ---: |
-| active-empty | 6 |
+| active-empty | 7 |
 | active-with-jobs | 4 |
 | blocked | 1 |
 | invalid | 1 |
@@ -86,7 +89,7 @@ Counts describe the database used for this report. A company may appear in more 
 | Value | Count |
 | --- | ---: |
 | ashby | 1 |
-| custom | 57 |
+| custom | 58 |
 | unresolved | 315 |
 
 ## By hiring-source classification
@@ -95,7 +98,7 @@ Counts describe the database used for this report. A company may appear in more 
 | --- | ---: |
 | direct-employer | 348 |
 | ecosystem-directory | 2 |
-| government-portal | 4 |
+| government-portal | 5 |
 | job-platform | 2 |
 | recruitment-agency | 2 |
 | staffing-consultancy | 15 |
@@ -138,7 +141,7 @@ Counts describe the database used for this report. A company may appear in more 
 | food delivery | 5 |
 | food technology | 1 |
 | gaming | 4 |
-| government | 2 |
+| government | 3 |
 | government technology | 3 |
 | grocery delivery | 2 |
 | health insurance | 1 |
@@ -154,7 +157,7 @@ Counts describe the database used for this report. A company may appear in more 
 | internet | 1 |
 | investment | 6 |
 | it services | 3 |
-| job platform | 1 |
+| job platform | 2 |
 | location technology | 1 |
 | logistics | 4 |
 | logistics technology | 9 |
@@ -196,7 +199,7 @@ Counts describe the database used for this report. A company may appear in more 
 | --- | ---: |
 | confirmed | 4 |
 | historical | 3 |
-| unknown | 366 |
+| unknown | 367 |
 
 ## By source
 
@@ -220,3 +223,4 @@ Counts describe the database used for this report. A company may appear in more 
 | Verified EU technology employer pages | 5 |
 | Verified German technology employer pages | 3 |
 | Verified Saudi technology employer pages | 3 |
+| Work in Denmark official job portal | 1 |

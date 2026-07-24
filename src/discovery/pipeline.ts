@@ -9,6 +9,10 @@ import { AshbyConnector } from "./connectors/ashby";
 import { GreenhouseConnector } from "./connectors/greenhouse";
 import { LeverConnector } from "./connectors/lever";
 import { CareersPageConnector } from "./connectors/careersPage";
+import {
+  isWorkInDenmarkPortal,
+  WorkInDenmarkConnector,
+} from "./connectors/workInDenmark";
 import { applyHardFilters } from "./filter";
 import { normalizeJob } from "./normalize";
 import { generateSearchPlan } from "./searchPlan";
@@ -26,6 +30,7 @@ export type DiscoveryPipelineOptions = {
   localAI?: LocalAIProvider;
   analyse?: boolean;
   verify?: boolean;
+  rescoreExisting?: boolean;
 };
 
 export async function runDiscovery(options: DiscoveryPipelineOptions = {}) {
@@ -40,6 +45,7 @@ export async function runDiscovery(options: DiscoveryPipelineOptions = {}) {
       lever: new LeverConnector(),
       ashby: new AshbyConnector(),
       "company-careers": new CareersPageConnector(),
+      "official-job-portal": new WorkInDenmarkConnector(),
     };
   const companies = (options.companies ?? store.listCompanies())
     .map((company) => targetCompanySchema.parse(company))
@@ -108,8 +114,9 @@ export async function runDiscovery(options: DiscoveryPipelineOptions = {}) {
         const source = connectorSource(company);
         const connector = source ? connectors[source] : undefined;
         if (
+          !source ||
           !connector ||
-          (source !== "company-careers" && !company.atsIdentifier)
+          (requiresAtsIdentifier(source) && !company.atsIdentifier)
         ) {
           return {
             company,
@@ -184,7 +191,7 @@ export async function runDiscovery(options: DiscoveryPipelineOptions = {}) {
             seenJobIds.push(imported.jobId);
             if (imported.duplicate) duplicatesFound += 1;
             else jobsImported += 1;
-            if (!imported.contentChanged) return;
+            if (!imported.contentChanged && !options.rescoreExisting) return;
             const storedJob = { ...job, id: imported.jobId };
             const authorization = assessWorkAuthorization(
               profile,
@@ -402,12 +409,21 @@ function connectorSource(company: TargetCompany): JobSourceType | undefined {
   )
     return company.atsProvider;
   if (
+    company.sourceType === "official-job-portal" &&
+    isWorkInDenmarkPortal(company.careersUrl)
+  )
+    return "official-job-portal";
+  if (
     company.atsProvider === "custom" &&
     company.careersUrl &&
     readBoolean(process.env.CAREERS_CRAWLER_ENABLED, true)
   )
     return "company-careers";
   return undefined;
+}
+
+function requiresAtsIdentifier(source: JobSourceType): boolean {
+  return ["greenhouse", "lever", "ashby"].includes(source);
 }
 
 function groupCompaniesByBoard(companies: TargetCompany[]): TargetCompany[][] {

@@ -9,11 +9,15 @@ export type ConnectorOptions = {
   lookup?: (hostname: string) => Promise<string[]>;
 };
 
+export type JsonRequestOptions = {
+  headers?: Record<string, string>;
+};
+
 export class ConnectorHttpClient {
   private lastRequestAt = 0;
   constructor(private readonly options: ConnectorOptions = {}) {}
 
-  async json(url: string): Promise<unknown> {
+  async json(url: string, request: JsonRequestOptions = {}): Promise<unknown> {
     const waitMs =
       (this.options.minRequestIntervalMs ?? 50) -
       (Date.now() - this.lastRequestAt);
@@ -32,6 +36,7 @@ export class ConnectorHttpClient {
         5_000_000,
       ),
       allowedContentTypes: ["application/json", "text/json"],
+      headers: request.headers,
       lookup: this.options.lookup,
     };
     const response = await safeFetch(url, safeOptions);

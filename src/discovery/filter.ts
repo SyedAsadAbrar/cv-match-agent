@@ -55,7 +55,7 @@ export function applyHardFilters(
     );
   if (authorization.status === "incompatible")
     reasons.push("Explicit work-authorisation incompatibility.");
-  if (!isRelatedRole(profile.targetRoles, job.title))
+  if (!isRelatedRole(profile, job))
     reasons.push("Title is outside the configured role families.");
   if (job.publishedAt) {
     const ageDays =
@@ -71,10 +71,21 @@ export function applyHardFilters(
   return { accepted: reasons.length === 0, reasons, deprioritized };
 }
 
-function isRelatedRole(targetRoles: string[], title: string): boolean {
-  if (targetRoles.length === 0) return true;
-  const titleTokens = tokens(title);
-  return targetRoles.some((role) => {
+function isRelatedRole(profile: CandidateProfile, job: JobPosting): boolean {
+  if (profile.targetRoles.length === 0) return true;
+  const titleTokens = tokens(job.title);
+  const jobSkillTokens = new Set(
+    [...job.requiredSkills, ...job.preferredSkills].flatMap((skill) => [
+      ...tokens(skill),
+    ]),
+  );
+  const profileSkillTokens = new Set(
+    profile.skills.flatMap((skill) => [...tokens(skill.name)]),
+  );
+  const hasProfileSkillEvidence = [...jobSkillTokens].some((skill) =>
+    profileSkillTokens.has(skill),
+  );
+  return profile.targetRoles.some((role) => {
     const roleTokens = tokens(role);
     const overlap = [...roleTokens].filter((token) =>
       titleTokens.has(token),
@@ -83,14 +94,57 @@ function isRelatedRole(targetRoles: string[], title: string): boolean {
     // role relevant. Require two meaningful terms when the target role has
     // more than one, while still allowing precise one-word targets.
     const requiredMatches = roleTokens.size > 1 ? 2 : 1;
-    return overlap >= Math.min(requiredMatches, roleTokens.size);
+    if (
+      overlap >= Math.min(requiredMatches, roleTokens.size) &&
+      (!requiresSkillEvidence(roleTokens) || hasProfileSkillEvidence)
+    )
+      return true;
+
+    // Employer titles often use a broad family such as "Software Engineer"
+    // even when the vacancy clearly calls for a target speciality. Treat that
+    // as a relevant discovery candidate only when the job itself provides
+    // matching skill evidence; title-only broad matches remain excluded.
+    const roleSpecialties = [...roleTokens].filter(
+      (token) => !GENERIC_ENGINEERING_TOKENS.has(token),
+    );
+    return (
+      isGenericEngineeringTitle(titleTokens) &&
+      roleSpecialties.some((specialty) => jobSkillTokens.has(specialty))
+    );
   });
+}
+
+const GENERIC_ENGINEERING_TOKENS = new Set([
+  "engineer",
+  "engineering",
+  "developer",
+  "technical",
+  "lead",
+]);
+
+const AMBIGUOUS_ROLE_TOKENS = new Set([
+  ...GENERIC_ENGINEERING_TOKENS,
+  "product",
+]);
+
+function requiresSkillEvidence(roleTokens: Set<string>): boolean {
+  return [...roleTokens].every((token) => AMBIGUOUS_ROLE_TOKENS.has(token));
+}
+
+function isGenericEngineeringTitle(titleTokens: Set<string>): boolean {
+  return (
+    titleTokens.has("engineer") ||
+    titleTokens.has("engineering") ||
+    titleTokens.has("developer")
+  );
 }
 
 function tokens(value: string): Set<string> {
   const ignored = new Set(["senior", "junior", "hands", "on", "full"]);
   return new Set(
     normalize(value)
+      .replace(/\bfront[\s-]?end\b/g, "frontend")
+      .replace(/\bfull[\s-]?stack\b/g, "fullstack")
       .replace(/\bdev(?:eloper)?\b/g, "engineer")
       .replace(/\btech\b/g, "technical")
       .split(" ")

@@ -132,6 +132,16 @@ function render() {
   const route = currentRoute();
   title.textContent =
     pageNames[route] || (route === "job" ? "Job Analysis" : "Dashboard");
+  const detailBack = document.querySelector("#detail-back");
+  detailBack.hidden = route !== "job";
+  detailBack.onclick =
+    route === "job"
+      ? () => {
+          history.pushState(null, "", "/discover");
+          render();
+        }
+      : null;
+  resetJobsButton.hidden = route === "job";
   document
     .querySelectorAll("nav a")
     .forEach((a) =>
@@ -170,12 +180,16 @@ function renderDashboard() {
 function renderJobs(items, options = {}) {
   const dismissedCount = state.jobs.filter((x) => x.dismissed).length;
   const defaultMinimumScore =
-    options.defaultMinimumScore ?? (options.showDismissed ? 0 : 68);
+    options.defaultMinimumScore ?? (options.showDismissed ? 0 : 70);
   const filterKey = options.showDismissed ? "dismissed" : currentRoute();
-  const filters = getJobFilters(filterKey, defaultMinimumScore);
+  const filters = getJobFilters(
+    filterKey,
+    defaultMinimumScore,
+    options.showDismissed ? "all" : "worthwhile",
+  );
   const defaultItems = filterJobItems(items, filters);
   const itemLabel = options.showDismissed ? "dismissed job" : "job";
-  app.innerHTML = `<div class="panel"><div class="panel-head"><div><h2>${options.showDismissed ? "Dismissed jobs" : "Job opportunities"}</h2><p class="muted small">${options.showDismissed ? "Restore a role to return it to discovery." : "The 68% default shows Apply and Strong Apply matches; lower it to review all discovered jobs, including roles marked not recommended."}</p></div>${!options.showDismissed && dismissedCount ? `<button class="secondary" data-show-dismissed>Show dismissed (${dismissedCount})</button>` : ""}</div><form id="job-filters" class="filters"><label>Sort by<select id="f-sort"><option value="confidence-desc">Match confidence: high to low</option><option value="confidence-asc">Match confidence: low to high</option><option value="newest">Newest first</option><option value="trust">Trust: highest first</option></select></label><label>Match category<select id="f-rec"><option value="">Any category</option>${["strong-apply", "apply", "stretch", "eligibility-unclear", "low-priority"].map((x) => `<option>${x}</option>`).join("")}<option value="skip">not recommended</option></select></label><label>Match confidence (%)<input id="f-score" type="number" min="0" max="100" value="${defaultMinimumScore}"></label><label>Country<select id="f-country"><option value="">All</option>${uniq(
+  app.innerHTML = `<div class="panel"><div class="panel-head"><div><h2>${options.showDismissed ? "Dismissed jobs" : "Job opportunities"}</h2><p class="muted small">${options.showDismissed ? "Restore a role to return it to discovery." : "Smart shortlist is the default: trusted, relevant roles scoring at least 70%, with no explicit visa blocker. Use broader views only when you want to explore."}</p></div>${!options.showDismissed && dismissedCount ? `<button class="secondary" data-show-dismissed>Show dismissed (${dismissedCount})</button>` : ""}</div><form id="job-filters" class="filters"><label>Show<select id="f-quality"><option value="worthwhile">Smart shortlist</option><option value="potential">Potential matches</option><option value="real">All real matches</option><option value="all">Everything, including filtered out</option></select></label><label>Sort by<select id="f-sort"><option value="confidence-desc">Match confidence: high to low</option><option value="confidence-asc">Match confidence: low to high</option><option value="newest">Newest first</option><option value="trust">Trust: highest first</option></select></label><label>Match category<select id="f-rec"><option value="">Any category</option>${["strong-apply", "apply", "stretch", "eligibility-unclear", "low-priority"].map((x) => `<option>${x}</option>`).join("")}<option value="skip">not recommended</option></select></label><label>Match confidence (%)<input id="f-score" type="number" min="0" max="100" value="${defaultMinimumScore}"></label><label>Visa status<select id="f-visa"><option value="not-incompatible">No explicit blocker</option><option value="positive">Positive evidence</option><option value="unknown">Eligibility unknown</option><option value="">Any</option></select></label><label>Country<select id="f-country"><option value="">All</option>${uniq(
     items.map((x) => x.job.country).filter(Boolean),
   )
     .map((x) => `<option>${e(x)}</option>`)
@@ -199,12 +213,14 @@ function renderDismissedJobs() {
   );
 }
 
-function getJobFilters(key, defaultMinimumScore) {
+function getJobFilters(key, defaultMinimumScore, defaultQuality) {
   if (!state.jobFilters[key])
     state.jobFilters[key] = {
       sort: "confidence-desc",
+      quality: defaultQuality,
       recommendation: "",
       minimumScore: defaultMinimumScore,
+      visa: defaultQuality === "all" ? "" : "not-incompatible",
       country: "",
       workplace: "",
       trust: "",
@@ -214,8 +230,10 @@ function getJobFilters(key, defaultMinimumScore) {
 
 function setJobFilterInputs(filters) {
   document.querySelector("#f-sort").value = filters.sort;
+  document.querySelector("#f-quality").value = filters.quality;
   document.querySelector("#f-rec").value = filters.recommendation;
   document.querySelector("#f-score").value = String(filters.minimumScore);
+  document.querySelector("#f-visa").value = filters.visa;
   document.querySelector("#f-country").value = filters.country;
   document.querySelector("#f-work").value = filters.workplace;
   document.querySelector("#f-trust").value = filters.trust;
@@ -224,8 +242,10 @@ function setJobFilterInputs(filters) {
 function filterJobItems(items, filters) {
   return items.filter(
     (x) =>
+      passesQualityFilter(x, filters.quality) &&
       (!filters.recommendation ||
         x.match?.recommendation === filters.recommendation) &&
+      matchesVisaFilter(x, filters.visa) &&
       (!filters.country || x.job.country === filters.country) &&
       (!filters.workplace || x.job.workplaceType === filters.workplace) &&
       (!filters.trust || x.trust?.level === filters.trust) &&
@@ -233,12 +253,38 @@ function filterJobItems(items, filters) {
   );
 }
 
+function passesQualityFilter(item, quality) {
+  const score = item.match?.score || 0;
+  const recommendation = item.match?.recommendation || "unanalysed";
+  const trust = item.trust?.level || "unverified";
+  const authorization = item.workAuthorization?.status || "unknown";
+  if (quality === "all") return true;
+  if (authorization === "incompatible" || trust === "suspicious") return false;
+  if (quality === "real") return recommendation !== "skip";
+  if (quality === "potential") return recommendation !== "skip" && score >= 50;
+  return (
+    recommendation !== "skip" &&
+    score >= 70 &&
+    ["verified", "likely-legitimate"].includes(trust)
+  );
+}
+
+function matchesVisaFilter(item, visa) {
+  const status = item.workAuthorization?.status || "unknown";
+  if (visa === "positive")
+    return ["likely-compatible", "possibly-compatible"].includes(status);
+  if (visa === "unknown") return status === "unknown";
+  return visa !== "not-incompatible" || status !== "incompatible";
+}
+
 function filterJobs(items, itemLabel = "job", filterKey = currentRoute()) {
   const v = (id) => document.querySelector(`#${id}`).value;
   const filters = {
     sort: v("f-sort"),
+    quality: v("f-quality"),
     recommendation: v("f-rec"),
     minimumScore: Number(v("f-score")) || 0,
+    visa: v("f-visa"),
     country: v("f-country"),
     workplace: v("f-work"),
     trust: v("f-trust"),
@@ -265,15 +311,7 @@ function renderJobDetail(id) {
     app.innerHTML = `<div class="empty">Job not found.</div>`;
     return;
   }
-  const breakdown = Object.entries(x.match?.components || {})
-    .map(
-      ([name, c]) =>
-        `<div class="bar"><span>${e(name)}</span><i><span style="width:${Math.max(0, Math.min(100, c.score))}%"></span></i><b>${Math.round(c.score)}</b></div>`,
-    )
-    .join("");
-  app.innerHTML = `<div class="panel"><div class="panel-head"><div><div class="eyebrow">${e(x.job.sourceType)} · ${e(x.job.status)}</div><h2>${e(x.job.title)}</h2><p class="muted">${e(x.job.company)} · ${e(x.job.locationText || "Location not stated")}</p></div><div class="score">${Math.round(x.match?.score || 0)}</div></div><div class="actions"><button class="secondary" data-back-discover>Back to Discover Jobs</button><a class="primary" target="_blank" rel="noopener noreferrer" href="${e(x.job.canonicalUrl)}">Open official application</a><button class="secondary" data-save="${e(x.job.id)}">${x.saved ? "Unsave" : "Save"}</button><button class="secondary" data-apply="${e(x.job.id)}">Mark applied</button></div></div>
-  <div class="detail-grid"><div><div class="panel"><h2>Match breakdown</h2><div class="breakdown">${breakdown}</div></div><div class="panel"><h2>Original job information</h2><p class="muted">${e(x.job.description)}</p></div><div class="panel"><h2>Gaps and candidate evidence</h2>${list(x.match?.gaps.map((g) => `${g.severity}: ${g.requirement} — ${g.explanation}`) || [])}</div><div class="panel"><h2>Detailed local-AI analysis</h2>${x.match?.detailedAnalysis ? `<pre class="code">${e(JSON.stringify(x.match.detailedAnalysis, null, 2))}</pre>` : `<p class="muted">Pending or unavailable. The deterministic score remains usable.</p>`}</div></div>
-  <div><div class="panel"><h2>Trust assessment</h2><p><span class="badge ${x.trust?.level || ""}">${e(x.trust?.level || "unverified")}</span></p>${list([...(x.trust?.evidence || []), ...(x.trust?.suspiciousSignals || [])])}</div><div class="panel"><h2>Work authorisation</h2><p><span class="badge ${x.workAuthorization?.status || ""}">${e(x.workAuthorization?.status || "unknown")}</span></p><p class="muted">${e(x.workAuthorization?.explanation || "")}</p><p class="small muted">${e(x.workAuthorization?.disclaimer || "")}</p></div><div class="panel"><h2>Salary evidence</h2><p>${x.salary?.advertisedSalary ? money(x.salary.advertisedSalary) : x.salary?.estimatedMarketRange ? money(x.salary.estimatedMarketRange) : "Insufficient evidence"}</p><p class="muted">${e(x.salary?.explanation || "")}</p><p class="small muted">${x.salary?.evidenceCount || 0} evidence item(s). Current baseline: AED 22,000 monthly. ${e(x.salary?.comparisonStatus || "")}</p>${list((x.salary?.evidence || []).map((item) => `${item.sourceName} · ${money(item)} · collected ${date(item.collectedAt)}`))}</div><div class="panel"><h2>Source history</h2><p class="small muted">${e(x.job.sourceName || x.job.sourceType)}<br>Last verified: ${date(x.job.lastVerifiedAt)}</p></div></div></div>`;
+  app.innerHTML = JobDetailView.renderJobDetail(x);
   bindCommon();
 }
 
@@ -766,12 +804,6 @@ function bindCommon() {
       render();
     }),
   );
-  document
-    .querySelector("[data-back-discover]")
-    ?.addEventListener("click", () => {
-      history.pushState(null, "", "/discover");
-      render();
-    });
 }
 async function jobAction(id, kind, body) {
   await action(
@@ -853,7 +885,7 @@ function activeJobs(items) {
   return items.filter((x) => !x.dismissed && x.job.status !== "closed");
 }
 function relevantJobs(items) {
-  return items.filter((x) => (x.match?.score || 0) >= 68);
+  return items.filter((x) => passesQualityFilter(x, "worthwhile"));
 }
 function sortJobs(items, sort) {
   const trustRank = {

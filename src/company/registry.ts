@@ -5,6 +5,10 @@ import { AshbyConnector } from "../discovery/connectors/ashby";
 import { CareersPageConnector } from "../discovery/connectors/careersPage";
 import { GreenhouseConnector } from "../discovery/connectors/greenhouse";
 import { LeverConnector } from "../discovery/connectors/lever";
+import {
+  isWorkInDenmarkPortal,
+  WorkInDenmarkConnector,
+} from "../discovery/connectors/workInDenmark";
 import type { JobSourceConnector } from "../discovery/types";
 import {
   companyImportRunSchema,
@@ -355,14 +359,21 @@ export async function verifyCompanySource(
     lever: new LeverConnector(),
     ashby: new AshbyConnector(),
     custom: new CareersPageConnector(),
+    "official-job-portal": new WorkInDenmarkConnector(),
   };
   const verificationRunId = store.startCompanyVerificationRun(company);
   const checkedAt = new Date().toISOString();
   let working = company;
   try {
+    const isVerifiedOfficialPortal =
+      working.sourceType === "official-job-portal" &&
+      isWorkInDenmarkPortal(working.careersUrl);
     let genericInspection:
       Awaited<ReturnType<typeof crawlOfficialCareersSite>> | undefined;
-    if (!working.atsProvider || working.atsProvider === "custom") {
+    if (
+      !isVerifiedOfficialPortal &&
+      (!working.atsProvider || working.atsProvider === "custom")
+    ) {
       const directDetection = working.careersUrl
         ? detectCareerSource(working.careersUrl, {
             confidence: "high",
@@ -453,7 +464,22 @@ export async function verifyCompanySource(
     let references: Awaited<ReturnType<JobSourceConnector["discoverJobs"]>> =
       [];
     let evidence: string[] = [];
-    if (working.atsProvider && working.atsProvider !== "custom") {
+    if (isVerifiedOfficialPortal) {
+      const connector =
+        connectors["official-job-portal"] ?? defaults["official-job-portal"];
+      if (!connector)
+        throw new Error("No official-job-portal connector is configured.");
+      references = await connector.discoverJobs({
+        profile: store.getProfile(),
+        company: working,
+        maximumJobs: 1,
+      });
+      evidence = [
+        "Valid Work in Denmark public vacancy-feed response.",
+        "This official portal links applicants to each employer's posting.",
+        ...selectedSourceEvidence(working, checkedAt),
+      ];
+    } else if (working.atsProvider && working.atsProvider !== "custom") {
       const connector =
         connectors[working.atsProvider] ?? defaults[working.atsProvider];
       if (!connector)
@@ -518,7 +544,9 @@ export async function verifyCompanySource(
       ];
     }
 
-    const identityMatches = sourceIdentityMatchesCompany(working, references);
+    const identityMatches =
+      isVerifiedOfficialPortal ||
+      sourceIdentityMatchesCompany(working, references);
     const result = verificationResult({
       sourceReachable: true,
       responseValid: true,

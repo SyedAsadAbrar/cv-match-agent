@@ -1,13 +1,13 @@
 {
-  "totalSourceRecords": 449,
-  "totalCompanies": 373,
+  "totalSourceRecords": 450,
+  "totalCompanies": 374,
   "candidateCompanies": 0,
-  "domainResolved": 373,
-  "careersPageFound": 58,
+  "domainResolved": 374,
+  "careersPageFound": 59,
   "sourceVerified": 0,
   "sourceVerifiedWithJobs": 4,
-  "sourceVerifiedEmpty": 6,
-  "monitored": 10,
+  "sourceVerifiedEmpty": 7,
+  "monitored": 11,
   "temporarilyFailing": 3,
   "temporarilyUnavailable": 3,
   "blockedOrUnsupported": 2,
@@ -23,33 +23,36 @@
     "Estonia": 1,
     "France": 1,
     "Sweden": 2,
-    "Lithuania": 1
+    "Lithuania": 1,
+    "Denmark": 1
   },
   "verifiedByCountry": {
     "United Arab Emirates": 5,
     "Saudi Arabia": 6,
-    "Europe": 1
+    "Europe": 1,
+    "Denmark": 1
   },
   "monitoredByCountry": {
     "United Arab Emirates": 5,
     "Saudi Arabia": 6,
-    "Europe": 1
+    "Europe": 1,
+    "Denmark": 1
   },
   "unresolvedByCountry": {},
   "byStatus": {
     "domain-resolved": 324,
     "careers-page-found": 36,
-    "monitored": 10,
+    "monitored": 11,
     "temporarily-failing": 3
   },
   "byAtsProvider": {
     "unresolved": 315,
-    "custom": 57,
+    "custom": 58,
     "ashby": 1
   },
   "byBoardState": {
     "not-checked": 356,
-    "active-empty": 6,
+    "active-empty": 7,
     "unsupported": 1,
     "blocked": 1,
     "temporarily-unavailable": 3,
@@ -59,7 +62,7 @@
   },
   "byHiringSourceClassification": {
     "direct-employer": 348,
-    "government-portal": 4,
+    "government-portal": 5,
     "staffing-consultancy": 15,
     "ecosystem-directory": 2,
     "recruitment-agency": 2,
@@ -125,7 +128,7 @@
     "insurtech": 2,
     "customer experience": 1,
     "healthcare": 3,
-    "government": 2,
+    "government": 3,
     "mining": 1,
     "enterprise software": 2,
     "marketplace software": 1,
@@ -143,7 +146,7 @@
     "communications": 2,
     "product": 1,
     "robotics": 1,
-    "job platform": 1,
+    "job platform": 2,
     "location technology": 1,
     "mapping": 1,
     "digital infrastructure": 1,
@@ -153,7 +156,7 @@
     "digital platforms": 1
   },
   "bySponsorshipEvidence": {
-    "unknown": 366,
+    "unknown": 367,
     "confirmed": 4,
     "historical": 3
   },
@@ -175,9 +178,10 @@
     "Verified Saudi technology employer pages": 3,
     "Verified German technology employer pages": 3,
     "Nameless Ventures official company page": 1,
-    "Hub71 Market Partners": 1
+    "Hub71 Market Partners": 1,
+    "Work in Denmark official job portal": 1
   },
-  "enabled": 10,
+  "enabled": 11,
   "unresolved": 0,
   "rejected": 0,
   "duplicates": 0,

@@ -19,7 +19,9 @@ export function assessJobTrust(
   const hostname = new URL(job.canonicalUrl).hostname.toLowerCase();
   const recognisedAtsHost =
     ATS_HOSTS.has(hostname) ||
-    ["greenhouse", "lever", "ashby"].includes(job.sourceType);
+    ["greenhouse", "lever", "ashby", "official-job-portal"].includes(
+      job.sourceType,
+    );
   const officialDomainMatch = Boolean(
     company &&
     (hostname === company.companyDomain ||
@@ -44,7 +46,11 @@ export function assessJobTrust(
   const evidence: string[] = [];
   if (recognisedAtsHost) {
     score += 35;
-    evidence.push("Posting uses a recognised public ATS source.");
+    evidence.push(
+      job.sourceType === "official-job-portal"
+        ? "Posting was published through a verified official job portal."
+        : "Posting uses a recognised public ATS source.",
+    );
   }
   if (officialDomainMatch) {
     score += 25;

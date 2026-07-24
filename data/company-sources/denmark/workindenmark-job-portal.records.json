@@ -1,0 +1,21 @@
+{
+  "records": [
+    {
+      "sourceRecordId": "workindenmark-job-portal",
+      "legalName": "Work in Denmark",
+      "displayName": "Work in Denmark",
+      "aliases": ["Workindenmark", "Workindenmark Jobnet"],
+      "sourceType": "official-job-portal",
+      "sourceName": "Work in Denmark official job portal",
+      "sourceUrl": "https://www.workindenmark.dk/getting-started/finding-vacancies-in-denmark/use-our-job-portal",
+      "sourceRetrievedAt": "2026-07-24T00:00:00.000Z",
+      "country": "Denmark",
+      "cities": [],
+      "websiteUrl": "https://www.workindenmark.dk/?lang=en",
+      "careersUrl": "https://workindenmark.jobnet.dk/find-job",
+      "industries": ["government", "job platform"],
+      "hiringSourceClassification": "government-portal",
+      "notes": "The official Work in Denmark portal states that its vacancies are in English and link applicants to the employer's own job posting. Its public feed must be verified before this source is enabled."
+    }
+  ]
+}

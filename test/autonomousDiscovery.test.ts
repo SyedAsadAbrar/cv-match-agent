@@ -23,6 +23,7 @@ import {
 import { AshbyConnector } from "../src/discovery/connectors/ashby";
 import { GreenhouseConnector } from "../src/discovery/connectors/greenhouse";
 import { LeverConnector } from "../src/discovery/connectors/lever";
+import { WorkInDenmarkConnector } from "../src/discovery/connectors/workInDenmark";
 import { areDuplicateJobs } from "../src/discovery/deduplicate";
 import { applyHardFilters } from "../src/discovery/filter";
 import { extractSkills, normalizeJob } from "../src/discovery/normalize";
@@ -163,6 +164,48 @@ test("Ashby accepts null optional fields from the live posting schema", async ()
     (await connector.fetchJob(references[0])).locationText,
     undefined,
   );
+});
+
+test("Work in Denmark maps real portal vacancies to employer application links", async () => {
+  const connector = new WorkInDenmarkConnector({
+    fetchImpl: jsonFetch({
+      jobAds: [
+        {
+          jobAdId: "E11135990",
+          title: "Frontend Engineer",
+          hiringOrgName: "GoWish",
+          description: "Build React Native products with TypeScript.",
+          jobAdUrl: "https://careers.example.com/jobs/frontend-engineer",
+          isExternal: true,
+          country: "Danmark",
+          postalCode: 2100,
+          postalDistrictName: "København Ø",
+          workHourPartTime: false,
+          publicationDate: "2026-07-24T00:00:00+02:00",
+        },
+      ],
+    }),
+    lookup: publicLookup,
+    minRequestIntervalMs: 0,
+  });
+  const portalCompany = {
+    ...company("workindenmark", "greenhouse"),
+    sourceType: "official-job-portal",
+    careersUrl: "https://workindenmark.jobnet.dk/find-job",
+  };
+  const references = await connector.discoverJobs({
+    profile: createInitialCandidateProfile(),
+    company: portalCompany,
+  });
+  assert.equal(references.length, 1);
+  assert.equal(references[0].company, "GoWish");
+  const job = await connector.fetchJob(references[0]);
+  assert.equal(
+    job.canonicalUrl,
+    "https://careers.example.com/jobs/frontend-engineer",
+  );
+  assert.equal(job.locationText, "2100, København Ø, Denmark");
+  assert.equal(job.employmentType, "Full-time");
 });
 
 test("Ashby accepts dotted public board names without allowing path traversal", async () => {
@@ -411,6 +454,47 @@ test("role filtering rejects broad one-word overlaps", () => {
     result.reasons.some((reason) =>
       /outside the configured role/i.test(reason),
     ),
+  );
+});
+
+test("role filtering accepts a generic engineering title with target-skill evidence", () => {
+  const profile = createInitialCandidateProfile();
+  const job = normalizeJob({
+    sourceType: "manual",
+    sourceName: "fixture",
+    externalId: "software-engineer-react",
+    canonicalUrl: "https://example.com/jobs/software-engineer-react",
+    company: "Example",
+    title: "Senior Software Engineer",
+    description: "Build production React and TypeScript applications.",
+  });
+  const result = applyHardFilters(profile, job, {
+    status: "unknown",
+    evidence: [],
+  });
+  assert.equal(
+    result.reasons.includes("Title is outside the configured role families."),
+    false,
+  );
+});
+
+test("role filtering rejects ambiguous technical leadership without software-skill evidence", () => {
+  const profile = createInitialCandidateProfile();
+  const job = normalizeJob({
+    sourceType: "manual",
+    sourceName: "fixture",
+    externalId: "humanitarian-technical-lead",
+    canonicalUrl: "https://example.com/jobs/humanitarian-technical-lead",
+    company: "Example",
+    title: "Global Technical Lead, Humanitarian Mine Action",
+    description: "Lead humanitarian mine-action programmes across regions.",
+  });
+  const result = applyHardFilters(profile, job, {
+    status: "unknown",
+    evidence: [],
+  });
+  assert.ok(
+    result.reasons.includes("Title is outside the configured role families."),
   );
 });
 

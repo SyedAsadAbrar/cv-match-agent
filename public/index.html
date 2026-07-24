@@ -28,9 +28,20 @@
     </aside>
     <main>
       <header>
-        <div>
+        <div class="page-heading">
           <div class="eyebrow">AUTONOMOUS DISCOVERY</div>
-          <h1 id="page-title">Dashboard</h1>
+          <div class="page-title-row">
+            <button
+              id="detail-back"
+              class="detail-back"
+              type="button"
+              aria-label="Back to Discover Jobs"
+              hidden
+            >
+              ←
+            </button>
+            <h1 id="page-title">Dashboard</h1>
+          </div>
         </div>
         <div class="actions">
           <button class="danger" id="reset-jobs">Reset jobs</button>
@@ -42,6 +53,7 @@
         <div class="loading">Loading local workspace…</div>
       </section>
     </main>
+    <script src="/job-detail-view.js" defer></script>
     <script src="/app.js" defer></script>
   </body>
 </html>

@@ -18,16 +18,27 @@ export function createJobsCommand(): Command {
       "--no-verify",
       "Trust the current official ATS listing without a per-job verification request.",
     )
-    .action(async (options: { ai: boolean; verify: boolean }) => {
-      logger.info("Starting job discovery...");
-      const run = await runDiscovery({
-        webSearchProvider: createConfiguredWebSearchProvider(),
-        localAI: options.ai ? new OllamaLocalAIProvider() : undefined,
-        analyse: options.ai,
-        verify: options.verify,
-      });
-      logger.info(JSON.stringify(run, null, 2));
-      if (run.status === "failed") process.exitCode = 1;
-    });
+    .option(
+      "--re-evaluate",
+      "Re-score unchanged jobs with the current matching rules.",
+    )
+    .action(
+      async (options: {
+        ai: boolean;
+        verify: boolean;
+        reEvaluate?: boolean;
+      }) => {
+        logger.info("Starting job discovery...");
+        const run = await runDiscovery({
+          webSearchProvider: createConfiguredWebSearchProvider(),
+          localAI: options.ai ? new OllamaLocalAIProvider() : undefined,
+          analyse: options.ai,
+          verify: options.verify,
+          rescoreExisting: options.reEvaluate,
+        });
+        logger.info(JSON.stringify(run, null, 2));
+        if (run.status === "failed") process.exitCode = 1;
+      },
+    );
   return jobs;
 }
