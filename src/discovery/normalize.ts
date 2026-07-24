@@ -185,6 +185,13 @@ function extractWorkAuthorization(
     )
     .slice(0, 8);
   const joined = evidence.join(" ");
+  const citizenshipOrVisaOnly =
+    /\b(?:u\.?s\.?|united states)\s+(?:citizens?|citizenship|visa)(?:\s*(?:\/|or|and)\s*(?:citizens?|citizenship|visa))?\s+only\b/i.test(
+      joined,
+    ) ||
+    /\b(?:u\.?s\.?|united states)\s+(?:work authori[sz]ation|work permit)\s+only\b/i.test(
+      joined,
+    );
   const noSponsorship =
     /(?:no|not|unable to|cannot|can't|won't|will not)\s+(?:provide\s+)?(?:visa\s+)?sponsor/i.test(
       joined,
@@ -195,7 +202,8 @@ function extractWorkAuthorization(
     /(?:remote|role).{0,80}(?:limited to|only).{0,40}(?:EU residents?|European Union)/i.test(
       joined,
     ) ||
-    /must (?:be )?(?:an? )?(?:EU|European Union) resident/i.test(joined);
+    /must (?:be )?(?:an? )?(?:EU|European Union) resident/i.test(joined) ||
+    citizenshipOrVisaOnly;
   const sponsorshipAvailable =
     /(?:visa )?sponsorship (?:is )?(?:available|provided|offered)|we (?:can|will) sponsor/i.test(
       joined,

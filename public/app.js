@@ -196,8 +196,15 @@ function renderJobs(items, options = {}) {
         );
   const defaultItems = filterJobItems(items, filters);
   const itemLabel = options.showDismissed ? "dismissed job" : "job";
+  const countries = uniq([
+    ...items.map((x) => x.job.country).filter(Boolean),
+    ...(state.profile?.targetCountries || []),
+    filters.country,
+  ])
+    .filter(Boolean)
+    .sort((left, right) => left.localeCompare(right));
   app.innerHTML = `<div class="panel"><div class="panel-head"><div><h2>${options.showDismissed ? "Dismissed jobs" : "Job opportunities"}</h2><p class="muted small">${options.showDismissed ? "Restore a role to return it to discovery." : "Choose the view you want, then apply it. Discover starts unfiltered; applied choices are kept in this page URL."}</p></div>${!options.showDismissed && dismissedCount ? `<button class="secondary" data-show-dismissed>Show dismissed (${dismissedCount})</button>` : ""}</div><form id="job-filters" class="filters"><label>Show<select id="f-quality"><option value="worthwhile">Smart shortlist</option><option value="potential">Potential matches</option><option value="real">All real matches</option><option value="all">Everything, including filtered out</option></select></label><label>Sort by<select id="f-sort"><option value="confidence-desc">Match confidence: high to low</option><option value="confidence-asc">Match confidence: low to high</option><option value="newest">Newest first</option><option value="trust">Trust: highest first</option></select></label><label>Match category<select id="f-rec"><option value="">Any category</option>${["strong-apply", "apply", "stretch", "eligibility-unclear", "low-priority"].map((x) => `<option>${x}</option>`).join("")}<option value="skip">not recommended</option></select></label><label>Match confidence (%)<input id="f-score" type="number" min="0" max="100" value="${filters.minimumScore}"></label><label>Visa status<select id="f-visa"><option value="not-incompatible">No explicit blocker</option><option value="positive">Positive evidence</option><option value="unknown">Eligibility unknown</option><option value="">Any</option></select></label><label>Country<select id="f-country"><option value="">All</option>${uniq(
-    items.map((x) => x.job.country).filter(Boolean),
+    countries,
   )
     .map((x) => `<option>${e(x)}</option>`)
     .join(

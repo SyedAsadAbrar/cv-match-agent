@@ -616,6 +616,22 @@ test("explicit no-sponsorship language produces an incompatibility blocker", () 
   assert.equal(assessWorkAuthorization(profile, job).status, "incompatible");
 });
 
+test("US citizen or visa-only requirements are incompatibility blockers", () => {
+  const profile = createInitialCandidateProfile();
+  const job = {
+    ...sampleJob("Visa: US citizen/visa only."),
+    country: "United States",
+  };
+  const authorization = assessWorkAuthorization(profile, job);
+  const match = scoreJob(profile, job, authorization);
+
+  assert.equal(job.workAuthorization.sponsorshipAvailable, false);
+  assert.equal(authorization.status, "incompatible");
+  assert.match(authorization.explicitRestrictions[0], /US citizen\/visa only/i);
+  assert.equal(match.recommendation, "skip");
+  assert.equal(applyHardFilters(profile, job, authorization).accepted, false);
+});
+
 test("EU-resident-only remote work is an incompatibility for a UAE-based profile", () => {
   const profile = createInitialCandidateProfile();
   const job = {

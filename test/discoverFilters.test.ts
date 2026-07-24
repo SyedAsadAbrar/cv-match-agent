@@ -17,6 +17,8 @@ test("Discover filters start clean and persist applied values in the page URL", 
     app,
     /history\.replaceState\(null, "", `\/discover\?\$\{params\.toString\(\)\}`\)/,
   );
+  assert.match(app, /country: params\.get\("country"\) \|\| ""/);
+  assert.match(app, /state\.profile\?\.targetCountries/);
 });
 
 test("Discover exposes a reset control and returns to a clean /discover URL", () => {
