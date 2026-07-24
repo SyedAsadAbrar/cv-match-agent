@@ -23,7 +23,7 @@
       "legalName": "Wolt Enterprises Oy",
       "displayName": "Wolt",
       "websiteUrl": "https://wolt.com/",
-      "careersUrl": "https://careers.wolt.com/",
+      "careersUrl": "https://careers.wolt.com/en/jobs/1",
       "cities": ["Helsinki"]
     },
     {
@@ -54,6 +54,7 @@
       "legalName": "Comuto SA",
       "displayName": "BlaBlaCar",
       "websiteUrl": "https://www.blablacar.com/",
+      "careersUrl": "https://jobs.lever.co/blablacar",
       "cities": ["Paris"],
       "industries": ["mobility"]
     },
@@ -62,6 +63,7 @@
       "legalName": "Wise plc",
       "displayName": "Wise",
       "websiteUrl": "https://wise.com/",
+      "careersUrl": "https://wise.jobs/",
       "cities": ["London", "Tallinn"],
       "industries": ["fintech"]
     },
@@ -69,8 +71,9 @@
       "sourceRecordId": "eu-checkout",
       "legalName": "Checkout Ltd",
       "displayName": "Checkout.com",
-      "aliases": ["Checkout.com Europe"],
+      "aliases": ["Checkout.com Europe", "Checkout"],
       "websiteUrl": "https://www.checkout.com/",
+      "careersUrl": "https://jobs.ashbyhq.com/checkout.com",
       "cities": ["London"],
       "industries": ["fintech"]
     },
@@ -79,7 +82,7 @@
       "legalName": "Mistral AI SAS",
       "displayName": "Mistral AI",
       "websiteUrl": "https://mistral.ai/",
-      "careersUrl": "https://mistral.ai/careers",
+      "careersUrl": "https://jobs.ashbyhq.com/mistral.ai",
       "cities": ["Paris"],
       "industries": ["artificial intelligence"],
       "notes": "Multiple ATS links were observed in live smoke testing; no identifier is seeded until identity verification selects the canonical board."

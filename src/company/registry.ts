@@ -322,6 +322,24 @@ export async function resolveCompany(
 ): Promise<TargetCompany> {
   if (!company.websiteUrl && !company.companyDomain)
     return { ...company, verificationStatus: "candidate" };
+  const directCareerSource = company.careersUrl
+    ? detectCareerSource(company.careersUrl, {
+        confidence: "high",
+        evidence: ["The saved careers URL is a recognised public ATS board."],
+      })
+    : undefined;
+  if (directCareerSource?.identifier)
+    return targetCompanySchema.parse({
+      ...company,
+      atsProvider: directCareerSource.provider,
+      atsIdentifier: directCareerSource.identifier,
+      atsBoardUrl: directCareerSource.sourceUrl,
+      corporateCareersUrl: company.corporateCareersUrl ?? company.careersUrl,
+      verificationStatus: "careers-page-found",
+      resolvedAt: new Date().toISOString(),
+      lastCheckedAt: new Date().toISOString(),
+      verificationError: undefined,
+    });
   const websiteUrl = canonicalisePublicUrl(
     company.websiteUrl ?? `https://${company.companyDomain}`,
   );
@@ -1313,7 +1331,27 @@ function buildCompany(
   };
   const websiteUrl = record.websiteUrl ?? existing?.websiteUrl;
   const companyDomain = normaliseDomain(websiteUrl) ?? existing?.companyDomain;
-  const careersUrl = record.careersUrl ?? existing?.careersUrl;
+  const careersCandidates = [
+    record.careersUrl,
+    existing?.careersUrl,
+    ...(existing?.additionalCareersUrls ?? []),
+    ...(record.additionalCareersUrls ?? []),
+  ].filter((url): url is string => Boolean(url));
+  const directCareerSource = careersCandidates
+    .map((url) =>
+      detectCareerSource(url, {
+        confidence: "high",
+        evidence: ["A source record supplied this recognised public ATS URL."],
+      }),
+    )
+    .find((source) => source?.identifier && source.ingestible);
+  const careersUrl =
+    directCareerSource?.sourceUrl ?? record.careersUrl ?? existing?.careersUrl;
+  const existingCareersUrl = existing?.careersUrl;
+  const careersSourceChanged =
+    existingCareersUrl !== undefined &&
+    careersUrl !== undefined &&
+    canonicalisePublicUrl(existingCareersUrl) !== canonicalisePublicUrl(careersUrl);
   const additionalCareersUrls = [
     ...(existing?.additionalCareersUrls ?? []),
     ...(record.additionalCareersUrls ?? []),
@@ -1345,9 +1383,13 @@ function buildCompany(
     industries: [
       ...new Set([...(existing?.industries ?? []), ...record.industries]),
     ],
-    atsProvider: existing?.atsProvider ?? (careersUrl ? "custom" : undefined),
-    atsIdentifier: existing?.atsIdentifier,
-    atsBoardUrl: existing?.atsBoardUrl ?? record.atsBoardUrl,
+    atsProvider:
+      directCareerSource?.provider ??
+      existing?.atsProvider ??
+      (careersUrl ? "custom" : undefined),
+    atsIdentifier: directCareerSource?.identifier ?? existing?.atsIdentifier,
+    atsBoardUrl:
+      directCareerSource?.sourceUrl ?? existing?.atsBoardUrl ?? record.atsBoardUrl,
     sourceType: existing?.sourceType ?? record.sourceType,
     sourceRecords: [
       ...new Map(
@@ -1375,13 +1417,15 @@ function buildCompany(
       ]),
     ],
     verificationStatus:
-      existing?.verificationStatus ??
+      careersSourceChanged
+        ? "careers-page-found"
+        : (existing?.verificationStatus ??
       (careersUrl
         ? "careers-page-found"
         : companyDomain
           ? "domain-resolved"
-          : "candidate"),
-    enabled: existing?.enabled ?? false,
+          : "candidate")),
+    enabled: careersSourceChanged ? false : (existing?.enabled ?? false),
     discoveredAt: existing?.discoveredAt ?? new Date().toISOString(),
     notes:
       [existing?.notes, record.notes].filter(Boolean).join("\n") || undefined,
