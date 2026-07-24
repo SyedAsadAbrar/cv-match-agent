@@ -258,7 +258,10 @@ test("YC Jobs imports canonical YC role details without accessing blocked Work a
   const job = await connector.fetchJob(reference);
   assert.equal(reference.sourceName, "Y Combinator Jobs · Work at a Startup");
   assert.equal(job.company, "Epsilon3");
-  assert.equal(job.canonicalUrl.includes("account.ycombinator.com"), true);
+  assert.equal(
+    job.canonicalUrl,
+    "https://www.ycombinator.com/companies/epsilon3-inc/jobs/example-software-engineer",
+  );
   assert.match(job.description, /Visa: Will sponsor/);
 });
 

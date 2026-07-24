@@ -75,7 +75,10 @@ export class YcJobsConnector implements JobSourceConnector {
       sourceType: this.sourceType,
       sourceName: SOURCE_NAME,
       externalId: String(job.id),
-      canonicalUrl: job.applyUrl,
+      // YC's applyUrl first sends signed-out users through a generic profile
+      // form on Work at a Startup. The public YC role page is job-specific and
+      // keeps the eventual Apply action bound to this vacancy.
+      canonicalUrl: reference.url,
       discoveredUrl: reference.url,
       company: job.companyName,
       title: job.title,
