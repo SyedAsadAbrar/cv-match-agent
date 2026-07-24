@@ -10,6 +10,7 @@ let state = {
   dashboard: null,
   sources: null,
   companyPage: null,
+  discoverPath: null,
   jobFilters: {},
   companyFilters: {
     country: "",
@@ -65,6 +66,7 @@ async function refresh() {
     sources,
     settings,
     companyPage,
+    discoverPath: state.discoverPath,
     jobFilters: state.jobFilters,
     companyFilters: state.companyFilters,
   };
@@ -137,7 +139,9 @@ function render() {
   detailBack.onclick =
     route === "job"
       ? () => {
-          history.pushState(null, "", "/discover");
+          if (state.discoverPath)
+            history.pushState(null, "", state.discoverPath);
+          else history.pushState(null, "", "/discover");
           render();
         }
       : null;
@@ -182,20 +186,23 @@ function renderJobs(items, options = {}) {
   const defaultMinimumScore =
     options.defaultMinimumScore ?? (options.showDismissed ? 0 : 70);
   const filterKey = options.showDismissed ? "dismissed" : currentRoute();
-  const filters = getJobFilters(
-    filterKey,
-    defaultMinimumScore,
-    options.showDismissed ? "all" : "worthwhile",
-  );
+  const filters =
+    filterKey === "discover"
+      ? getDiscoverFilters()
+      : getJobFilters(
+          filterKey,
+          defaultMinimumScore,
+          options.showDismissed ? "all" : "worthwhile",
+        );
   const defaultItems = filterJobItems(items, filters);
   const itemLabel = options.showDismissed ? "dismissed job" : "job";
-  app.innerHTML = `<div class="panel"><div class="panel-head"><div><h2>${options.showDismissed ? "Dismissed jobs" : "Job opportunities"}</h2><p class="muted small">${options.showDismissed ? "Restore a role to return it to discovery." : "Smart shortlist is the default: trusted, relevant roles scoring at least 70%, with no explicit visa blocker. Use broader views only when you want to explore."}</p></div>${!options.showDismissed && dismissedCount ? `<button class="secondary" data-show-dismissed>Show dismissed (${dismissedCount})</button>` : ""}</div><form id="job-filters" class="filters"><label>Show<select id="f-quality"><option value="worthwhile">Smart shortlist</option><option value="potential">Potential matches</option><option value="real">All real matches</option><option value="all">Everything, including filtered out</option></select></label><label>Sort by<select id="f-sort"><option value="confidence-desc">Match confidence: high to low</option><option value="confidence-asc">Match confidence: low to high</option><option value="newest">Newest first</option><option value="trust">Trust: highest first</option></select></label><label>Match category<select id="f-rec"><option value="">Any category</option>${["strong-apply", "apply", "stretch", "eligibility-unclear", "low-priority"].map((x) => `<option>${x}</option>`).join("")}<option value="skip">not recommended</option></select></label><label>Match confidence (%)<input id="f-score" type="number" min="0" max="100" value="${defaultMinimumScore}"></label><label>Visa status<select id="f-visa"><option value="not-incompatible">No explicit blocker</option><option value="positive">Positive evidence</option><option value="unknown">Eligibility unknown</option><option value="">Any</option></select></label><label>Country<select id="f-country"><option value="">All</option>${uniq(
+  app.innerHTML = `<div class="panel"><div class="panel-head"><div><h2>${options.showDismissed ? "Dismissed jobs" : "Job opportunities"}</h2><p class="muted small">${options.showDismissed ? "Restore a role to return it to discovery." : "Choose the view you want, then apply it. Discover starts unfiltered; applied choices are kept in this page URL."}</p></div>${!options.showDismissed && dismissedCount ? `<button class="secondary" data-show-dismissed>Show dismissed (${dismissedCount})</button>` : ""}</div><form id="job-filters" class="filters"><label>Show<select id="f-quality"><option value="worthwhile">Smart shortlist</option><option value="potential">Potential matches</option><option value="real">All real matches</option><option value="all">Everything, including filtered out</option></select></label><label>Sort by<select id="f-sort"><option value="confidence-desc">Match confidence: high to low</option><option value="confidence-asc">Match confidence: low to high</option><option value="newest">Newest first</option><option value="trust">Trust: highest first</option></select></label><label>Match category<select id="f-rec"><option value="">Any category</option>${["strong-apply", "apply", "stretch", "eligibility-unclear", "low-priority"].map((x) => `<option>${x}</option>`).join("")}<option value="skip">not recommended</option></select></label><label>Match confidence (%)<input id="f-score" type="number" min="0" max="100" value="${filters.minimumScore}"></label><label>Visa status<select id="f-visa"><option value="not-incompatible">No explicit blocker</option><option value="positive">Positive evidence</option><option value="unknown">Eligibility unknown</option><option value="">Any</option></select></label><label>Country<select id="f-country"><option value="">All</option>${uniq(
     items.map((x) => x.job.country).filter(Boolean),
   )
     .map((x) => `<option>${e(x)}</option>`)
     .join(
       "",
-    )}</select></label><label>Workplace<select id="f-work"><option value="">All</option><option>remote</option><option>hybrid</option><option>onsite</option><option>unknown</option></select></label><label>Trust<select id="f-trust"><option value="">All</option><option>verified</option><option>likely-legitimate</option><option>unverified</option><option>suspicious</option></select></label><div class="filter-actions"><button class="primary" type="submit">Apply filters</button></div></form><p id="filter-summary" class="muted small">Showing ${defaultItems.length} of ${items.length} ${itemLabel}${items.length === 1 ? "" : "s"}.</p><div id="filtered">${jobCards(
+    )}</select></label><label>Workplace<select id="f-work"><option value="">All</option><option>remote</option><option>hybrid</option><option>onsite</option><option>unknown</option></select></label><label>Trust<select id="f-trust"><option value="">All</option><option>verified</option><option>likely-legitimate</option><option>unverified</option><option>suspicious</option></select></label><div class="filter-actions"><button class="primary" type="submit">Apply filters</button>${filterKey === "discover" ? `<button class="ghost" type="button" data-reset-discover-filters>Reset filters</button>` : ""}</div></form><p id="filter-summary" class="muted small">Showing ${defaultItems.length} of ${items.length} ${itemLabel}${items.length === 1 ? "" : "s"}.</p><div id="filtered">${jobCards(
     sortJobs(defaultItems, filters.sort),
   )}</div></div>`;
   setJobFilterInputs(filters);
@@ -203,6 +210,9 @@ function renderJobs(items, options = {}) {
     event.preventDefault();
     filterJobs(items, itemLabel, filterKey);
   });
+  document
+    .querySelector("[data-reset-discover-filters]")
+    ?.addEventListener("click", resetDiscoverFilters);
   bindCommon();
 }
 
@@ -226,6 +236,85 @@ function getJobFilters(key, defaultMinimumScore, defaultQuality) {
       trust: "",
     };
   return state.jobFilters[key];
+}
+
+function getDiscoverFilters() {
+  const params = new URLSearchParams(location.search);
+  return {
+    sort: queryChoice(
+      params,
+      "sort",
+      ["confidence-desc", "confidence-asc", "newest", "trust"],
+      "confidence-desc",
+    ),
+    quality: queryChoice(
+      params,
+      "quality",
+      ["worthwhile", "potential", "real", "all"],
+      "all",
+    ),
+    recommendation: queryChoice(
+      params,
+      "recommendation",
+      [
+        "strong-apply",
+        "apply",
+        "stretch",
+        "eligibility-unclear",
+        "low-priority",
+        "skip",
+      ],
+      "",
+    ),
+    minimumScore: queryScore(params.get("minimumScore")),
+    visa: queryChoice(
+      params,
+      "visa",
+      ["not-incompatible", "positive", "unknown"],
+      "",
+    ),
+    country: params.get("country") || "",
+    workplace: queryChoice(
+      params,
+      "workplace",
+      ["remote", "hybrid", "onsite", "unknown"],
+      "",
+    ),
+    trust: queryChoice(
+      params,
+      "trust",
+      ["verified", "likely-legitimate", "unverified", "suspicious"],
+      "",
+    ),
+  };
+}
+
+function queryChoice(params, key, allowed, fallback) {
+  const value = params.get(key);
+  return value && allowed.includes(value) ? value : fallback;
+}
+
+function queryScore(value) {
+  const score = Number(value);
+  return Number.isFinite(score) ? Math.max(0, Math.min(100, score)) : 0;
+}
+
+function updateDiscoverFilterQuery(filters) {
+  const params = new URLSearchParams({
+    sort: filters.sort,
+    quality: filters.quality,
+    minimumScore: String(filters.minimumScore),
+  });
+  for (const key of ["recommendation", "visa", "country", "workplace", "trust"])
+    if (filters[key]) params.set(key, filters[key]);
+  history.replaceState(null, "", `/discover?${params.toString()}`);
+  state.discoverPath = `${location.pathname}${location.search}`;
+}
+
+function resetDiscoverFilters() {
+  history.pushState(null, "", "/discover");
+  state.discoverPath = "/discover";
+  render();
 }
 
 function setJobFilterInputs(filters) {
@@ -290,6 +379,7 @@ function filterJobs(items, itemLabel = "job", filterKey = currentRoute()) {
     trust: v("f-trust"),
   };
   state.jobFilters[filterKey] = filters;
+  if (filterKey === "discover") updateDiscoverFilterQuery(filters);
   const filtered = filterJobItems(items, filters);
   document.querySelector("#filtered").innerHTML = jobCards(
     sortJobs(filtered, filters.sort),
@@ -800,6 +890,8 @@ function bindCommon() {
   document.querySelectorAll("[data-job-link]").forEach((link) =>
     link.addEventListener("click", (event) => {
       event.preventDefault();
+      if (currentRoute() === "discover")
+        state.discoverPath = `${location.pathname}${location.search}`;
       history.pushState(null, "", link.href);
       render();
     }),
