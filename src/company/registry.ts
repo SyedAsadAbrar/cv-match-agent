@@ -5,10 +5,11 @@ import { AshbyConnector } from "../discovery/connectors/ashby";
 import { CareersPageConnector } from "../discovery/connectors/careersPage";
 import { GreenhouseConnector } from "../discovery/connectors/greenhouse";
 import { LeverConnector } from "../discovery/connectors/lever";
+import { isWorkInDenmarkPortal } from "../discovery/connectors/workInDenmark";
 import {
-  isWorkInDenmarkPortal,
-  WorkInDenmarkConnector,
-} from "../discovery/connectors/workInDenmark";
+  isYcJobsPortal,
+  OfficialJobPortalConnector,
+} from "../discovery/connectors/ycJobs";
 import type { JobSourceConnector } from "../discovery/types";
 import {
   companyImportRunSchema,
@@ -359,7 +360,7 @@ export async function verifyCompanySource(
     lever: new LeverConnector(),
     ashby: new AshbyConnector(),
     custom: new CareersPageConnector(),
-    "official-job-portal": new WorkInDenmarkConnector(),
+    "official-job-portal": new OfficialJobPortalConnector(),
   };
   const verificationRunId = store.startCompanyVerificationRun(company);
   const checkedAt = new Date().toISOString();
@@ -367,7 +368,8 @@ export async function verifyCompanySource(
   try {
     const isVerifiedOfficialPortal =
       working.sourceType === "official-job-portal" &&
-      isWorkInDenmarkPortal(working.careersUrl);
+      (isWorkInDenmarkPortal(working.careersUrl) ||
+        isYcJobsPortal(working.careersUrl));
     let genericInspection:
       Awaited<ReturnType<typeof crawlOfficialCareersSite>> | undefined;
     if (
@@ -475,7 +477,9 @@ export async function verifyCompanySource(
         maximumJobs: 1,
       });
       evidence = [
-        "Valid Work in Denmark public vacancy-feed response.",
+        isYcJobsPortal(working.careersUrl)
+          ? "Valid Y Combinator Jobs public structured response."
+          : "Valid Work in Denmark public vacancy-feed response.",
         "This official portal links applicants to each employer's posting.",
         ...selectedSourceEvidence(working, checkedAt),
       ];

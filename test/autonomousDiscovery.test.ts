@@ -24,6 +24,7 @@ import { AshbyConnector } from "../src/discovery/connectors/ashby";
 import { GreenhouseConnector } from "../src/discovery/connectors/greenhouse";
 import { LeverConnector } from "../src/discovery/connectors/lever";
 import { WorkInDenmarkConnector } from "../src/discovery/connectors/workInDenmark";
+import { YcJobsConnector } from "../src/discovery/connectors/ycJobs";
 import { areDuplicateJobs } from "../src/discovery/deduplicate";
 import { applyHardFilters } from "../src/discovery/filter";
 import { extractSkills, normalizeJob } from "../src/discovery/normalize";
@@ -206,6 +207,59 @@ test("Work in Denmark maps real portal vacancies to employer application links",
   );
   assert.equal(job.locationText, "2100, København Ø, Denmark");
   assert.equal(job.employmentType, "Full-time");
+});
+
+test("YC Jobs imports canonical YC role details without accessing blocked Work at a Startup pages", async () => {
+  const listing = ycPage({
+    jobPostings: [
+      {
+        id: 99318,
+        title: "Software Engineer",
+        url: "/companies/epsilon3-inc/jobs/example-software-engineer",
+        applyUrl: "https://account.ycombinator.com/authenticate?job=99318",
+        location: "London, England, GB",
+        type: "Full-time",
+        visa: "Will sponsor",
+        companyName: "Epsilon3",
+        companyOneLiner: "Engineering operations software",
+      },
+    ],
+  });
+  const detail = ycPage({
+    job: {
+      id: 99318,
+      title: "Software Engineer",
+      url: "/companies/epsilon3-inc/jobs/example-software-engineer",
+      applyUrl: "https://account.ycombinator.com/authenticate?job=99318",
+      location: "London, England, GB",
+      type: "Full-time",
+      visa: "Will sponsor",
+      companyName: "Epsilon3",
+      description: "Build reliable TypeScript and React systems.",
+    },
+  });
+  const connector = new YcJobsConnector({
+    fetchImpl: async (input) =>
+      htmlResponse(String(input).endsWith("/jobs") ? listing : detail),
+    lookup: publicLookup,
+    minRequestIntervalMs: 0,
+  });
+  const ycCompany = {
+    ...company("yc-jobs", "greenhouse"),
+    sourceType: "official-job-portal",
+    careersUrl: "https://www.ycombinator.com/jobs",
+  };
+  const reference = (
+    await connector.discoverJobs({
+      profile: createInitialCandidateProfile(),
+      company: ycCompany,
+    })
+  )[0];
+  const job = await connector.fetchJob(reference);
+  assert.equal(reference.sourceName, "Y Combinator Jobs · Work at a Startup");
+  assert.equal(job.company, "Epsilon3");
+  assert.equal(job.canonicalUrl.includes("account.ycombinator.com"), true);
+  assert.match(job.description, /Visa: Will sponsor/);
 });
 
 test("Ashby accepts dotted public board names without allowing path traversal", async () => {
@@ -979,4 +1033,18 @@ function jsonResponse(payload: unknown): Response {
     status: 200,
     headers: { "Content-Type": "application/json" },
   });
+}
+
+function htmlResponse(html: string): Response {
+  return new Response(html, {
+    status: 200,
+    headers: { "Content-Type": "text/html; charset=utf-8" },
+  });
+}
+
+function ycPage(props: Record<string, unknown>): string {
+  const data = JSON.stringify({ component: "fixture", props })
+    .replace(/&/g, "&amp;")
+    .replace(/"/g, "&quot;");
+  return `<div data-page="${data}"></div>`;
 }

@@ -18,6 +18,28 @@ export class ConnectorHttpClient {
   constructor(private readonly options: ConnectorOptions = {}) {}
 
   async json(url: string, request: JsonRequestOptions = {}): Promise<unknown> {
+    const response = await this.response(url, request, [
+      "application/json",
+      "text/json",
+    ]);
+    try {
+      return (await response.json()) as unknown;
+    } catch (error) {
+      throw new Error(
+        `Invalid JSON from ${new URL(url).hostname}: ${formatError(error)}`,
+      );
+    }
+  }
+
+  async html(url: string, request: JsonRequestOptions = {}): Promise<string> {
+    return (await this.response(url, request, ["text/html"])).text();
+  }
+
+  private async response(
+    url: string,
+    request: JsonRequestOptions,
+    allowedContentTypes: string[],
+  ): Promise<Response> {
     const waitMs =
       (this.options.minRequestIntervalMs ?? 50) -
       (Date.now() - this.lastRequestAt);
@@ -35,20 +57,14 @@ export class ConnectorHttpClient {
         process.env.JOB_FETCH_MAX_RESPONSE_BYTES,
         5_000_000,
       ),
-      allowedContentTypes: ["application/json", "text/json"],
+      allowedContentTypes,
       headers: request.headers,
       lookup: this.options.lookup,
     };
     const response = await safeFetch(url, safeOptions);
     if (!response.ok)
       throw new Error(`HTTP ${response.status} from ${new URL(url).hostname}.`);
-    try {
-      return (await response.json()) as unknown;
-    } catch (error) {
-      throw new Error(
-        `Invalid JSON from ${new URL(url).hostname}: ${formatError(error)}`,
-      );
-    }
+    return response;
   }
 }
 

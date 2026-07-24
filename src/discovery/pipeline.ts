@@ -9,10 +9,11 @@ import { AshbyConnector } from "./connectors/ashby";
 import { GreenhouseConnector } from "./connectors/greenhouse";
 import { LeverConnector } from "./connectors/lever";
 import { CareersPageConnector } from "./connectors/careersPage";
+import { isWorkInDenmarkPortal } from "./connectors/workInDenmark";
 import {
-  isWorkInDenmarkPortal,
-  WorkInDenmarkConnector,
-} from "./connectors/workInDenmark";
+  isYcJobsPortal,
+  OfficialJobPortalConnector,
+} from "./connectors/ycJobs";
 import { applyHardFilters } from "./filter";
 import { normalizeJob } from "./normalize";
 import { generateSearchPlan } from "./searchPlan";
@@ -45,7 +46,7 @@ export async function runDiscovery(options: DiscoveryPipelineOptions = {}) {
       lever: new LeverConnector(),
       ashby: new AshbyConnector(),
       "company-careers": new CareersPageConnector(),
-      "official-job-portal": new WorkInDenmarkConnector(),
+      "official-job-portal": new OfficialJobPortalConnector(),
     };
   const companies = (options.companies ?? store.listCompanies())
     .map((company) => targetCompanySchema.parse(company))
@@ -410,7 +411,8 @@ function connectorSource(company: TargetCompany): JobSourceType | undefined {
     return company.atsProvider;
   if (
     company.sourceType === "official-job-portal" &&
-    isWorkInDenmarkPortal(company.careersUrl)
+    (isWorkInDenmarkPortal(company.careersUrl) ||
+      isYcJobsPortal(company.careersUrl))
   )
     return "official-job-portal";
   if (

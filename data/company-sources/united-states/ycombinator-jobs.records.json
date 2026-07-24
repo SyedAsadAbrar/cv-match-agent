@@ -1,0 +1,21 @@
+{
+  "records": [
+    {
+      "sourceRecordId": "ycombinator-jobs-work-at-a-startup",
+      "legalName": "Y Combinator",
+      "displayName": "Y Combinator Jobs",
+      "aliases": ["YC Jobs", "Work at a Startup"],
+      "sourceType": "official-job-portal",
+      "sourceName": "Y Combinator Jobs · Work at a Startup",
+      "sourceUrl": "https://www.ycombinator.com/jobs",
+      "sourceRetrievedAt": "2026-07-24T00:00:00.000Z",
+      "country": "United States",
+      "cities": [],
+      "websiteUrl": "https://www.ycombinator.com/",
+      "careersUrl": "https://www.ycombinator.com/jobs",
+      "industries": ["startup ecosystem", "job platform"],
+      "hiringSourceClassification": "job-platform",
+      "notes": "YC's public jobs page embeds structured active job postings and links to canonical YC role details. The source avoids the Work at a Startup domain, which returned HTTP 406 to automated retrieval."
+    }
+  ]
+}
