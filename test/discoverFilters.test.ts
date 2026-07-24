@@ -26,3 +26,23 @@ test("Discover exposes a reset control and returns to a clean /discover URL", ()
   assert.match(app, /function resetDiscoverFilters\(\)/);
   assert.match(app, /history\.pushState\(null, "", "\/discover"\)/);
 });
+
+test("Discover filter actions use a full-width responsive action row", () => {
+  const styles = readFileSync(
+    path.resolve(__dirname, "../public/styles.css"),
+    "utf8",
+  );
+
+  assert.match(
+    styles,
+    /\.filter-actions\s*\{[\s\S]*grid-column: 1 \/ -1;[\s\S]*gap: 10px;/,
+  );
+  assert.match(
+    styles,
+    /\.filter-actions button\s*\{[\s\S]*white-space: nowrap;/,
+  );
+  assert.match(
+    styles,
+    /@media \(max-width: 640px\)[\s\S]*\.filter-actions\s*\{[\s\S]*flex-wrap: wrap;/,
+  );
+});
